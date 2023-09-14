@@ -26,6 +26,39 @@ namespace poise::scanner
         m_code = inCodeStream.str();
     }
 
+    auto Scanner::getCodeAtLine(std::size_t line) const -> std::string_view
+    {
+        auto current = 1zu;
+        auto strIndex = 0zu;
+
+        while (current < line) {
+            if (strIndex > m_code.length()) {
+                return "";
+            }
+
+            strIndex++;
+
+            if (m_code[strIndex - 1] == '\n') {
+                current++;
+            }
+        }
+
+        auto pos = m_code.find('\n', strIndex);
+        return std::string_view{m_code.data() + strIndex, pos - strIndex};
+    }
+
+    auto Scanner::getNumLines() const -> std::size_t
+    {
+        auto count = 0zu;
+        for (auto i = 0zu; i < m_code.length(); i++) {
+            if (m_code[i] == '\n') {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
     auto Scanner::skipWhitespace() -> void
     {
         while (auto c = peek()) {
@@ -37,7 +70,7 @@ namespace poise::scanner
                     break;
                 case '\n':
                     m_line++;
-                    m_column = 0;
+                    m_column = 0zu;
                     advance();
                     break;
                 // TODO: comments
@@ -54,7 +87,7 @@ namespace poise::scanner
         } else {
             m_current++;
             m_column++;
-            return m_code[m_current - 1];
+            return m_code[m_current - 1zu];
         }
     }
 
@@ -69,19 +102,19 @@ namespace poise::scanner
 
     auto Scanner::peekNext() -> std::optional<char>
     {
-        if (m_current >= m_code.length() - 1) {
+        if (m_current >= m_code.length() - 1zu) {
             return {};
         } else {
-            return m_code[m_current + 1];
+            return m_code[m_current + 1zu];
         }
     }
 
     auto Scanner::peekPrevious() -> std::optional<char>
     {
-        if (m_current == 0) {
+        if (m_current == 0zu) {
             return {};
         } else {
-            return m_code[m_current - 1];
+            return m_code[m_current - 1zu];
         }
     }
 
@@ -107,10 +140,10 @@ namespace poise::scanner
                 return string();
             }
 
-            return Token(TokenType::Error, "");
+            return Token(TokenType::Error, m_line, m_column, "Invalid text");
         }
 
-        return Token(TokenType::EndOfFile, "");
+        return Token(TokenType::EndOfFile, m_line, m_column, "");
     }
 
     auto Scanner::identifier() -> Token
@@ -167,12 +200,12 @@ namespace poise::scanner
 
                 if (*c == '\n') {
                     m_line++;
-                    m_column = 0;
+                    m_column = 0zu;
                 }
 
                 advance();
             } else {
-                return Token(TokenType::Error, "Unterminated string");
+                return Token(TokenType::Error, m_line, m_column, "Unterminated string");
             }
         }
 
@@ -182,6 +215,7 @@ namespace poise::scanner
 
     auto Scanner::makeToken(TokenType tokenType) -> Token
     {
-        return Token(tokenType, std::string_view{m_code.data() + m_start, m_current - m_start});
+        auto length = m_current - m_start;
+        return Token(tokenType, m_line, m_column - length, std::string_view{m_code.data() + m_start, length});
     }
 }

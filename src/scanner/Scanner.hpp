@@ -1,3 +1,6 @@
+#ifndef POISE_SCANNER_HPP
+#define POISE_SCANNER_HPP
+
 #include "Token.hpp"
 
 #include <cstdlib>
@@ -14,28 +17,32 @@ namespace poise::scanner
     public:
         Scanner(std::filesystem::path inFilePath);
 
+        [[nodiscard]] auto getCodeAtLine(std::size_t line) const -> std::string_view;
+        [[nodiscard]] auto getNumLines() const -> std::size_t;
+        [[nodiscard]] auto scanToken() -> Token;
+
+    private:
         auto skipWhitespace() -> void;
         auto advance() -> std::optional<char>;
 
-        auto peek() -> std::optional<char>;
-        auto peekNext() -> std::optional<char>;
-        auto peekPrevious() -> std::optional<char>;
+        [[nodiscard]] auto peek() -> std::optional<char>;
+        [[nodiscard]] auto peekNext() -> std::optional<char>;
+        [[nodiscard]] auto peekPrevious() -> std::optional<char>;
 
-        auto scanToken() -> Token;
+        [[nodiscard]] auto identifier() -> Token;
+        [[nodiscard]] auto number() -> Token;
+        [[nodiscard]] auto string() -> Token;
 
-        auto identifier() -> Token;
-        auto number() -> Token;
-        auto string() -> Token;
+        [[nodiscard]] auto makeToken(TokenType tokenType) -> Token;
 
-        auto makeToken(TokenType tokenType) -> Token;
-
-    private:
         std::string m_code;
 
         std::size_t m_start{}, m_current{};
-        std::size_t m_line{1}, m_column{1};
+        std::size_t m_line{1zu}, m_column{0zu};
 
         std::unordered_map<char, TokenType> m_symbolLookup;
         std::unordered_map<std::string_view, TokenType> m_keywordLookup;
     };
 }
+
+#endif

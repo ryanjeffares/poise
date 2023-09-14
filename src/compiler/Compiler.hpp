@@ -1,3 +1,8 @@
+#ifndef POISE_COMPILER_HPP
+#define POISE_COMPILER_HPP
+
+#include "../runtime/Op.hpp"
+#include "../runtime/Vm.hpp"
 #include "../scanner/Scanner.hpp"
 
 #include <filesystem>
@@ -16,14 +21,17 @@ namespace poise::compiler
     class Compiler
     {
     public:
-        Compiler(std::filesystem::path inFilePath);
+        Compiler(runtime::Vm* vm, std::filesystem::path inFilePath);
 
-        auto compile() -> CompileResult;
+        [[nodiscard]] auto compile() -> CompileResult;
 
     private:
+        auto emitOp(runtime::Op op) -> void;
+        auto emitConstant(runtime::Value value) -> void;
+
         auto advance() -> void;
-        auto match(scanner::TokenType expected) -> bool;
-        auto check(scanner::TokenType expected) -> bool;
+        [[nodiscard]] auto match(scanner::TokenType expected) -> bool;
+        [[nodiscard]] auto check(scanner::TokenType expected) -> bool;
 
         auto declaration() -> void;
         auto funcDeclaration() -> void;
@@ -37,9 +45,16 @@ namespace poise::compiler
 
         auto errorAtCurrent(const std::string& message) -> void;
         auto errorAtPrevious(const std::string& message) -> void;
-        auto error() -> void;
+        auto error(const scanner::Token& token, const std::string& message) -> void;
 
+        std::filesystem::path m_filePath;
         scanner::Scanner m_scanner;
         std::optional<scanner::Token> m_previous, m_current;
+
+        runtime::Vm* m_vm;
+
+        bool m_hadError{};
     };
 }
+
+#endif

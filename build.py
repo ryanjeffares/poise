@@ -11,6 +11,6 @@ if __name__ == '__main__':
             sys.exit(1)
         os.system(f'cmake -B build -S . -G "Unix Makefiles" -DCMAKE_BUILD_TYPE={config} -DCMAKE_EXPORT_COMPILE_COMMANDS=1')
     else:
-        os.system('cmake -B build -S . -G "Unix Makefiles" -DCMAKE_EXPORT_COMPILE_COMMANDS=1')
+        os.system('cmake -B build -S . -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=1')
 
     os.system('cmake --build build')

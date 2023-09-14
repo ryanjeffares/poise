@@ -36,19 +36,25 @@ namespace fmt
             case TokenType::Error:
                 return formatter<string_view>::format("Error", context);
         }
+
+        return formatter<string_view>::format("Unknown", context);
     }
 }
 
 namespace poise::scanner
 {
+    Token::Token(TokenType tokenType, std::size_t line, std::size_t column, std::string_view text)
+        : m_tokenType{tokenType}
+        , m_line{line}
+        , m_column{column}
+        , m_text{text}
+    {
+
+    }
+
     auto Token::length() const -> std::size_t
     {
         return m_text.length();
-    }
-
-    auto Token::tokenType() const -> TokenType
-    {
-        return m_tokenType;
     }
 
     auto Token::text() const -> std::string_view
@@ -56,8 +62,28 @@ namespace poise::scanner
         return m_text;
     }
 
+    auto Token::string() const -> std::string
+    {
+        return std::string{text()};
+    }
+
+    auto Token::tokenType() const -> TokenType
+    {
+        return m_tokenType;
+    }
+
+    auto Token::line() const -> std::size_t
+    {
+        return m_line;
+    }
+
+    auto Token::column() const -> std::size_t
+    {
+        return m_column;
+    }
+
     auto Token::print() const -> void
     {
-        fmt::print("Token {{ text = '{}', type = {} }}\n", m_text, m_tokenType);
+        fmt::print("Token {{ type = {}, line = {}, column = {}, length = {}, text = '{}' }}\n", m_tokenType, m_line, m_column, m_text.length(), m_text);
     }
 }
