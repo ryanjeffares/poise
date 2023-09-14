@@ -1,0 +1,13 @@
+program = { declaration } EOF ;
+
+declaration = funcDecl | statement ;
+
+funcDecl = "func", IDENTIFIER, "(", [ IDENTIFIER, [ { ",", IDENTIFIER } ] ], ")", ":", [ { declaration } ], "end" ;
+
+statement = expressionStatement | printlnStatement ;
+expressionStatement = expression, ";" ;
+printlnStatement = "println", "(", expression, ")" ;
+
+expression = STRING ;
+
+STRING = '"', [ { all characters - '"' } ], '"' ;
