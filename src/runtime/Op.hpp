@@ -1,6 +1,7 @@
 #ifndef POISE_OP_HPP
 #define POISE_OP_HPP
 
+#include <cstddef>
 #include <cstdint>
 
 namespace poise::runtime
