@@ -121,6 +121,9 @@ namespace poise::compiler
             declaration();
         }
 
+        // TODO: handle returns properly
+        emitOp(runtime::Op::Return, m_previous->line());
+
         m_vm->setCurrentFunction(prevFunction);
 
         emitConstant(std::move(function));

@@ -28,5 +28,10 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
     poise::runtime::Vm vm;
     poise::compiler::Compiler compiler{&vm, std::move(inFilePath)};
 
-    return static_cast<int>(compiler.compile());
+    auto compileResult = compiler.compile();
+    if (compileResult != poise::compiler::CompileResult::Success) {
+        return static_cast<int>(compileResult);
+    }
+
+    return static_cast<int>(vm.run());
 }

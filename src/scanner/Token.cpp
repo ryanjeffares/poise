@@ -87,3 +87,4 @@ namespace poise::scanner
         fmt::print("Token {{ type = {}, line = {}, column = {}, length = {}, text = '{}' }}\n", m_tokenType, m_line, m_column, m_text.length(), m_text);
     }
 }
+

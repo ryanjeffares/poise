@@ -84,32 +84,26 @@ namespace poise::runtime
 
     auto Value::print() const -> void
     {
-        switch (type()) {
-            case Type::Null:
-                fmt::print("null");
-                break;
-            case Type::Object:
-                object()->print();
-                break;
-            case Type::String:
-                fmt::print("{}", value<std::string>());
-                break;
-        }
+        fmt::print("{}", toString());
     }
 
     auto Value::printLn() const -> void
     {
+        fmt::print("{}\n", toString());
+    }
+
+    auto Value::toString() const -> std::string
+    {
         switch (type()) {
             case Type::Null:
-                fmt::print("null\n");
-                break;
+                return "null";
             case Type::Object:
-                object()->printLn();
-                break;
+                return object()->toString();
             case Type::String:
-                fmt::print("{}\n", value<std::string>());
-                break;
+                return value<std::string>();
         }
+
+        return "unknown";
     }
 
     auto Value::data() const -> decltype(m_data)
@@ -121,5 +115,15 @@ namespace poise::runtime
     {
         m_data.null = std::nullptr_t{};
         m_type = Type::Null;
+    }
+}
+
+namespace fmt
+{
+    using namespace poise::runtime;
+
+    auto formatter<Value>::format(const Value& value, format_context& context) const -> decltype(context.out())
+    {
+        return formatter<string_view>::format(value.toString(), context);
     }
 }

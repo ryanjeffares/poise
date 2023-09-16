@@ -3,6 +3,8 @@
 
 #include "../objects/PoiseObject.hpp"
 
+#include <fmt/format.h>
+
 #include <cstddef>
 #include <string>
 #include <type_traits>
@@ -92,6 +94,7 @@ namespace poise::runtime
 
         auto print() const -> void;
         auto printLn() const -> void;
+        auto toString() const -> std::string;
 
     private:
         union
@@ -108,4 +111,12 @@ namespace poise::runtime
     };
 }
 
+namespace fmt
+{
+    template<>
+    struct formatter<poise::runtime::Value> : formatter<string_view>
+    {
+        auto format(const poise::runtime::Value& value, format_context& context) const -> decltype(context.out());
+    };
+}
 #endif

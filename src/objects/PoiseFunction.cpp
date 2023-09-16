@@ -29,11 +29,26 @@ namespace poise::objects
 
     auto PoiseFunction::print() const -> void
     {
-        fmt::print("<function instance '{}' at {}>", m_name, fmt::ptr(this));
+        fmt::print("{}", toString());
     }
 
     auto PoiseFunction::printLn() const -> void
     {
-        fmt::print("<function instance '{}' at {}>\n", m_name, fmt::ptr(this));
+        fmt::print("{}\n", toString());
+    }
+
+    auto PoiseFunction::toString() const -> std::string
+    {
+        return fmt::format("<function instance '{}' at {}>\n", m_name, fmt::ptr(this));
+    }
+
+    auto PoiseFunction::opList() const -> const std::vector<runtime::OpLine>*
+    {
+        return &m_ops;
+    }
+
+    auto PoiseFunction::constantList() const -> const std::vector<runtime::Value>*
+    {
+        return &m_constants;
     }
 }

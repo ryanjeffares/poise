@@ -2,7 +2,6 @@
 #define POISE_FUNCTION_HPP
 
 #include <cstdint>
-#include <string>
 #include <vector>
 
 #include "PoiseObject.hpp"
@@ -24,6 +23,10 @@ namespace poise::objects
 
         auto print() const -> void override;
         auto printLn() const -> void override;
+        auto toString() const -> std::string override;
+
+        auto opList() const -> const std::vector<runtime::OpLine>*;
+        auto constantList() const -> const std::vector<runtime::Value>*;
 
     private:
         std::string m_name;

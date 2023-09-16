@@ -1,5 +1,8 @@
 #include "Vm.hpp"
 
+#include <fmt/color.h>
+#include <fmt/core.h>
+
 namespace poise::runtime
 {
     auto Vm::setCurrentFunction(objects::PoiseFunction* function) -> void
@@ -33,13 +36,13 @@ namespace poise::runtime
     auto Vm::run() -> RunResult
     {
         std::vector<Value> stack;
-        std::vector<Value> functions;
+        std::vector<Value> availabelFunctions;
 
-        auto currentOpList = &m_globalOps;
-        auto currentConstantList = &m_globalConstants;
+        std::vector<const std::vector<OpLine>*> opListStack{&m_globalOps};
+        std::vector<const std::vector<Value>*> constantListStack{&m_globalConstants};
 
-        auto currentOpIndex = 0zu;
-        auto currentConstantIndex = 0zu;
+        std::vector<std::size_t> opIndexStack = {0zu};
+        std::vector<std::size_t> constantIndexStack = {0zu};
 
         auto pop = [&] -> Value {
             auto value = std::move(stack.back());
@@ -47,26 +50,57 @@ namespace poise::runtime
             return value;
         };
 
+#define PANIC(message) \
+        do { \
+            fmt::print(stderr, fmt::emphasis::bold | fmt::fg(fmt::color::red), "PANIC: "); \
+            fmt::print(stderr, "{}\n", message); \
+            return RunResult::RuntimeError; \
+        } while (false) \
+
         while (true) {
-            auto [op, line] = currentOpList->at(currentOpIndex++);
+            auto opList = opListStack.back();
+            auto constantList = constantListStack.back();
+            auto& opIndex = opIndexStack.back();
+            auto& constantIndex = constantIndexStack.back();
+
+            auto [op, line] = opList->at(opIndex++);
 
             switch (op) {
                 case Op::Call: {
-                    auto function = pop();
+                    auto value = pop();
+                    if (auto object = value.object()) {
+                        if (auto function = object->asFunction()) {
+                            opListStack.push_back(function->opList());
+                            constantListStack.push_back(function->constantList());
+                            opIndexStack.push_back(0zu);
+                            constantListStack.push_back(0zu);
+                        } else {
+                            PANIC(fmt::format("{} is not a function", object->toString()));
+                        } 
+                    } else {
+                        PANIC(fmt::format("{} is not callable", value));
+                    }
                     break;
                 }
                 case Op::DeclareFunction: {
-                    auto function = currentConstantList->at(currentConstantIndex++);
-                    functions.emplace_back(std::move(function));
+                    auto function = constantList->at(constantIndex++);
+                    availabelFunctions.emplace_back(std::move(function));
                     break;
                 }
                 case Op::LoadConstant: {
-                    stack.push_back(currentConstantList->at(currentConstantIndex++));
+                    stack.push_back(constantList->at(constantIndex++));
                     break;
                 }
                 case Op::PrintLn: {
                     auto value = pop();
                     value.printLn();
+                    break;
+                }
+                case Op::Return: {
+                    opListStack.pop_back();
+                    constantListStack.pop_back();
+                    opIndexStack.pop_back();
+                    constantIndexStack.pop_back();
                     break;
                 }
             }

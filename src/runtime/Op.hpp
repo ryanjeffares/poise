@@ -12,6 +12,7 @@ namespace poise::runtime
         DeclareFunction,
         LoadConstant,
         PrintLn,
+        Return,
     };
 
     struct OpLine

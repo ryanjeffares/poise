@@ -2,6 +2,7 @@
 #define POISE_OBJECT_HPP
 
 #include <cstddef>
+#include <string>
 
 namespace poise::objects
 {
@@ -30,6 +31,8 @@ namespace poise::objects
 
         virtual auto print() const -> void = 0;
         virtual auto printLn() const -> void = 0;
+        virtual auto toString() const -> std::string = 0;
+
     private:
         std::size_t m_refCount{};
     };
