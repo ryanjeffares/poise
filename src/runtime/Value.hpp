@@ -87,8 +87,11 @@ namespace poise::runtime
             } 
         }
 
-        [[nodiscard]] auto object() -> objects::PoiseObject*;
+        [[nodiscard]] auto object() const -> objects::PoiseObject*;
         [[nodiscard]] auto type() const -> Type;
+
+        auto print() const -> void;
+        auto printLn() const -> void;
 
     private:
         union

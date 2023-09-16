@@ -1,5 +1,7 @@
 #include "Value.hpp"
 
+#include <fmt/core.h>
+
 namespace poise::runtime
 {
     Value::Value()
@@ -75,9 +77,39 @@ namespace poise::runtime
         return m_type;
     }
 
-    auto Value::object() -> objects::PoiseObject*
+    auto Value::object() const -> objects::PoiseObject*
     {
         return m_data.object;
+    }
+
+    auto Value::print() const -> void
+    {
+        switch (type()) {
+            case Type::Null:
+                fmt::print("null");
+                break;
+            case Type::Object:
+                object()->print();
+                break;
+            case Type::String:
+                fmt::print("{}", value<std::string>());
+                break;
+        }
+    }
+
+    auto Value::printLn() const -> void
+    {
+        switch (type()) {
+            case Type::Null:
+                fmt::print("null\n");
+                break;
+            case Type::Object:
+                object()->printLn();
+                break;
+            case Type::String:
+                fmt::print("{}\n", value<std::string>());
+                break;
+        }
     }
 
     auto Value::data() const -> decltype(m_data)

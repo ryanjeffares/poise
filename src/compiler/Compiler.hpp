@@ -26,7 +26,7 @@ namespace poise::compiler
         [[nodiscard]] auto compile() -> CompileResult;
 
     private:
-        auto emitOp(runtime::Op op) -> void;
+        auto emitOp(runtime::Op op, std::size_t line) -> void;
         auto emitConstant(runtime::Value value) -> void;
 
         auto advance() -> void;

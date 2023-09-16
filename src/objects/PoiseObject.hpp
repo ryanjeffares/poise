@@ -28,6 +28,8 @@ namespace poise::objects
 
         virtual auto asFunction() -> PoiseFunction*;
 
+        virtual auto print() const -> void = 0;
+        virtual auto printLn() const -> void = 0;
     private:
         std::size_t m_refCount{};
     };

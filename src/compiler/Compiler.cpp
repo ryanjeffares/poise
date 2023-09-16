@@ -49,9 +49,9 @@ namespace poise::compiler
         return CompileResult::Success;
     }
 
-    auto Compiler::emitOp(runtime::Op op) -> void
+    auto Compiler::emitOp(runtime::Op op, std::size_t line) -> void
     {
-        m_vm->emitOp(op);
+        m_vm->emitOp(op, line);
     }
 
     auto Compiler::emitConstant(runtime::Value value) -> void
@@ -101,10 +101,13 @@ namespace poise::compiler
     {
         RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected function name");
         auto functionName = m_previous->string();
+        auto line = m_previous->line();
 
         RETURN_IF_NO_MATCH(scanner::TokenType::OpenParen, "Expected '(' after function name");
         RETURN_IF_NO_MATCH(scanner::TokenType::CloseParen, "Expected ')' after function arguments");
         RETURN_IF_NO_MATCH(scanner::TokenType::Colon, "Expected ':' after function signature");
+
+        auto prevFunction = m_vm->getCurrentFunction();
 
         auto function = runtime::Value::createObject<objects::PoiseFunction>(std::move(functionName), std::uint8_t{0});
         m_vm->setCurrentFunction(function.object()->asFunction());
@@ -118,8 +121,10 @@ namespace poise::compiler
             declaration();
         }
 
+        m_vm->setCurrentFunction(prevFunction);
+
         emitConstant(std::move(function));
-        emitOp(runtime::Op::DeclareFunction);
+        emitOp(runtime::Op::DeclareFunction, line);
     }
 
     auto Compiler::statement() -> void
@@ -136,6 +141,7 @@ namespace poise::compiler
         RETURN_IF_NO_MATCH(scanner::TokenType::OpenParen, "Expected '(' after 'println'");
 
         expression();
+        emitOp(runtime::Op::PrintLn, m_previous->line());
 
         RETURN_IF_NO_MATCH(scanner::TokenType::CloseParen, "Expected ')' after 'println'");
         EXPECT_SEMICOLON();
@@ -195,6 +201,9 @@ namespace poise::compiler
 
             i++;
         }
+
+        emitConstant(std::move(result));
+        emitOp(runtime::Op::LoadConstant, m_previous->line());
     }
 
     auto Compiler::errorAtCurrent(const std::string& message) -> void

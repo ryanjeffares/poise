@@ -19,14 +19,17 @@ namespace poise::objects
 
         auto asFunction() -> PoiseFunction* override;
 
-        auto emitOp(runtime::Op op) -> void;
+        auto emitOp(runtime::Op op, std::size_t line) -> void;
         auto emitConstant(runtime::Value value) -> void;
+
+        auto print() const -> void override;
+        auto printLn() const -> void override;
 
     private:
         std::string m_name;
         std::uint8_t m_arity;
 
-        std::vector<runtime::Op> m_ops;
+        std::vector<runtime::OpLine> m_ops;
         std::vector<runtime::Value> m_constants;
     };
 }

@@ -12,6 +12,12 @@ namespace poise::runtime
         LoadConstant,
         PrintLn,
     };
+
+    struct OpLine
+    {
+        Op op;
+        std::size_t line;
+    };
 }
 
 #endif

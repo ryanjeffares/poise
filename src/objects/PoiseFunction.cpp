@@ -1,5 +1,8 @@
 #include "PoiseFunction.hpp"
 
+#include <fmt/core.h>
+#include <fmt/format.h>
+
 namespace poise::objects
 {
     PoiseFunction::PoiseFunction(std::string name, std::uint8_t arity)
@@ -14,13 +17,23 @@ namespace poise::objects
         return this;
     }
 
-    auto PoiseFunction::emitOp(runtime::Op op) -> void
+    auto PoiseFunction::emitOp(runtime::Op op, std::size_t line) -> void
     {
-        m_ops.push_back(op);
+        m_ops.emplace_back(op, line);
     }
 
     auto PoiseFunction::emitConstant(runtime::Value value) -> void
     {
         m_constants.emplace_back(std::move(value));
+    }
+
+    auto PoiseFunction::print() const -> void
+    {
+        fmt::print("<function instance '{}' at {}>", m_name, fmt::ptr(this));
+    }
+
+    auto PoiseFunction::printLn() const -> void
+    {
+        fmt::print("<function instance '{}' at {}>\n", m_name, fmt::ptr(this));
     }
 }

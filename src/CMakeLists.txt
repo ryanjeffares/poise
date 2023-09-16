@@ -4,6 +4,7 @@ add_executable(poise
     scanner/Token.cpp
     compiler/Compiler.cpp
     runtime/Value.cpp
+    runtime/Vm.cpp
     objects/PoiseFunction.cpp
     objects/PoiseObject.cpp
 )
