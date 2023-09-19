@@ -7,6 +7,7 @@ add_executable(poise
     runtime/Vm.cpp
     objects/PoiseFunction.cpp
     objects/PoiseObject.cpp
+        runtime/Op.cpp
 )
 
 if (CMAKE_BUILD_TYPE MATCHES Debug)

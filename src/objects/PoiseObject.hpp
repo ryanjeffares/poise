@@ -25,13 +25,13 @@ namespace poise::objects
 
         auto incrementRefCount() -> std::size_t;
         auto decrementRefCount() -> std::size_t;
-        auto refCount() const -> std::size_t;
+        [[nodiscard]] auto refCount() const -> std::size_t;
 
         virtual auto asFunction() -> PoiseFunction*;
 
         virtual auto print() const -> void = 0;
         virtual auto printLn() const -> void = 0;
-        virtual auto toString() const -> std::string = 0;
+        [[nodiscard]] virtual auto toString() const -> std::string = 0;
 
     private:
         std::size_t m_refCount{};

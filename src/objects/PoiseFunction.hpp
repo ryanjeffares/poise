@@ -23,14 +23,15 @@ namespace poise::objects
 
         auto print() const -> void override;
         auto printLn() const -> void override;
-        auto toString() const -> std::string override;
+        [[nodiscard]] auto toString() const -> std::string override;
 
-        auto opList() const -> const std::vector<runtime::OpLine>*;
-        auto constantList() const -> const std::vector<runtime::Value>*;
+        [[nodiscard]] auto opList() const -> const std::vector<runtime::OpLine>*;
+        [[nodiscard]] auto constantList() const -> const std::vector<runtime::Value>*;
+        [[nodiscard]] auto name() const -> const std::string&;
 
     private:
         std::string m_name;
-        std::uint8_t m_arity;
+        [[maybe_unused]] std::uint8_t m_arity;
 
         std::vector<runtime::OpLine> m_ops;
         std::vector<runtime::Value> m_constants;

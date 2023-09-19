@@ -47,13 +47,14 @@ namespace poise::compiler
         auto errorAtPrevious(const std::string& message) -> void;
         auto error(const scanner::Token& token, const std::string& message) -> void;
 
+        bool m_hadError{};
+
         std::filesystem::path m_filePath;
         scanner::Scanner m_scanner;
         std::optional<scanner::Token> m_previous, m_current;
 
         runtime::Vm* m_vm;
-
-        bool m_hadError{};
+        std::optional<runtime::Value> m_mainFunction{};
     };
 }
 

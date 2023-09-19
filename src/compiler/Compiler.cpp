@@ -46,6 +46,16 @@ namespace poise::compiler
             declaration();
         }
 
+        if (m_mainFunction) {
+            emitConstant(std::string{"main"});
+            emitOp(runtime::Op::LoadConstant, 0);
+            emitOp(runtime::Op::Call, 0);
+            emitOp(runtime::Op::Exit, m_scanner.getNumLines());
+        } else {
+            errorAtPrevious("No main function declared");
+            return CompileResult::CompileError;
+        }
+
         return CompileResult::Success;
     }
 
@@ -125,6 +135,10 @@ namespace poise::compiler
         emitOp(runtime::Op::Return, m_previous->line());
 
         m_vm->setCurrentFunction(prevFunction);
+
+        if (function.object()->asFunction()->name() == "main") {
+            m_mainFunction = function;
+        }
 
         emitConstant(std::move(function));
         emitOp(runtime::Op::DeclareFunction, line);

@@ -94,7 +94,7 @@ namespace poise::runtime
 
         auto print() const -> void;
         auto printLn() const -> void;
-        auto toString() const -> std::string;
+        [[nodiscard]] auto toString() const -> std::string;
 
     private:
         union
@@ -106,7 +106,7 @@ namespace poise::runtime
 
         Type m_type;
 
-        auto data() const -> decltype(m_data);
+        [[nodiscard]] auto data() const -> decltype(m_data);
         auto nullify() -> void;
     };
 }

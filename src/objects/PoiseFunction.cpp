@@ -19,7 +19,7 @@ namespace poise::objects
 
     auto PoiseFunction::emitOp(runtime::Op op, std::size_t line) -> void
     {
-        m_ops.emplace_back(op, line);
+        m_ops.push_back({op, line});
     }
 
     auto PoiseFunction::emitConstant(runtime::Value value) -> void
@@ -50,5 +50,10 @@ namespace poise::objects
     auto PoiseFunction::constantList() const -> const std::vector<runtime::Value>*
     {
         return &m_constants;
+    }
+
+    auto PoiseFunction::name() const -> const std::string&
+    {
+        return m_name;
     }
 }

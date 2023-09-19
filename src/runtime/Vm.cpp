@@ -18,7 +18,7 @@ namespace poise::runtime
     auto Vm::emitOp(Op op, std::size_t line) -> void
     {
         if (m_currentFunction == nullptr) {
-            m_globalOps.emplace_back(op, line);
+            m_globalOps.push_back({op, line});
         } else {
             m_currentFunction->emitOp(op, line);
         }
@@ -67,18 +67,19 @@ namespace poise::runtime
 
             switch (op) {
                 case Op::Call: {
-                    auto value = pop();
-                    if (auto object = value.object()) {
-                        if (auto function = object->asFunction()) {
-                            opListStack.push_back(function->opList());
-                            constantListStack.push_back(function->constantList());
-                            opIndexStack.push_back(0zu);
-                            constantListStack.push_back(0zu);
-                        } else {
-                            PANIC(fmt::format("{} is not a function", object->toString()));
-                        } 
+                    auto functionName = pop();
+                    auto value = std::find_if(availabelFunctions.begin(), availabelFunctions.end(), [&functionName] (const Value& value) {
+                        return value.object()->asFunction()->name() == functionName.value<std::string>();
+                    });
+
+                    if (value != availabelFunctions.end()) {
+                        auto function = value->object()->asFunction();
+                        opListStack.push_back(function->opList());
+                        constantListStack.push_back(function->constantList());
+                        opIndexStack.push_back(0zu);
+                        constantIndexStack.push_back(0zu);
                     } else {
-                        PANIC(fmt::format("{} is not callable", value));
+                        PANIC("function not found");
                     }
                     break;
                 }
@@ -86,6 +87,9 @@ namespace poise::runtime
                     auto function = constantList->at(constantIndex++);
                     availabelFunctions.emplace_back(std::move(function));
                     break;
+                }
+                case Op::Exit: {
+                    return RunResult::Success;
                 }
                 case Op::LoadConstant: {
                     stack.push_back(constantList->at(constantIndex++));
@@ -105,7 +109,5 @@ namespace poise::runtime
                 }
             }
         }
-
-        return RunResult::Success;
     }
 }
