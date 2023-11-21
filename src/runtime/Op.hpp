@@ -1,6 +1,8 @@
 #ifndef POISE_OP_HPP
 #define POISE_OP_HPP
 
+#include "../poise.hpp"
+
 #include <fmt/format.h>
 
 #include <cstddef>
@@ -8,7 +10,7 @@
 
 namespace poise::runtime
 {
-    enum class Op : std::uint8_t
+    enum class Op : u8
     {
         // stack/state modification
         DeclareFunction,
@@ -49,7 +51,7 @@ namespace poise::runtime
     struct OpLine
     {
         Op op;
-        std::size_t line;
+        usize line;
     };
 }
 

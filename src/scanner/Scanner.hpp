@@ -1,6 +1,8 @@
 #ifndef POISE_SCANNER_HPP
 #define POISE_SCANNER_HPP
 
+#include "../poise.hpp"
+
 #include "Token.hpp"
 
 #include <cstdlib>
@@ -15,10 +17,10 @@ namespace poise::scanner
     class Scanner
     {
     public:
-        Scanner(const std::filesystem::path& inFilePath);
+        explicit Scanner(const std::filesystem::path& inFilePath);
 
-        [[nodiscard]] auto getCodeAtLine(std::size_t line) const -> std::string_view;
-        [[nodiscard]] auto getNumLines() const -> std::size_t;
+        [[nodiscard]] auto getCodeAtLine(usize line) const -> std::string_view;
+        [[nodiscard]] auto getNumLines() const -> usize;
         [[nodiscard]] auto scanToken() -> Token;
 
     private:
@@ -38,8 +40,8 @@ namespace poise::scanner
 
         std::string m_code;
 
-        std::size_t m_start{}, m_current{};
-        std::size_t m_line{1zu}, m_column{0zu};
+        usize m_start{}, m_current{};
+        usize m_line{1zu}, m_column{0zu};
 
         std::unordered_map<char, TokenType> m_symbolLookup;
         std::unordered_map<std::string_view, TokenType> m_keywordLookup;

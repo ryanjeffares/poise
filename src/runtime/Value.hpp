@@ -58,10 +58,10 @@ namespace poise::runtime
                 m_data.none = value;
             } else if constexpr (IsInteger<T>) {
                 m_type = Type::Int;
-                m_data.integer = static_cast<std::int64_t>(value);
+                m_data.integer = static_cast<i64>(value);
             } else if constexpr (IsFloatingPoint<T>) {
                 m_type = Type::Float;
-                m_data.floating = static_cast<double>(value);
+                m_data.floating = static_cast<f64>(value);
             } else if constexpr (IsBool<T>) {
                 m_type = Type::Bool;
                 m_data.boolean = value;
@@ -98,10 +98,10 @@ namespace poise::runtime
                 m_data.none = value;
             } else if constexpr (IsInteger<T>) {
                 m_type = Type::Int;
-                m_data.integer = static_cast<std::int64_t>(value);
+                m_data.integer = static_cast<i64>(value);
             } else if constexpr (IsFloatingPoint<T>) {
                 m_type = Type::Float;
-                m_data.floating = static_cast<double>(value);
+                m_data.floating = static_cast<f64>(value);
             } else if constexpr (IsBool<T>) {
                 m_type = Type::Bool;
                 m_data.boolean = value;
@@ -162,8 +162,8 @@ namespace poise::runtime
             objects::PoiseObject* object;
             std::nullptr_t none;
             std::string* string;
-            std::int64_t integer;
-            double floating;
+            i64 integer;
+            f64 floating;
             bool boolean;
         } m_data;
 

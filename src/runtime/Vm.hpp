@@ -1,6 +1,8 @@
 #ifndef POISE_VM_HPP
 #define POISE_VM_HPP
 
+#include "../poise.hpp"
+
 #include "../objects/PoiseFunction.hpp"
 #include "Op.hpp"
 #include "Value.hpp"
@@ -22,7 +24,7 @@ namespace poise::runtime
         auto setCurrentFunction(objects::PoiseFunction* function) -> void;
         auto getCurrentFunction() -> objects::PoiseFunction*;
 
-        auto emitOp(Op op, std::size_t line) -> void;
+        auto emitOp(Op op, usize line) -> void;
         auto emitConstant(Value value) -> void;
 
         auto run() -> RunResult;

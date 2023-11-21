@@ -54,8 +54,8 @@ namespace poise::compiler
 
         if (m_mainFunction) {
             emitConstant(*m_mainFunction);
-            emitOp(runtime::Op::LoadConstant, 0);
-            emitOp(runtime::Op::Call, 0);
+            emitOp(runtime::Op::LoadConstant, 0zu);
+            emitOp(runtime::Op::Call, 0zu);
             emitOp(runtime::Op::Exit, m_scanner.getNumLines());
         } else {
             errorAtPrevious("No main function declared");
@@ -246,7 +246,6 @@ namespace poise::compiler
     
     auto Compiler::primary() -> void
     {
-        // TODO: recursive descent
         if (match(scanner::TokenType::False)) {
             emitConstant(false);
             emitOp(runtime::Op::LoadConstant, m_previous->line());

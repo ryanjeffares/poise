@@ -15,7 +15,7 @@ namespace poise::runtime
         return m_currentFunction;
     }
 
-    auto Vm::emitOp(Op op, std::size_t line) -> void
+    auto Vm::emitOp(Op op, usize line) -> void
     {
         if (m_currentFunction == nullptr) {
             m_globalOps.push_back({op, line});
@@ -41,8 +41,8 @@ namespace poise::runtime
         std::vector<std::span<OpLine>> opListStack{m_globalOps};
         std::vector<std::span<Value>> constantListStack{m_globalConstants};
 
-        std::vector<std::size_t> opIndexStack = {0zu};
-        std::vector<std::size_t> constantIndexStack = {0zu};
+        std::vector<usize> opIndexStack = {0zu};
+        std::vector<usize> constantIndexStack = {0zu};
 
         auto pop = [&stack] [[nodiscard]] -> Value {
             auto value = std::move(stack.back());

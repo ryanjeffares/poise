@@ -41,7 +41,7 @@ namespace poise::scanner
         m_code = inCodeStream.str();
     }
 
-    auto Scanner::getCodeAtLine(std::size_t line) const -> std::string_view
+    auto Scanner::getCodeAtLine(usize line) const -> std::string_view
     {
         auto current = 1zu;
         auto strIndex = 0zu;
@@ -62,7 +62,7 @@ namespace poise::scanner
         return std::string_view{m_code.data() + strIndex, pos - strIndex};
     }
 
-    auto Scanner::getNumLines() const -> std::size_t
+    auto Scanner::getNumLines() const -> usize
     {
         auto count = 0zu;
         for (char i : m_code) {

@@ -1,6 +1,8 @@
 #ifndef POISE_OBJECT_HPP
 #define POISE_OBJECT_HPP
 
+#include "../poise.hpp"
+
 #include <cstddef>
 #include <string>
 
@@ -23,9 +25,9 @@ namespace poise::objects
 
         virtual ~PoiseObject() = default;
 
-        auto incrementRefCount() -> std::size_t;
-        auto decrementRefCount() -> std::size_t;
-        [[nodiscard]] auto refCount() const -> std::size_t;
+        auto incrementRefCount() -> usize;
+        auto decrementRefCount() -> usize;
+        [[nodiscard]] auto refCount() const -> usize;
 
         virtual auto asFunction() -> PoiseFunction*;
 
@@ -35,7 +37,7 @@ namespace poise::objects
         [[nodiscard]] virtual auto callable() const -> bool;
 
     private:
-        std::size_t m_refCount{};
+        usize m_refCount{};
     };
 }
 

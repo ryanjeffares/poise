@@ -93,7 +93,7 @@ namespace fmt
 
 namespace poise::scanner
 {
-    Token::Token(TokenType tokenType, std::size_t line, std::size_t column, std::string_view text)
+    Token::Token(TokenType tokenType, usize line, usize column, std::string_view text)
         : m_tokenType{tokenType}
         , m_line{line}
         , m_column{column}
@@ -102,7 +102,7 @@ namespace poise::scanner
 
     }
 
-    auto Token::length() const -> std::size_t
+    auto Token::length() const -> usize
     {
         return m_text.length();
     }
@@ -122,12 +122,12 @@ namespace poise::scanner
         return m_tokenType;
     }
 
-    auto Token::line() const -> std::size_t
+    auto Token::line() const -> usize
     {
         return m_line;
     }
 
-    auto Token::column() const -> std::size_t
+    auto Token::column() const -> usize
     {
         return m_column;
     }

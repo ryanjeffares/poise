@@ -104,9 +104,9 @@ namespace poise::runtime
             case Type::Bool:
                 return value<bool>();
             case Type::Float:
-                return value<double>() != 0.0;
+                return value<f64>() != 0.0;
             case Type::Int:
-                return value<std::int64_t>() != 0;
+                return value<i64>() != 0;
             case Type::None:
                 return false;
             case Type::Object:
@@ -124,9 +124,9 @@ namespace poise::runtime
             case Type::Bool:
                 return fmt::format("{}", value<bool>());
             case Type::Float:
-                return fmt::format("{}", value<double>());
+                return fmt::format("{}", value<f64>());
             case Type::Int:
-                return fmt::format("{}", value<std::int64_t>());
+                return fmt::format("{}", value<i64>());
             case Type::None:
                 return "None";
             case Type::Object:
@@ -149,7 +149,7 @@ namespace poise::runtime
             case Type::Int: {
                 switch (other.type()) {
                     case Type::Int:
-                        return value<std::int64_t>() | other.value<std::int64_t>();
+                        return value<i64>() | other.value<i64>();
                     default:
                         throw std::runtime_error(fmt::format("Invalid operand types for |: '{}' and '{}'", type(), other.type()));
                 }
@@ -165,7 +165,7 @@ namespace poise::runtime
             case Type::Int: {
                 switch (other.type()) {
                     case Type::Int:
-                        return value<std::int64_t>() ^ other.value<std::int64_t>();
+                        return value<i64>() ^ other.value<i64>();
                     default:
                         throw std::runtime_error(fmt::format("Invalid operand types for ^: '{}' and '{}'", type(), other.type()));
                 }
@@ -181,7 +181,7 @@ namespace poise::runtime
             case Type::Int: {
                 switch (other.type()) {
                     case Type::Int:
-                        return value<std::int64_t>() << other.value<std::int64_t>();
+                        return value<i64>() << other.value<i64>();
                     default:
                         throw std::runtime_error(fmt::format("Invalid operand types for <<: '{}' and '{}'", type(), other.type()));
                 }
@@ -197,7 +197,7 @@ namespace poise::runtime
             case Type::Int: {
                 switch (other.type()) {
                     case Type::Int:
-                        return value<std::int64_t>() >> other.value<std::int64_t>();
+                        return value<i64>() >> other.value<i64>();
                     default:
                         throw std::runtime_error(fmt::format("Invalid operand types for >>: '{}' and '{}'", type(), other.type()));
                 }
@@ -213,9 +213,9 @@ namespace poise::runtime
             case Type::Float: {
                 switch (other.type()) {
                     case Type::Float:
-                        return value<double>() + other.value<double>();
+                        return value<f64>() + other.value<f64>();
                     case Type::Int:
-                        return value<double>() + static_cast<double>(other.value<std::int64_t>());
+                        return value<f64>() + static_cast<f64>(other.value<i64>());
                     default:
                         throw std::runtime_error(fmt::format("Invalid operand types for +: '{}' and '{}'", type(), other.type()));
                 }
@@ -223,9 +223,9 @@ namespace poise::runtime
             case Type::Int: {
                 switch (other.type()) {
                     case Type::Float:
-                        return static_cast<double>(value<std::int64_t>()) + other.value<double>();
+                        return static_cast<f64>(value<i64>()) + other.value<f64>();
                     case Type::Int:
-                        return value<std::int64_t>() + value<std::int64_t>();
+                        return value<i64>() + value<i64>();
                     default:
                         throw std::runtime_error(fmt::format("Invalid operand types for +: '{}' and '{}'", type(), other.type()));
                 }
@@ -243,9 +243,9 @@ namespace poise::runtime
             case Type::Float: {
                 switch (other.type()) {
                     case Type::Float:
-                        return value<double>() - other.value<double>();
+                        return value<f64>() - other.value<f64>();
                     case Type::Int:
-                        return value<double>() - static_cast<double>(other.value<std::int64_t>());
+                        return value<f64>() - static_cast<f64>(other.value<i64>());
                     default:
                         throw std::runtime_error(fmt::format("Invalid operand types for -: '{}' and '{}'", type(), other.type()));
                 }
@@ -253,9 +253,9 @@ namespace poise::runtime
             case Type::Int: {
                 switch (other.type()) {
                     case Type::Float:
-                        return static_cast<double>(value<std::int64_t>()) - other.value<double>();
+                        return static_cast<f64>(value<i64>()) - other.value<f64>();
                     case Type::Int:
-                        return value<std::int64_t>() - value<std::int64_t>();
+                        return value<i64>() - value<i64>();
                     default:
                         throw std::runtime_error(fmt::format("Invalid operand types for -: '{}' and '{}'", type(), other.type()));
                 }
@@ -271,9 +271,9 @@ namespace poise::runtime
             case Type::Float: {
                 switch (other.type()) {
                     case Type::Float:
-                        return value<double>() / other.value<double>();
+                        return value<f64>() / other.value<f64>();
                     case Type::Int:
-                        return value<double>() / static_cast<double>(other.value<std::int64_t>());
+                        return value<f64>() / static_cast<f64>(other.value<i64>());
                     default:
                         throw std::runtime_error(fmt::format("Invalid operand types for /: '{}' and '{}'", type(), other.type()));
                 }
@@ -281,9 +281,9 @@ namespace poise::runtime
             case Type::Int: {
                 switch (other.type()) {
                     case Type::Float:
-                        return static_cast<double>(value<std::int64_t>()) / other.value<double>();
+                        return static_cast<f64>(value<i64>()) / other.value<f64>();
                     case Type::Int:
-                        return value<std::int64_t>() / value<std::int64_t>();
+                        return value<i64>() / value<i64>();
                     default:
                         throw std::runtime_error(fmt::format("Invalid operand types for /: '{}' and '{}'", type(), other.type()));
                 }
@@ -299,9 +299,9 @@ namespace poise::runtime
             case Type::Float: {
                 switch (other.type()) {
                     case Type::Float:
-                        return value<double>() * other.value<double>();
+                        return value<f64>() * other.value<f64>();
                     case Type::Int:
-                        return value<double>() * static_cast<double>(other.value<std::int64_t>());
+                        return value<f64>() * static_cast<f64>(other.value<i64>());
                     default:
                         throw std::runtime_error(fmt::format("Invalid operand types for *: '{}' and '{}'", type(), other.type()));
                 }
@@ -309,9 +309,9 @@ namespace poise::runtime
             case Type::Int: {
                 switch (other.type()) {
                     case Type::Float:
-                        return static_cast<double>(value<std::int64_t>()) * other.value<double>();
+                        return static_cast<f64>(value<i64>()) * other.value<f64>();
                     case Type::Int:
-                        return value<std::int64_t>() * value<std::int64_t>();
+                        return value<i64>() * value<i64>();
                     default:
                         throw std::runtime_error(fmt::format("Invalid operand types for *: '{}' and '{}'", type(), other.type()));
                 }
@@ -319,13 +319,13 @@ namespace poise::runtime
             case Type::String: {
                 switch (other.type()) {
                     case Type::Int: {
-                        if (other.value<std::int64_t>() < 0) {
+                        if (other.value<i64>() < 0) {
                             throw std::runtime_error("Factor to repeat string cannot be negative");
                         }
 
                         std::string res;
-                        res.reserve(string().size() * other.value<std::size_t>());
-                        for (auto i = 0zu; i < other.value<std::size_t>(); i++) {
+                        res.reserve(string().size() * other.value<usize>());
+                        for (auto i = 0zu; i < other.value<usize>(); i++) {
                             res.append(string());
                         }
 
@@ -366,7 +366,7 @@ namespace poise::runtime
     {
         switch (type()) {
             case Type::Int:
-                return ~value<std::int64_t>();
+                return ~value<i64>();
             default:
                 throw std::runtime_error(fmt::format("Invalid operand type for ~: '{}'", type()));
         }
@@ -376,9 +376,9 @@ namespace poise::runtime
     {
         switch (type()) {
             case Type::Int:
-                return -value<std::int64_t>();
+                return -value<i64>();
             case Type::Float:
-                return -value<double>();
+                return -value<f64>();
             default:
                 throw std::runtime_error(fmt::format("Invalid operand type for -: '{}'", type()));
         }
