@@ -12,23 +12,29 @@
 namespace poise::runtime
 {
     template<typename T>
-    concept Primitive = std::is_arithmetic_v<T> || std::is_same_v<T, std::string> || std::is_null_pointer_v<T>;
-
-    template<typename T>
-    concept Object = std::is_base_of_v<objects::PoiseObject, T>;
-
-    template<typename T>
     static constexpr bool IsBool = std::is_same_v<T, bool>;
 
     template<typename T>
     static constexpr bool IsFloatingPoint = std::is_floating_point_v<T>;
 
     template<typename T>
-    static constexpr bool IsInteger = std::is_same_v<T, short> || std::is_same_v<T, unsigned short>
-                                    || std::is_same_v<T, int> || std::is_same_v<T, unsigned int>
-                                    || std::is_same_v<T, long> || std::is_same_v<T, unsigned long>
-                                    || std::is_same_v<T, long long> || std::is_same_v<T, unsigned long long>;
-    
+    static constexpr bool IsInteger = std::is_same_v<T, i8> || std::is_same_v<T, u8>
+                                    || std::is_same_v<T, i16> || std::is_same_v<T, u16>
+                                    || std::is_same_v<T, i32> || std::is_same_v<T, u32>
+                                    || std::is_same_v<T, i64> || std::is_same_v<T, u64>
+                                    || std::is_same_v<T, isize> || std::is_same_v<T, usize>;
+
+    template<typename T>
+    static constexpr bool IsString = std::is_same_v<T, std::string> || std::is_same_v<T, std::string_view> || std::is_same_v<T, const char*>;
+
+    template<typename T>
+    static constexpr bool IsNone = std::is_same_v<T, std::nullptr_t>;
+
+    template<typename T>
+    concept Primitive = IsBool<T> || IsFloatingPoint<T> || IsInteger<T> || IsString<T> || IsNone<T>;
+
+    template<typename T>
+    concept Object = std::is_base_of_v<objects::PoiseObject, T>;
 
     class Value
     {
