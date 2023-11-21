@@ -36,18 +36,26 @@ namespace poise::runtime
     auto Vm::run() -> RunResult
     {
         std::vector<Value> stack;
-        std::vector<Value> availabelFunctions;
+        std::vector<Value> availableFunctions;
 
-        std::vector<const std::vector<OpLine>*> opListStack{&m_globalOps};
-        std::vector<const std::vector<Value>*> constantListStack{&m_globalConstants};
+        std::vector<std::span<OpLine>> opListStack{m_globalOps};
+        std::vector<std::span<Value>> constantListStack{m_globalConstants};
 
         std::vector<std::size_t> opIndexStack = {0zu};
         std::vector<std::size_t> constantIndexStack = {0zu};
 
-        auto pop = [&] -> Value {
+        auto pop = [&stack] [[nodiscard]] -> Value {
             auto value = std::move(stack.back());
             stack.pop_back();
             return value;
+        };
+
+        [[maybe_unused]] auto popTwo = [&stack] [[nodiscard]] -> std::tuple<Value, Value> {
+            auto value1 = std::move(stack.back());
+            stack.pop_back();
+            auto value2 = std::move(stack.back());
+            stack.pop_back();
+            return {std::move(value2), std::move(value1)};
         };
 
 #define PANIC(message) \
@@ -58,41 +66,38 @@ namespace poise::runtime
         } while (false) \
 
         while (true) {
-            auto opList = opListStack.back();
-            auto constantList = constantListStack.back();
+            const auto opList = opListStack.back();
+            const auto constantList = constantListStack.back();
             auto& opIndex = opIndexStack.back();
             auto& constantIndex = constantIndexStack.back();
 
-            auto [op, line] = opList->at(opIndex++);
+            const auto [op, line] = opList[opIndex++];
 
             switch (op) {
                 case Op::Call: {
-                    auto functionName = pop();
-                    auto value = std::find_if(availabelFunctions.begin(), availabelFunctions.end(), [&functionName] (const Value& value) {
-                        return value.object()->asFunction()->name() == functionName.value<std::string>();
-                    });
-
-                    if (value != availabelFunctions.end()) {
-                        auto function = value->object()->asFunction();
+                    auto value = pop();
+                    if (value.callable()) {
+                        auto function = value.object()->asFunction();
                         opListStack.push_back(function->opList());
                         constantListStack.push_back(function->constantList());
                         opIndexStack.push_back(0zu);
                         constantIndexStack.push_back(0zu);
                     } else {
-                        PANIC("function not found");
+                        PANIC(fmt::format("{} is not callable", value));
                     }
+
                     break;
                 }
                 case Op::DeclareFunction: {
-                    auto function = constantList->at(constantIndex++);
-                    availabelFunctions.emplace_back(std::move(function));
+                    auto function = constantList[constantIndex++];
+                    availableFunctions.emplace_back(std::move(function));
                     break;
                 }
                 case Op::Exit: {
                     return RunResult::Success;
                 }
                 case Op::LoadConstant: {
-                    stack.push_back(constantList->at(constantIndex++));
+                    stack.push_back(constantList[constantIndex++]);
                     break;
                 }
                 case Op::PrintLn: {
@@ -107,6 +112,7 @@ namespace poise::runtime
                     constantIndexStack.pop_back();
                     break;
                 }
+                default: break;
             }
         }
     }

@@ -6,6 +6,8 @@
 #include <fmt/core.h>
 #include <fmt/format.h>
 
+#include <charconv>
+
 #define RETURN_IF_NO_MATCH(tokenType, message)          \
     do {                                                \
         if (!match(tokenType)) {                        \
@@ -19,8 +21,8 @@
 namespace poise::compiler
 {
     Compiler::Compiler(runtime::Vm* vm, std::filesystem::path inFilePath)
-        : m_filePath{inFilePath}
-        , m_scanner{std::move(inFilePath)}
+        : m_scanner{inFilePath}
+        , m_filePath{std::move(inFilePath)}
         , m_vm{vm}
     {
 
@@ -28,6 +30,10 @@ namespace poise::compiler
 
     auto Compiler::compile() -> CompileResult
     {
+        if (!std::filesystem::exists(m_filePath) || m_filePath.extension() != ".poise") {
+            return CompileResult::FileError;
+        }
+
         while (true) {
             if (m_hadError) {
                 break;
@@ -47,7 +53,7 @@ namespace poise::compiler
         }
 
         if (m_mainFunction) {
-            emitConstant(std::string{"main"});
+            emitConstant(*m_mainFunction);
             emitOp(runtime::Op::LoadConstant, 0);
             emitOp(runtime::Op::Call, 0);
             emitOp(runtime::Op::Exit, m_scanner.getNumLines());
@@ -59,7 +65,7 @@ namespace poise::compiler
         return CompileResult::Success;
     }
 
-    auto Compiler::emitOp(runtime::Op op, std::size_t line) -> void
+    auto Compiler::emitOp(runtime::Op op, usize line) -> void
     {
         m_vm->emitOp(op, line);
     }
@@ -74,9 +80,9 @@ namespace poise::compiler
         m_previous = m_current;
         m_current = m_scanner.scanToken();
 
-#ifdef POISE_DEBUG
-        m_current->print();
-#endif
+// #ifdef POISE_DEBUG
+//         m_current->print();
+// #endif
 
         if (m_current->tokenType() == scanner::TokenType::Error) {
             errorAtCurrent("Invalid token");
@@ -119,7 +125,7 @@ namespace poise::compiler
 
         auto prevFunction = m_vm->getCurrentFunction();
 
-        auto function = runtime::Value::createObject<objects::PoiseFunction>(std::move(functionName), std::uint8_t{0});
+        auto function = runtime::Value::createObject<objects::PoiseFunction>(std::move(functionName), u8{0});
         m_vm->setCurrentFunction(function.object()->asFunction());
 
         while (!match(scanner::TokenType::End)) {
@@ -172,9 +178,90 @@ namespace poise::compiler
 
     auto Compiler::expression() -> void
     {
+        logicOr();
+    }
+
+    auto Compiler::logicOr() -> void
+    {
+        while (match(scanner::TokenType::Or)) {
+            logicAnd();
+            emitOp(runtime::Op::LogicAnd, m_previous->line());
+        }
+    }
+    
+    auto Compiler::logicAnd() -> void
+    {
+        
+    }
+    
+    auto Compiler::bitwiseOr() -> void
+    {
+        
+    }
+    
+    auto Compiler::bitwiseXor() -> void
+    {
+        
+    }
+    
+    auto Compiler::bitwiseAnd() -> void
+    {
+        
+    }
+    
+    auto Compiler::equality() -> void
+    {
+        
+    }
+    
+    auto Compiler::comparison() -> void
+    {
+        
+    }
+    
+    auto Compiler::shift() -> void
+    {
+        
+    }
+    
+    auto Compiler::term() -> void
+    {
+        
+    }
+    
+    auto Compiler::factor() -> void
+    {
+        
+    }
+    
+    auto Compiler::unary() -> void
+    {
+        
+    }
+    
+    auto Compiler::exponent() -> void
+    {
+        
+    }
+    
+    auto Compiler::primary() -> void
+    {
         // TODO: recursive descent
-        if (match(scanner::TokenType::String)) {
-            string();
+        if (match(scanner::TokenType::False)) {
+            emitConstant(false);
+            emitOp(runtime::Op::LoadConstant, m_previous->line());
+        } else if (match(scanner::TokenType::Float)) {
+            parseFloat();
+        } else if (match(scanner::TokenType::Int)) {
+            parseInt();
+        } else if (match(scanner::TokenType::None)) {
+            emitConstant(std::nullptr_t{});
+            emitOp(runtime::Op::LoadConstant, m_previous->line());
+        } else if (match(scanner::TokenType::String)) {
+            parseString();
+        } else if (match(scanner::TokenType::True)) {
+            emitConstant(true);
+            emitOp(runtime::Op::LoadConstant, m_previous->line());
         } else {
             errorAtCurrent("Invalid token at start of expression");
         }
@@ -192,7 +279,7 @@ namespace poise::compiler
         }
     }
 
-    auto Compiler::string() -> void
+    auto Compiler::parseString() -> void
     {
         std::string result;
         auto tokenText = m_previous->text();
@@ -223,17 +310,50 @@ namespace poise::compiler
         emitOp(runtime::Op::LoadConstant, m_previous->line());
     }
 
-    auto Compiler::errorAtCurrent(const std::string& message) -> void
+    auto Compiler::parseInt() -> void
+    {
+        i64 result;
+        auto text = m_previous->text();
+        auto [ptr, ec] = std::from_chars(text.data(), text.data() + text.length(), result);
+        
+        if (ec == std::errc{}) {
+            emitConstant(result);
+            emitOp(runtime::Op::LoadConstant, m_previous->line());
+        } else if (ec == std::errc::invalid_argument) {
+            errorAtPrevious(fmt::format("Unable to parse integer '{}'", text));
+            return;
+        } else if (ec == std::errc::result_out_of_range) {
+            errorAtPrevious(fmt::format("Integer out of range '{}'", text));
+            return;
+        }
+    }
+
+    auto Compiler::parseFloat() -> void
+    {
+        auto text = m_previous->string();
+
+        try {
+            auto result = std::stod(text);
+            emitConstant(result);
+            emitOp(runtime::Op::LoadConstant, m_previous->line());
+        } catch (const std::invalid_argument&) {
+            errorAtPrevious(fmt::format("Unable to parse float '{}'", text));
+        } catch (const std::out_of_range&) {
+            errorAtPrevious(fmt::format("Float out of range '{}'", text));
+        }
+    }
+
+    auto Compiler::errorAtCurrent(std::string_view message) -> void
     {
         error(*m_current, message);
     }
 
-    auto Compiler::errorAtPrevious(const std::string& message) -> void
+    auto Compiler::errorAtPrevious(std::string_view message) -> void
     {
         error(*m_previous, message);
     }
 
-    auto Compiler::error(const scanner::Token& token, const std::string& message) -> void
+    auto Compiler::error(const scanner::Token& token, std::string_view message) -> void
     {
         m_hadError = true;
 

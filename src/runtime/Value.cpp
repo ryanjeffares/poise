@@ -5,16 +5,16 @@
 namespace poise::runtime
 {
     Value::Value()
-        : m_type{Type::Null}
+        : m_type{Type::None}
     {
-        m_data.null = std::nullptr_t{};
+        m_data.none = std::nullptr_t{};
     }
 
     Value::Value(const Value& other)
         : m_type{other.m_type}
     {
         if (type() == Type::String) {
-            m_data.string = new std::string{other.value<std::string>()};
+            m_data.string = new std::string{other.string()};
         } else {
             m_data = other.m_data;
         }
@@ -25,7 +25,7 @@ namespace poise::runtime
         , m_type{other.type()}
     {
         if (type() == Type::String) {
-            other.nullify();
+            other.makeNone();
         }
     }
 
@@ -38,7 +38,7 @@ namespace poise::runtime
 
             m_type = other.type();
             if (type() == Type::String) {
-                m_data.string = new std::string{other.value<std::string>()};
+                m_data.string = new std::string{other.toString()};
             } else {
                 m_data = other.data();
             }
@@ -58,7 +58,7 @@ namespace poise::runtime
             m_data = other.data();
 
             if (type() == Type::String) {
-                other.nullify();
+                other.makeNone();
             }
         }
 
@@ -77,6 +77,11 @@ namespace poise::runtime
         return m_type;
     }
 
+    auto Value::string() const -> const std::string&
+    {
+        return *m_data.string;
+    }
+
     auto Value::object() const -> objects::PoiseObject*
     {
         return m_data.object;
@@ -92,18 +97,424 @@ namespace poise::runtime
         fmt::print("{}\n", toString());
     }
 
+    auto Value::asBool() const -> bool
+    {
+        switch (type())
+        {
+            case Type::Bool:
+                return value<bool>();
+            case Type::Float:
+                return value<double>() != 0.0;
+            case Type::Int:
+                return value<std::int64_t>() != 0;
+            case Type::None:
+                return false;
+            case Type::Object:
+                return true;
+            case Type::String:
+                return !string().empty();
+        }
+
+        return false;
+    }
+
     auto Value::toString() const -> std::string
     {
         switch (type()) {
-            case Type::Null:
-                return "null";
+            case Type::Bool:
+                return fmt::format("{}", value<bool>());
+            case Type::Float:
+                return fmt::format("{}", value<double>());
+            case Type::Int:
+                return fmt::format("{}", value<std::int64_t>());
+            case Type::None:
+                return "None";
             case Type::Object:
                 return object()->toString();
             case Type::String:
-                return value<std::string>();
+                return string();
         }
 
         return "unknown";
+    }
+
+    auto Value::callable() const -> bool
+    {
+        return type() == Type::Object && object()->callable();
+    }
+
+    auto Value::operator|(const Value& other) const -> Value
+    {
+        switch (type()) {
+            case Type::Int: {
+                switch (other.type()) {
+                    case Type::Int:
+                        return value<std::int64_t>() | other.value<std::int64_t>();
+                    default:
+                        throw std::runtime_error(fmt::format("Invalid operand types for |: '{}' and '{}'", type(), other.type()));
+                }
+            }
+            default:
+                throw std::runtime_error(fmt::format("Invalid operand types for |: '{}' and '{}'", type(), other.type()));
+        }
+    }
+
+    auto Value::operator^(const Value& other) const -> Value
+    {
+        switch (type()) {
+            case Type::Int: {
+                switch (other.type()) {
+                    case Type::Int:
+                        return value<std::int64_t>() ^ other.value<std::int64_t>();
+                    default:
+                        throw std::runtime_error(fmt::format("Invalid operand types for ^: '{}' and '{}'", type(), other.type()));
+                }
+            }
+            default:
+                throw std::runtime_error(fmt::format("Invalid operand types for ^: '{}' and '{}'", type(), other.type()));
+        }
+    }
+
+    auto Value::operator<<(const Value& other) const -> Value
+    {
+        switch (type()) {
+            case Type::Int: {
+                switch (other.type()) {
+                    case Type::Int:
+                        return value<std::int64_t>() << other.value<std::int64_t>();
+                    default:
+                        throw std::runtime_error(fmt::format("Invalid operand types for <<: '{}' and '{}'", type(), other.type()));
+                }
+            }
+            default:
+                throw std::runtime_error(fmt::format("Invalid operand types for <<: '{}' and '{}'", type(), other.type()));
+        }
+    }
+
+    auto Value::operator>>(const Value& other) const -> Value
+    {
+        switch (type()) {
+            case Type::Int: {
+                switch (other.type()) {
+                    case Type::Int:
+                        return value<std::int64_t>() >> other.value<std::int64_t>();
+                    default:
+                        throw std::runtime_error(fmt::format("Invalid operand types for >>: '{}' and '{}'", type(), other.type()));
+                }
+            }
+            default:
+                throw std::runtime_error(fmt::format("Invalid operand types for >>: '{}' and '{}'", type(), other.type()));
+        }
+    }
+
+    auto Value::operator+(const Value& other) const -> Value
+    {
+        switch (type()) {
+            case Type::Float: {
+                switch (other.type()) {
+                    case Type::Float:
+                        return value<double>() + other.value<double>();
+                    case Type::Int:
+                        return value<double>() + static_cast<double>(other.value<std::int64_t>());
+                    default:
+                        throw std::runtime_error(fmt::format("Invalid operand types for +: '{}' and '{}'", type(), other.type()));
+                }
+            }
+            case Type::Int: {
+                switch (other.type()) {
+                    case Type::Float:
+                        return static_cast<double>(value<std::int64_t>()) + other.value<double>();
+                    case Type::Int:
+                        return value<std::int64_t>() + value<std::int64_t>();
+                    default:
+                        throw std::runtime_error(fmt::format("Invalid operand types for +: '{}' and '{}'", type(), other.type()));
+                }
+            }
+            case Type::String:
+                return string() + other.string();
+            default:
+                throw std::runtime_error(fmt::format("Invalid operand types for +: '{}' and '{}'", type(), other.type()));
+        }
+    }
+
+    auto Value::operator-(const Value& other) const -> Value
+    {
+        switch (type()) {
+            case Type::Float: {
+                switch (other.type()) {
+                    case Type::Float:
+                        return value<double>() - other.value<double>();
+                    case Type::Int:
+                        return value<double>() - static_cast<double>(other.value<std::int64_t>());
+                    default:
+                        throw std::runtime_error(fmt::format("Invalid operand types for -: '{}' and '{}'", type(), other.type()));
+                }
+            }
+            case Type::Int: {
+                switch (other.type()) {
+                    case Type::Float:
+                        return static_cast<double>(value<std::int64_t>()) - other.value<double>();
+                    case Type::Int:
+                        return value<std::int64_t>() - value<std::int64_t>();
+                    default:
+                        throw std::runtime_error(fmt::format("Invalid operand types for -: '{}' and '{}'", type(), other.type()));
+                }
+            }
+            default:
+                throw std::runtime_error(fmt::format("Invalid operand types for -: '{}' and '{}'", type(), other.type()));
+        }
+    }
+
+    auto Value::operator/(const Value& other) const -> Value
+    {
+        switch (type()) {
+            case Type::Float: {
+                switch (other.type()) {
+                    case Type::Float:
+                        return value<double>() / other.value<double>();
+                    case Type::Int:
+                        return value<double>() / static_cast<double>(other.value<std::int64_t>());
+                    default:
+                        throw std::runtime_error(fmt::format("Invalid operand types for /: '{}' and '{}'", type(), other.type()));
+                }
+            }
+            case Type::Int: {
+                switch (other.type()) {
+                    case Type::Float:
+                        return static_cast<double>(value<std::int64_t>()) / other.value<double>();
+                    case Type::Int:
+                        return value<std::int64_t>() / value<std::int64_t>();
+                    default:
+                        throw std::runtime_error(fmt::format("Invalid operand types for /: '{}' and '{}'", type(), other.type()));
+                }
+            }
+            default:
+                throw std::runtime_error(fmt::format("Invalid operand types for /: '{}' and '{}'", type(), other.type()));
+        }
+    }
+
+    auto Value::operator*(const Value& other) const -> Value
+    {
+        switch (type()) {
+            case Type::Float: {
+                switch (other.type()) {
+                    case Type::Float:
+                        return value<double>() * other.value<double>();
+                    case Type::Int:
+                        return value<double>() * static_cast<double>(other.value<std::int64_t>());
+                    default:
+                        throw std::runtime_error(fmt::format("Invalid operand types for *: '{}' and '{}'", type(), other.type()));
+                }
+            }
+            case Type::Int: {
+                switch (other.type()) {
+                    case Type::Float:
+                        return static_cast<double>(value<std::int64_t>()) * other.value<double>();
+                    case Type::Int:
+                        return value<std::int64_t>() * value<std::int64_t>();
+                    default:
+                        throw std::runtime_error(fmt::format("Invalid operand types for *: '{}' and '{}'", type(), other.type()));
+                }
+            }
+            case Type::String: {
+                switch (other.type()) {
+                    case Type::Int: {
+                        if (other.value<std::int64_t>() < 0) {
+                            throw std::runtime_error("Factor to repeat string cannot be negative");
+                        }
+
+                        std::string res;
+                        res.reserve(string().size() * other.value<std::size_t>());
+                        for (auto i = 0zu; i < other.value<std::size_t>(); i++) {
+                            res.append(string());
+                        }
+
+                        return res;
+                    }
+                    default:
+                        throw std::runtime_error(fmt::format("Invalid operand types for *: '{}' and '{}'", type(), other.type()));
+                }
+            }
+            default:
+                throw std::runtime_error(fmt::format("Invalid operand types for *: '{}' and '{}'", type(), other.type()));
+        }
+    }
+
+    auto Value::operator%(const Value& other) const -> Value
+    {
+        switch (type()) {
+            case Type::Int: {
+                switch (other.type()) {
+                    case Type::Int: {
+                        return value<i64>() % other.value<i64>();
+                    }
+                    default:
+                        throw std::runtime_error(fmt::format("Invalid operand types for %: '{}' and '{}'", type(), other.type()));
+                }
+            }
+            default:
+                throw std::runtime_error(fmt::format("Invalid operand types for %: '{}' and '{}'", type(), other.type()));
+        }
+    }
+
+    auto Value::operator!() const -> Value
+    {
+        return !asBool();
+    }
+
+    auto Value::operator~() const -> Value
+    {
+        switch (type()) {
+            case Type::Int:
+                return ~value<std::int64_t>();
+            default:
+                throw std::runtime_error(fmt::format("Invalid operand type for ~: '{}'", type()));
+        }
+    }
+
+    auto Value::operator-() const -> Value
+    {
+        switch (type()) {
+            case Type::Int:
+                return -value<std::int64_t>();
+            case Type::Float:
+                return -value<double>();
+            default:
+                throw std::runtime_error(fmt::format("Invalid operand type for -: '{}'", type()));
+        }
+    }
+
+    auto Value::operator==(const Value& other) const -> bool
+    {
+        switch (type()) {
+            case Type::Bool: {
+                switch (other.type()) {
+                    case Type::Bool: {
+                        return value<bool>() == other.value<bool>();
+                    }
+                    default:
+                        return false;
+                }
+            }
+            case Type::Float: {
+                switch (other.type()) {
+                    case Type::Float: {
+                        return value<f64>() == other.value<f64>();
+                    }
+                    case Type::Int: {
+                        return value<f64>() == static_cast<f64>(other.value<i64>());
+                    }
+                    default:
+                        return false;
+                }
+            }
+            case Type::Int: {
+                switch (other.type()) {
+                    case Type::Float: {
+                        return value<i64>() == static_cast<i64>(other.value<f64>());
+                    }
+                    case Type::Int: {
+                        return value<i64>() == other.value<i64>();
+                    }
+                    default:
+                        return false;
+                }
+            }
+            case Type::Object: {
+                switch (other.type()) {
+                    case Type::Object: {
+                        return object() == other.object();
+                    }
+                    default:
+                        return false;
+                }
+            }
+            case Type::None: {
+                return other.type() == Type::None;
+            }
+            case Type::String: {
+                return other.type() == Type::String && string() == other.string();
+            }
+        }
+    }
+
+    auto Value::operator!=(const Value& other) const -> bool
+    {
+        return !(*this == other);
+    }
+
+    auto Value::operator<(const Value& other) const -> bool
+    {
+        switch (type()) {
+            case Type::Float: {
+                switch (other.type()) {
+                    case Type::Float: {
+                        return value<f64>() < other.value<f64>();
+                    }
+                    case Type::Int: {
+                        return value<f64>() < static_cast<f64>(other.value<i64>());
+                    }
+                    default:
+                        throw std::runtime_error(fmt::format("Invalid operand type for <: '{}' and '{}'", type(), other.type()));
+                }
+            }
+            case Type::Int: {
+                switch (other.type()) {
+                    case Type::Float: {
+                        return value<i64>() < static_cast<i64>(other.value<f64>());
+                    }
+                    case Type::Int: {
+                        return value<i64>() < other.value<i64>();
+                    }
+                    default:
+                        throw std::runtime_error(fmt::format("Invalid operand type for <: '{}' and '{}'", type(), other.type()));
+                }
+            }
+            default:
+                throw std::runtime_error(fmt::format("Invalid operand type for <: '{}' and '{}'", type(), other.type()));
+        }
+    }
+
+    auto Value::operator<=(const Value& other) const -> bool
+    {
+        switch (type()) {
+            case Type::Float: {
+                switch (other.type()) {
+                    case Type::Float: {
+                        return value<f64>() <= other.value<f64>();
+                    }
+                    case Type::Int: {
+                        return value<f64>() <= static_cast<f64>(other.value<i64>());
+                    }
+                    default:
+                        throw std::runtime_error(fmt::format("Invalid operand type for <=: '{}' and '{}'", type(), other.type()));
+                }
+            }
+            case Type::Int: {
+                switch (other.type()) {
+                    case Type::Float: {
+                        return value<i64>() <= static_cast<i64>(other.value<f64>());
+                    }
+                    case Type::Int: {
+                        return value<i64>() <= other.value<i64>();
+                    }
+                    default:
+                        throw std::runtime_error(fmt::format("Invalid operand type for <=: '{}' and '{}'", type(), other.type()));
+                }
+            }
+            default:
+                throw std::runtime_error(fmt::format("Invalid operand type for <=: '{}' and '{}'", type(), other.type()));
+        }
+    }
+
+    auto Value::operator>(const Value& other) const -> bool
+    {
+        return !(*this <= other);
+    }
+
+    auto Value::operator>=(const Value& other) const -> bool
+    {
+        return !(*this < other);
     }
 
     auto Value::data() const -> decltype(m_data)
@@ -111,10 +522,10 @@ namespace poise::runtime
         return m_data;
     }
 
-    auto Value::nullify() -> void
+    auto Value::makeNone() -> void
     {
-        m_data.null = std::nullptr_t{};
-        m_type = Type::Null;
+        m_data.none = std::nullptr_t{};
+        m_type = Type::None;
     }
 }
 
@@ -125,5 +536,23 @@ namespace fmt
     auto formatter<Value>::format(const Value& value, format_context& context) const -> decltype(context.out())
     {
         return formatter<string_view>::format(value.toString(), context);
+    }
+
+    auto formatter<Value::Type>::format(Value::Type type, format_context& context) const -> decltype(context.out())
+    {
+        switch (type) {
+            case Value::Type::Bool:
+                return formatter<string_view>::format("Bool", context);
+            case Value::Type::Float:
+                return formatter<string_view>::format("Float", context);
+            case Value::Type::Int:
+                return formatter<string_view>::format("Int", context);
+            case Value::Type::Object:
+                return formatter<string_view>::format("Object", context);
+            case Value::Type::None:
+                return formatter<string_view>::format("None", context);
+            case Value::Type::String:
+                return formatter<string_view>::format("String", context);
+        }
     }
 }

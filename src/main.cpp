@@ -6,7 +6,7 @@
 #include <cstdlib>
 #include <filesystem>
 
-int main([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
+int main(int argc, const char* argv[])
 {
     if (argc < 2) {
         fmt::print(stderr, "Expected file\n");

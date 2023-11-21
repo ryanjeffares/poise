@@ -15,7 +15,7 @@ namespace poise::scanner
     class Scanner
     {
     public:
-        Scanner(std::filesystem::path inFilePath);
+        Scanner(const std::filesystem::path& inFilePath);
 
         [[nodiscard]] auto getCodeAtLine(std::size_t line) const -> std::string_view;
         [[nodiscard]] auto getNumLines() const -> std::size_t;
@@ -29,6 +29,7 @@ namespace poise::scanner
         [[nodiscard]] auto peekNext() -> std::optional<char>;
         [[nodiscard]] auto peekPrevious() -> std::optional<char>;
 
+        [[nodiscard]] auto multiCharSymbol(const std::unordered_map<char, TokenType>& pairs, TokenType defaultType) -> Token;
         [[nodiscard]] auto identifier() -> Token;
         [[nodiscard]] auto number() -> Token;
         [[nodiscard]] auto string() -> Token;

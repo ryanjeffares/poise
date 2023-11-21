@@ -8,6 +8,24 @@ statement = expressionStatement | printlnStatement ;
 expressionStatement = expression, ";" ;
 printlnStatement = "println", "(", expression, ")" ;
 
-expression = STRING ;
+expression = logic_or ;
+logic_or = logic_and [ { "or" logic_and } ] ;
+logic_and = bitwise_or [ { "and" bitwise_or } ] ;
+bitwise_or = bitwise_xor [ { "|" bitwise_xor } ] ;
+bitwise_xor = bitwise_and [ { "^" bitwise_and } ] ;
+bitwise_and = equality [ { "&" equality } ] ;
+equality = comparison [ { ( "!=" | "==" ) comparison } ] ;
+comparison = shift [ { ( ">" | ">=" | "<" | "<=" ) shift } ] ;
+shift = term [ { ( "<<" | ">>" ) term } ] ;
+term = factor [ { ( "-" | "+" ) factor } ] ;
+factor = unary [ { ( "/" | "*" ) unary } ] ;
+unary = [ ( "!" | "-" | "~" ) ] unary | primary ;
+primary = BOOL | NUMBER | STRING | "(" expression ")" ;
 
-STRING = '"', [ { all characters - '"' } ], '"' ;
+BOOL = "false" | "true" ;
+FLOAT = { DIGIT } "." { DIGIT } ;
+INT = { DIGIT } ;
+NONE = "None" ;
+STRING = '"', [ { all characters } ], '"' ;
+
+DIGIT = 0 ... 9 ;

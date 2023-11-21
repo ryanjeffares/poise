@@ -5,7 +5,7 @@
 
 namespace poise::objects
 {
-    PoiseFunction::PoiseFunction(std::string name, std::uint8_t arity)
+    PoiseFunction::PoiseFunction(std::string name, u8 arity)
         : m_name{std::move(name)}
         , m_arity{arity}
     {
@@ -17,7 +17,7 @@ namespace poise::objects
         return this;
     }
 
-    auto PoiseFunction::emitOp(runtime::Op op, std::size_t line) -> void
+    auto PoiseFunction::emitOp(runtime::Op op, usize line) -> void
     {
         m_ops.push_back({op, line});
     }
@@ -39,17 +39,22 @@ namespace poise::objects
 
     auto PoiseFunction::toString() const -> std::string
     {
-        return fmt::format("<function instance '{}' at {}>\n", m_name, fmt::ptr(this));
+        return fmt::format("<function instance '{}' at {}>", m_name, fmt::ptr(this));
     }
 
-    auto PoiseFunction::opList() const -> const std::vector<runtime::OpLine>*
+    auto PoiseFunction::callable() const -> bool
     {
-        return &m_ops;
+        return true;
     }
 
-    auto PoiseFunction::constantList() const -> const std::vector<runtime::Value>*
+    auto PoiseFunction::opList() -> std::span<runtime::OpLine>
     {
-        return &m_constants;
+        return m_ops;
+    }
+
+    auto PoiseFunction::constantList() -> std::span<runtime::Value>
+    {
+        return m_constants;
     }
 
     auto PoiseFunction::name() const -> const std::string&

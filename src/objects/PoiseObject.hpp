@@ -32,6 +32,7 @@ namespace poise::objects
         virtual auto print() const -> void = 0;
         virtual auto printLn() const -> void = 0;
         [[nodiscard]] virtual auto toString() const -> std::string = 0;
+        [[nodiscard]] virtual auto callable() const -> bool;
 
     private:
         std::size_t m_refCount{};

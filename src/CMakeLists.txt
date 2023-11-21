@@ -1,25 +1,44 @@
-add_executable(poise
-    main.cpp
-    scanner/Scanner.cpp
-    scanner/Token.cpp
-    compiler/Compiler.cpp
-    runtime/Value.cpp
-    runtime/Vm.cpp
-    objects/PoiseFunction.cpp
-    objects/PoiseObject.cpp
-        runtime/Op.cpp
-)
+add_executable(poise main.cpp)
+
+add_subdirectory(compiler)
+add_subdirectory(objects)
+add_subdirectory(runtime)
+add_subdirectory(scanner)
 
 if (CMAKE_BUILD_TYPE MATCHES Debug)
     target_compile_definitions(poise PRIVATE POISE_DEBUG)
+    target_compile_definitions(poise_compiler PRIVATE POISE_DEBUG)
+    target_compile_definitions(poise_objects PRIVATE POISE_DEBUG)
+    target_compile_definitions(poise_runtime PRIVATE POISE_DEBUG)
+    target_compile_definitions(poise_scanner PRIVATE POISE_DEBUG)
 endif()
 
 if (MSVC)
     target_compile_definitions(poise PRIVATE POISE_MSVC)
-    target_compile_options(poise PRIVATE /W4 /WX /external:templates- /external:W0 /std:c++latest)
+    target_compile_definitions(poise_compiler PRIVATE POISE_MSVC)
+    target_compile_definitions(poise_objects PRIVATE POISE_MSVC)
+    target_compile_definitions(poise_runtime PRIVATE POISE_MSVC)
+    target_compile_definitions(poise_scanner PRIVATE POISE_MSVC)
+    
+    set(POISE_MSVC_COMPILE_OPTIONS /W4 /WX /external:templates- /external:W0 /std:c++latest)
+    target_compile_options(poise PRIVATE ${POISE_MSVC_COMPILE_OPTIONS})
+    target_compile_options(poise_compiler PRIVATE ${POISE_MSVC_COMPILE_OPTIONS})
+    target_compile_options(poise_objects PRIVATE ${POISE_MSVC_COMPILE_OPTIONS})
+    target_compile_options(poise_runtime PRIVATE ${POISE_MSVC_COMPILE_OPTIONS})
+    target_compile_options(poise_scanner PRIVATE ${POISE_MSVC_COMPILE_OPTIONS})
 else()
     target_compile_definitions(poise PRIVATE POISE_UNIX)
-    target_compile_options(poise PRIVATE -Wall -Werror -Wpedantic -Wextra -Wconversion -std=gnu++2b)
+    target_compile_definitions(poise_compiler PRIVATE POISE_UNIX)
+    target_compile_definitions(poise_objects PRIVATE POISE_UNIX)
+    target_compile_definitions(poise_runtime PRIVATE POISE_UNIX)
+    target_compile_definitions(poise_scanner PRIVATE POISE_UNIX)
+
+    set(POISE_UNIX_COMPILE_OPTIONS -Wall -Werror -Wpedantic -Wextra -Wconversion -std=gnu++2b)
+    target_compile_options(poise PRIVATE ${POISE_UNIX_COMPILE_OPTIONS})
+    target_compile_options(poise_compiler PRIVATE ${POISE_UNIX_COMPILE_OPTIONS})
+    target_compile_options(poise_objects PRIVATE ${POISE_UNIX_COMPILE_OPTIONS})
+    target_compile_options(poise_runtime PRIVATE ${POISE_UNIX_COMPILE_OPTIONS})
+    target_compile_options(poise_scanner PRIVATE ${POISE_UNIX_COMPILE_OPTIONS})
 endif()
 
-target_link_libraries(poise PRIVATE fmt::fmt)
+target_link_libraries(poise PUBLIC fmt::fmt poise_compiler poise_objects poise_runtime poise_scanner)

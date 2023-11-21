@@ -1,32 +1,45 @@
 #ifndef POISE_VALUE_HPP
 #define POISE_VALUE_HPP
 
+#include "../poise.hpp"
 #include "../objects/PoiseObject.hpp"
 
 #include <fmt/format.h>
 
-#include <cstddef>
 #include <string>
 #include <type_traits>
 
 namespace poise::runtime
 {
     template<typename T>
-    concept BuiltinPoiseType = std::is_integral_v<T>
-        || std::is_floating_point_v<T>
-        || std::is_same_v<T, std::string>
-        || std::is_null_pointer_v<T>;
+    concept Primitive = std::is_arithmetic_v<T> || std::is_same_v<T, std::string> || std::is_null_pointer_v<T>;
 
     template<typename T>
-    concept DerivedPoiseObject = std::is_base_of_v<objects::PoiseObject, T>;
+    concept Object = std::is_base_of_v<objects::PoiseObject, T>;
+
+    template<typename T>
+    static constexpr bool IsBool = std::is_same_v<T, bool>;
+
+    template<typename T>
+    static constexpr bool IsFloatingPoint = std::is_floating_point_v<T>;
+
+    template<typename T>
+    static constexpr bool IsInteger = std::is_same_v<T, short> || std::is_same_v<T, unsigned short>
+                                    || std::is_same_v<T, int> || std::is_same_v<T, unsigned int>
+                                    || std::is_same_v<T, long> || std::is_same_v<T, unsigned long>
+                                    || std::is_same_v<T, long long> || std::is_same_v<T, unsigned long long>;
+    
 
     class Value
     {
     public:
         enum class Type
         {
+            Bool,
+            Float,
+            Int,
             Object,
-            Null,
+            None,
             String,
         };
 
@@ -34,15 +47,24 @@ namespace poise::runtime
         Value(const Value& other);
         Value(Value&& other) noexcept;
 
-        template<BuiltinPoiseType T>
+        template<Primitive T>
         Value(T value)
         {
             if constexpr (std::is_same_v<T, std::string>) {
                 m_type = Type::String;
                 m_data.string = new std::string{std::move(value)};
             } else if constexpr (std::is_same_v<T, std::nullptr_t>) {
-                m_type = Type::Null;
-                m_data.null = value;
+                m_type = Type::None;
+                m_data.none = value;
+            } else if constexpr (IsInteger<T>) {
+                m_type = Type::Int;
+                m_data.integer = static_cast<std::int64_t>(value);
+            } else if constexpr (IsFloatingPoint<T>) {
+                m_type = Type::Float;
+                m_data.floating = static_cast<double>(value);
+            } else if constexpr (IsBool<T>) {
+                m_type = Type::Bool;
+                m_data.boolean = value;
             }
         }
 
@@ -51,7 +73,7 @@ namespace poise::runtime
 
         ~Value();
 
-        template<DerivedPoiseObject T, typename... Args>
+        template<Object T, typename... Args>
         [[nodiscard]] static auto createObject(Args&&... args) -> Value
         {
             Value value;
@@ -61,7 +83,7 @@ namespace poise::runtime
             return value;
         }
 
-        template<BuiltinPoiseType T>
+        template<Primitive T>
         Value& operator=(T value)
         {
             if (type() == Type::String) {
@@ -72,42 +94,83 @@ namespace poise::runtime
                 m_type = Type::String;
                 m_data.string = new std::string{std::move(value)};
             } else if constexpr (std::is_same_v<T, std::nullptr_t>) {
-                m_type = Type::Null;
-                m_data.null = value;
+                m_type = Type::None;
+                m_data.none = value;
+            } else if constexpr (IsInteger<T>) {
+                m_type = Type::Int;
+                m_data.integer = static_cast<std::int64_t>(value);
+            } else if constexpr (IsFloatingPoint<T>) {
+                m_type = Type::Float;
+                m_data.floating = static_cast<double>(value);
+            } else if constexpr (IsBool<T>) {
+                m_type = Type::Bool;
+                m_data.boolean = value;
             }
 
             return *this;
         }
 
-        template<BuiltinPoiseType T>
-        [[nodiscard]] auto value() const -> const T&
+        template<Primitive T> requires(!std::is_same_v<T, std::string>)
+        [[nodiscard]] auto value() const -> T
         {
-            if constexpr (std::is_same_v<T, std::string>) {
-                return *m_data.string;
-            } else if constexpr (std::is_same_v<T, std::nullptr_t>) {
-                return m_data.null;
-            } 
+            if constexpr (std::is_same_v<T, std::nullptr_t>) {
+                return m_data.none;
+            } else if constexpr (IsInteger<T>) {
+                return static_cast<T>(m_data.integer);
+            } else if constexpr (IsFloatingPoint<T>) {
+                return static_cast<T>(m_data.floating);
+            } else if constexpr (IsBool<T>) {
+                return m_data.boolean;
+            }
         }
 
+        [[nodiscard]] auto string() const -> const std::string&;
         [[nodiscard]] auto object() const -> objects::PoiseObject*;
         [[nodiscard]] auto type() const -> Type;
 
         auto print() const -> void;
         auto printLn() const -> void;
+
+        [[nodiscard]] auto asBool() const -> bool;
         [[nodiscard]] auto toString() const -> std::string;
+        [[nodiscard]] auto callable() const -> bool;
+
+        auto operator|(const Value& other) const -> Value;
+        auto operator^(const Value& other) const -> Value;
+        auto operator<<(const Value& other) const -> Value;
+        auto operator>>(const Value& other) const -> Value;
+        auto operator+(const Value& other) const -> Value;
+        auto operator-(const Value& other) const -> Value;
+        auto operator/(const Value& other) const -> Value;
+        auto operator*(const Value& other) const -> Value;
+        auto operator%(const Value& other) const -> Value;
+        
+        auto operator!() const -> Value;
+        auto operator~() const -> Value;
+        auto operator-() const -> Value;
+
+        auto operator==(const Value& other) const -> bool;
+        auto operator!=(const Value& other) const -> bool;
+        auto operator<(const Value& other) const -> bool;
+        auto operator<=(const Value& other) const -> bool;
+        auto operator>(const Value& other) const -> bool;
+        auto operator>=(const Value& other) const -> bool;
 
     private:
         union
         {
             objects::PoiseObject* object;
-            std::nullptr_t null;
+            std::nullptr_t none;
             std::string* string;
+            std::int64_t integer;
+            double floating;
+            bool boolean;
         } m_data;
 
         Type m_type;
 
         [[nodiscard]] auto data() const -> decltype(m_data);
-        auto nullify() -> void;
+        auto makeNone() -> void;
     };
 }
 
@@ -117,6 +180,12 @@ namespace fmt
     struct formatter<poise::runtime::Value> : formatter<string_view>
     {
         auto format(const poise::runtime::Value& value, format_context& context) const -> decltype(context.out());
+    };
+
+    template<>
+    struct formatter<poise::runtime::Value::Type> : formatter<string_view>
+    {
+        auto format(poise::runtime::Value::Type type, format_context& context) const -> decltype(context.out());
     };
 }
 #endif

@@ -11,21 +11,46 @@ namespace poise::scanner
     enum class TokenType
     {
         // keywords
+        And,
         End,
         Func,
+        Or,
         PrintLn,
 
         // symbols
-        OpenParen,
+        Ampersand,
+        Caret,
         CloseParen,
         Colon,
+        Equal,
+        EqualEqual,
+        Exclamation,
+        Greater,
+        GreaterEqual,
+        Less,
+        LessEqual,
+        Minus,
+        Modulus,
+        NotEqual,
+        OpenParen,
+        Pipe,
+        Plus,
         Semicolon,
+        ShiftLeft,
+        ShiftRight,
+        Slash,
+        Star,
+        StarStar,
+        Tilde,
 
         // value types
+        False,
         Float,
         Identifier,
         Int,
+        None,
         String,
+        True,
 
         // other
         EndOfFile,

@@ -10,11 +10,39 @@ namespace poise::runtime
 {
     enum class Op : std::uint8_t
     {
-        Call,
+        // stack/state modification
         DeclareFunction,
-        Exit,
         LoadConstant,
+
+        // statements
         PrintLn,
+
+        // expressions
+        LogicOr,
+        LogicAnd,
+        BitwiseOr,
+        BitwiseXor,
+        BitwiseAnd,
+        Equal,
+        NotEqual,
+        LessThan,
+        LessEqual,
+        GreaterThan,
+        GreaterEqual,
+        LeftShift,
+        RightShift,
+        Plus,
+        Minus,
+        Multiply,
+        Divide,
+        LogicNot,
+        BitwiseNot,
+        Negate,
+        Pow,
+
+        // jumping/control flow
+        Call,
+        Exit,
         Return,
     };
 

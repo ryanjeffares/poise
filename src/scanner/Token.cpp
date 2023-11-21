@@ -9,28 +9,78 @@ namespace fmt
     auto formatter<TokenType>::format(TokenType tokenType, format_context& context) const
     {
         switch (tokenType) {
+            case TokenType::And:
+                return formatter<string_view>::format("And", context);
             case TokenType::End:
                 return formatter<string_view>::format("End", context);
             case TokenType::Func:
                 return formatter<string_view>::format("Func", context);
+            case TokenType::Or:
+                return formatter<string_view>::format("Or", context);
             case TokenType::PrintLn:
                 return formatter<string_view>::format("PrintLn", context);
-            case TokenType::OpenParen:
-                return formatter<string_view>::format("OpenParen", context);
+            case TokenType::Ampersand:
+                return formatter<string_view>::format("Ampersand", context);
+            case TokenType::Caret:
+                return formatter<string_view>::format("Caret", context);
             case TokenType::CloseParen:
                 return formatter<string_view>::format("CloseParen", context);
             case TokenType::Colon:
                 return formatter<string_view>::format("Colon", context);
+            case TokenType::Equal:
+                return formatter<string_view>::format("Equal", context);
+            case TokenType::EqualEqual:
+                return formatter<string_view>::format("EqualEqual", context);
+            case TokenType::Exclamation:
+                return formatter<string_view>::format("Exclamation", context);
+            case TokenType::Greater:
+                return formatter<string_view>::format("Greater", context);
+            case TokenType::GreaterEqual:
+                return formatter<string_view>::format("GreaterEqual", context);
+            case TokenType::Less:
+                return formatter<string_view>::format("Less", context);
+            case TokenType::LessEqual:
+                return formatter<string_view>::format("LessEqual", context);
+            case TokenType::Modulus:
+                return formatter<string_view>::format("Modulus", context);
+            case TokenType::Minus:
+                return formatter<string_view>::format("Minus", context);
+            case TokenType::NotEqual:
+                return formatter<string_view>::format("NotEqual", context);
+            case TokenType::OpenParen:
+                return formatter<string_view>::format("OpenParen", context);
+            case TokenType::Pipe:
+                return formatter<string_view>::format("Pipe", context);
+            case TokenType::Plus:
+                return formatter<string_view>::format("Plus", context);
             case TokenType::Semicolon:
                 return formatter<string_view>::format("Semicolon", context);
+            case TokenType::ShiftLeft:
+                return formatter<string_view>::format("ShiftLeft", context);
+            case TokenType::ShiftRight:
+                return formatter<string_view>::format("ShiftRight", context);
+            case TokenType::Slash:
+                return formatter<string_view>::format("Slash", context);
+            case TokenType::Star:
+                return formatter<string_view>::format("Star", context);
+            case TokenType::StarStar:
+                return formatter<string_view>::format("StarStar", context);
+            case TokenType::Tilde:
+                return formatter<string_view>::format("Tilde", context);
+            case TokenType::False:
+                return formatter<string_view>::format("False", context);
             case TokenType::Float:
                 return formatter<string_view>::format("Float", context);
             case TokenType::Identifier:
                 return formatter<string_view>::format("Identifier", context);
             case TokenType::Int:
                 return formatter<string_view>::format("Int", context);
+            case TokenType::None:
+                return formatter<string_view>::format("None", context);
             case TokenType::String:
                 return formatter<string_view>::format("String", context);
+            case TokenType::True:
+                return formatter<string_view>::format("True", context);
             case TokenType::EndOfFile:
                 return formatter<string_view>::format("EndOfFile", context);
             case TokenType::Error:

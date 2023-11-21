@@ -6,16 +6,31 @@
 
 namespace poise::scanner
 {
-    Scanner::Scanner(std::filesystem::path inFilePath)
+    Scanner::Scanner(const std::filesystem::path& inFilePath)
         : m_symbolLookup{
-            {'(', TokenType::OpenParen},
+            {'&', TokenType::Ampersand},
+            {'^', TokenType::Caret},
             {')', TokenType::CloseParen},
             {':', TokenType::Colon},
+            {'!', TokenType::Exclamation},
+            {'>', TokenType::Greater},
+            {'<', TokenType::Less},
+            {'-', TokenType::Minus},
+            {'%', TokenType::Modulus},
+            {'(', TokenType::OpenParen},
+            {'|', TokenType::Pipe},
+            {'+', TokenType::Plus},
             {';', TokenType::Semicolon},
+            {'/', TokenType::Slash},
+            {'*', TokenType::Star},
+            {'~', TokenType::Tilde},
         }
         , m_keywordLookup{
             {"end", TokenType::End},
             {"func", TokenType::Func},
+            {"false", TokenType::False},
+            {"none", TokenType::None},
+            {"true", TokenType::True},
             {"println", TokenType::PrintLn},
         }
 
@@ -38,7 +53,7 @@ namespace poise::scanner
 
             strIndex++;
 
-            if (m_code[strIndex - 1] == '\n') {
+            if (m_code[strIndex - 1zu] == '\n') {
                 current++;
             }
         }
@@ -50,13 +65,53 @@ namespace poise::scanner
     auto Scanner::getNumLines() const -> std::size_t
     {
         auto count = 0zu;
-        for (auto i = 0zu; i < m_code.length(); i++) {
-            if (m_code[i] == '\n') {
+        for (char i : m_code) {
+            if (i == '\n') {
                 count++;
             }
         }
 
         return count;
+    }
+
+    auto Scanner::scanToken() -> Token
+    {
+        skipWhitespace();
+        m_start = m_current;
+
+        if (auto current = advance()) {
+            if (std::isalpha(*current) || *current == '_') {
+                return identifier();
+            }
+
+            if (std::isdigit(*current)) {
+                return number();
+            }
+
+            switch (*current) {
+                case '!':
+                    return multiCharSymbol({{'=', TokenType::NotEqual}}, TokenType::Equal);
+                case '=':
+                    return multiCharSymbol({{'=', TokenType::EqualEqual}}, TokenType::Equal);
+                case '<':
+                    return multiCharSymbol({{'<', TokenType::ShiftLeft}, {'=', TokenType::LessEqual}}, TokenType::Less);
+                case '>':
+                    return multiCharSymbol({{'>', TokenType::ShiftRight}, {'=', TokenType::GreaterEqual}}, TokenType::Greater);
+                case '*':
+                    return multiCharSymbol({{'*', TokenType::StarStar}}, TokenType::Star);
+                case '"':
+                    return string();
+                default: {
+                    if (auto t = m_symbolLookup.find(*current); t != m_symbolLookup.end()) {
+                        return makeToken(t->second);
+                    }
+
+                    return {TokenType::Error, m_line, m_column, "Invalid text"};
+                }
+            }
+        }
+
+        return {TokenType::EndOfFile, m_line, m_column, ""};
     }
 
     auto Scanner::skipWhitespace() -> void
@@ -118,32 +173,16 @@ namespace poise::scanner
         }
     }
 
-    auto Scanner::scanToken() -> Token
+    auto Scanner::multiCharSymbol(const std::unordered_map<char, TokenType>& pairs, TokenType defaultType) -> Token
     {
-        skipWhitespace();
-        m_start = m_current;
-
-        if (auto current = advance()) {
-            if (std::isalpha(*current) || *current == '_') {
-                return identifier();
+        for (const auto [c, t] : pairs) {
+            if (peek().value_or(char{}) == c) {
+                advance();
+                return makeToken(t);
             }
-
-            if (std::isdigit(*current)) {
-                return number();
-            }
-
-            if (auto t = m_symbolLookup.find(*current); t != m_symbolLookup.end()) {
-                return makeToken(t->second);
-            }
-
-            if (*current == '"') {
-                return string();
-            }
-
-            return Token(TokenType::Error, m_line, m_column, "Invalid text");
         }
 
-        return Token(TokenType::EndOfFile, m_line, m_column, "");
+        return makeToken(defaultType);
     }
 
     auto Scanner::identifier() -> Token
@@ -205,7 +244,7 @@ namespace poise::scanner
 
                 advance();
             } else {
-                return Token(TokenType::Error, m_line, m_column, "Unterminated string");
+                return {TokenType::Error, m_line, m_column, "Unterminated string"};
             }
         }
 
@@ -216,6 +255,6 @@ namespace poise::scanner
     auto Scanner::makeToken(TokenType tokenType) -> Token
     {
         auto length = m_current - m_start;
-        return Token(tokenType, m_line, m_column - length, std::string_view{m_code.data() + m_start, length});
+        return {tokenType, m_line, m_column - length, std::string_view{m_code.data() + m_start, length}};
     }
 }

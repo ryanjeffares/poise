@@ -1,6 +1,8 @@
 #ifndef POISE_COMPILER_HPP
 #define POISE_COMPILER_HPP
 
+#include "../poise.hpp"
+
 #include "../runtime/Op.hpp"
 #include "../runtime/Vm.hpp"
 #include "../scanner/Scanner.hpp"
@@ -15,6 +17,7 @@ namespace poise::compiler
     {
         Success,
         CompileError,
+        FileError,
         ParseError,
     };
 
@@ -26,7 +29,7 @@ namespace poise::compiler
         [[nodiscard]] auto compile() -> CompileResult;
 
     private:
-        auto emitOp(runtime::Op op, std::size_t line) -> void;
+        auto emitOp(runtime::Op op, usize line) -> void;
         auto emitConstant(runtime::Value value) -> void;
 
         auto advance() -> void;
@@ -41,16 +44,33 @@ namespace poise::compiler
         auto printLnStatement() -> void;
 
         auto expression() -> void;
-        auto string() -> void;
 
-        auto errorAtCurrent(const std::string& message) -> void;
-        auto errorAtPrevious(const std::string& message) -> void;
-        auto error(const scanner::Token& token, const std::string& message) -> void;
+        auto logicOr() -> void;
+        auto logicAnd() -> void;
+        auto bitwiseOr() -> void;
+        auto bitwiseXor() -> void;
+        auto bitwiseAnd() -> void;
+        auto equality() -> void;
+        auto comparison() -> void;
+        auto shift() -> void;
+        auto term() -> void;
+        auto factor() -> void;
+        auto unary() -> void;
+        auto exponent() -> void;
+        auto primary() -> void;
+
+        auto parseString() -> void;
+        auto parseInt() -> void;
+        auto parseFloat() -> void;
+
+        auto errorAtCurrent(std::string_view message) -> void;
+        auto errorAtPrevious(std::string_view message) -> void;
+        auto error(const scanner::Token& token, std::string_view message) -> void;
 
         bool m_hadError{};
 
-        std::filesystem::path m_filePath;
         scanner::Scanner m_scanner;
+        std::filesystem::path m_filePath;
         std::optional<scanner::Token> m_previous, m_current;
 
         runtime::Vm* m_vm;
