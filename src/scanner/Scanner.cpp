@@ -26,12 +26,14 @@ namespace poise::scanner
             {'~', TokenType::Tilde},
         }
         , m_keywordLookup{
+            {"and", TokenType::And},
             {"end", TokenType::End},
             {"func", TokenType::Func},
             {"false", TokenType::False},
             {"none", TokenType::None},
-            {"true", TokenType::True},
+            {"or", TokenType::Or},
             {"println", TokenType::PrintLn},
+            {"true", TokenType::True},
         }
 
     {
@@ -97,8 +99,6 @@ namespace poise::scanner
                     return multiCharSymbol({{'<', TokenType::ShiftLeft}, {'=', TokenType::LessEqual}}, TokenType::Less);
                 case '>':
                     return multiCharSymbol({{'>', TokenType::ShiftRight}, {'=', TokenType::GreaterEqual}}, TokenType::Greater);
-                case '*':
-                    return multiCharSymbol({{'*', TokenType::StarStar}}, TokenType::Star);
                 case '"':
                     return string();
                 default: {

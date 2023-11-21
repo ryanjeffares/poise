@@ -29,9 +29,11 @@ namespace poise::objects
         [[nodiscard]] auto toString() const -> std::string override;
         [[nodiscard]] auto callable() const -> bool override;
 
-        [[nodiscard]] auto opList() -> std::span<runtime::OpLine>;
-        [[nodiscard]] auto constantList() -> std::span<runtime::Value>;
+        [[nodiscard]] auto opList() const -> std::span<const runtime::OpLine>;
+        [[nodiscard]] auto constantList() const -> std::span<const runtime::Value>;
         [[nodiscard]] auto name() const -> const std::string&;
+
+        auto printOps() const -> void;
 
     private:
         std::string m_name;

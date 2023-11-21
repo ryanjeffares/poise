@@ -56,7 +56,6 @@ namespace poise::compiler
         auto term() -> void;
         auto factor() -> void;
         auto unary() -> void;
-        auto exponent() -> void;
         auto primary() -> void;
 
         auto parseString() -> void;

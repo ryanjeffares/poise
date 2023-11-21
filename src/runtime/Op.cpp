@@ -39,28 +39,32 @@ namespace fmt
                 return formatter<string_view>::format("LeftShift", context);
             case Op::RightShift:
                 return formatter<string_view>::format("RightShift", context);
-            case Op::Plus:
-                return formatter<string_view>::format("Plus", context);
-            case Op::Minus:
-                return formatter<string_view>::format("Minus", context);
+            case Op::Addition:
+                return formatter<string_view>::format("Addition", context);
+            case Op::Subtraction:
+                return formatter<string_view>::format("Subtraction", context);
             case Op::Multiply:
                 return formatter<string_view>::format("Multiply", context);
             case Op::Divide:
                 return formatter<string_view>::format("Divide", context);
+            case Op::Modulus:
+                return formatter<string_view>::format("Modulus", context);
             case Op::LogicNot:
                 return formatter<string_view>::format("LogicNot", context);
             case Op::BitwiseNot:
                 return formatter<string_view>::format("BitwiseNot", context);
             case Op::Negate:
                 return formatter<string_view>::format("Negate", context);
-            case Op::Pow:
-                return formatter<string_view>::format("Pow", context);
+            case Op::Plus:
+                return formatter<string_view>::format("Plus", context);
             case Op::Call:
                 return formatter<string_view>::format("Call", context);
             case Op::Exit:
                 return formatter<string_view>::format("Exit", context);
             case Op::Return:
                 return formatter<string_view>::format("Print", context);
+            default:
+                return formatter<string_view>::format("unknown", context);
         }
     }
 }

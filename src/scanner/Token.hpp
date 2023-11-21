@@ -42,7 +42,6 @@ namespace poise::scanner
         ShiftRight,
         Slash,
         Star,
-        StarStar,
         Tilde,
 
         // value types
@@ -58,6 +57,9 @@ namespace poise::scanner
         EndOfFile,
         Error,
     };
+
+    [[nodiscard]] auto isLiteral(TokenType tokenType) -> bool;
+    [[nodiscard]] auto isUnaryOp(TokenType tokenType) -> bool;
 
     class Token
     {

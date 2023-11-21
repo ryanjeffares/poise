@@ -47,12 +47,12 @@ namespace poise::objects
         return true;
     }
 
-    auto PoiseFunction::opList() -> std::span<runtime::OpLine>
+    auto PoiseFunction::opList() const -> std::span<const runtime::OpLine>
     {
         return m_ops;
     }
 
-    auto PoiseFunction::constantList() -> std::span<runtime::Value>
+    auto PoiseFunction::constantList() const -> std::span<const runtime::Value>
     {
         return m_constants;
     }
@@ -60,5 +60,20 @@ namespace poise::objects
     auto PoiseFunction::name() const -> const std::string&
     {
         return m_name;
+    }
+
+    auto PoiseFunction::printOps() const -> void
+    {
+        printLn();
+
+        fmt::print("Ops:\n");
+        for (const auto [op, _] : m_ops) {
+            fmt::print("\t{}\n", op);
+        }
+
+        fmt::print("Constants:\n");
+        for (const auto& constant : m_constants) {
+            fmt::print("\t{}\n", constant);
+        }
     }
 }

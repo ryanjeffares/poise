@@ -1,0 +1,10 @@
+func main():
+    println(105 * 4);
+    println(138 / 2);
+
+    println(true and false);
+    println(true and 2 < 1);
+
+    println("Hello world!");
+    println("hello" * 5);
+end

@@ -2,6 +2,9 @@
 
 #include <fmt/format.h>
 
+#include <algorithm>
+#include <vector>
+
 namespace fmt
 {
     using namespace poise::scanner;
@@ -44,7 +47,7 @@ namespace fmt
             case TokenType::Modulus:
                 return formatter<string_view>::format("Modulus", context);
             case TokenType::Minus:
-                return formatter<string_view>::format("Minus", context);
+                return formatter<string_view>::format("Subtraction", context);
             case TokenType::NotEqual:
                 return formatter<string_view>::format("NotEqual", context);
             case TokenType::OpenParen:
@@ -52,7 +55,7 @@ namespace fmt
             case TokenType::Pipe:
                 return formatter<string_view>::format("Pipe", context);
             case TokenType::Plus:
-                return formatter<string_view>::format("Plus", context);
+                return formatter<string_view>::format("Addition", context);
             case TokenType::Semicolon:
                 return formatter<string_view>::format("Semicolon", context);
             case TokenType::ShiftLeft:
@@ -63,8 +66,6 @@ namespace fmt
                 return formatter<string_view>::format("Slash", context);
             case TokenType::Star:
                 return formatter<string_view>::format("Star", context);
-            case TokenType::StarStar:
-                return formatter<string_view>::format("StarStar", context);
             case TokenType::Tilde:
                 return formatter<string_view>::format("Tilde", context);
             case TokenType::False:
@@ -93,6 +94,25 @@ namespace fmt
 
 namespace poise::scanner
 {
+    auto isLiteral(TokenType tokenType) -> bool
+    {
+        return tokenType == TokenType::False
+            || tokenType == TokenType::Float
+            || tokenType == TokenType::Identifier
+            || tokenType == TokenType::Int
+            || tokenType == TokenType::None
+            || tokenType == TokenType::String
+            || tokenType == TokenType::True;
+    }
+
+    auto isUnaryOp(TokenType tokenType) -> bool
+    {
+        return tokenType == TokenType::Exclamation
+            || tokenType == TokenType::Tilde
+            || tokenType == TokenType::Minus
+            || tokenType == TokenType::Plus;
+    }
+
     Token::Token(TokenType tokenType, usize line, usize column, std::string_view text)
         : m_tokenType{tokenType}
         , m_line{line}

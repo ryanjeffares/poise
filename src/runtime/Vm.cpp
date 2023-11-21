@@ -38,8 +38,8 @@ namespace poise::runtime
         std::vector<Value> stack;
         std::vector<Value> availableFunctions;
 
-        std::vector<std::span<OpLine>> opListStack{m_globalOps};
-        std::vector<std::span<Value>> constantListStack{m_globalConstants};
+        std::vector<std::span<const OpLine>> opListStack{m_globalOps};
+        std::vector<std::span<const Value>> constantListStack{m_globalConstants};
 
         std::vector<usize> opIndexStack = {0zu};
         std::vector<usize> constantIndexStack = {0zu};
@@ -74,8 +74,132 @@ namespace poise::runtime
             const auto [op, line] = opList[opIndex++];
 
             switch (op) {
+                case Op::DeclareFunction: {
+                    auto function = constantList[constantIndex++];
+                    availableFunctions.emplace_back(std::move(function));
+                    break;
+                }
+                case Op::LoadConstant: {
+                    stack.push_back(constantList[constantIndex++]);
+                    break;
+                }
+                case Op::PrintLn: {
+                    const auto value = pop();
+                    value.printLn();
+                    break;
+                }
+                case Op::LogicOr: {
+                    const auto [a, b] = popTwo();
+                    stack.emplace_back(a || b);
+                    break;
+                }
+                case Op::LogicAnd: {
+                    const auto [a, b] = popTwo();
+                    stack.emplace_back(a && b);
+                    break;
+                }
+                case Op::BitwiseOr: {
+                    const auto [a, b] = popTwo();
+                    stack.emplace_back(a | b);
+                    break;
+                }
+                case Op::BitwiseXor: {
+                    const auto [a, b] = popTwo();
+                    stack.emplace_back(a ^ b);
+                    break;
+                }
+                case Op::BitwiseAnd: {
+                    const auto [a, b] = popTwo();
+                    stack.emplace_back(a & b);
+                    break;
+                }
+                case Op::Equal: {
+                    const auto [a, b] = popTwo();
+                    stack.emplace_back(a == b);
+                    break;
+                }
+                case Op::NotEqual: {
+                    const auto [a, b] = popTwo();
+                    stack.emplace_back(a != b);
+                    break;
+                }
+                case Op::LessThan: {
+                    const auto [a, b] = popTwo();
+                    stack.emplace_back(a < b);
+                    break;
+                }
+                case Op::LessEqual: {
+                    const auto [a, b] = popTwo();
+                    stack.emplace_back(a <= b);
+                    break;
+                }
+                case Op::GreaterThan: {
+                    const auto [a, b] = popTwo();
+                    stack.emplace_back(a > b);
+                    break;
+                }
+                case Op::GreaterEqual: {
+                    const auto [a, b] = popTwo();
+                    stack.emplace_back(a >= b);
+                    break;
+                }
+                case Op::LeftShift: {
+                    const auto [a, b] = popTwo();
+                    stack.emplace_back(a << b);
+                    break;
+                }
+                case Op::RightShift: {
+                    const auto [a, b] = popTwo();
+                    stack.emplace_back(a >> b);
+                    break;
+                }
+                case Op::Addition: {
+                    const auto [a, b] = popTwo();
+                    stack.emplace_back(a + b);
+                    break;
+                }
+                case Op::Subtraction: {
+                    const auto [a, b] = popTwo();
+                    stack.emplace_back(a - b);
+                    break;
+                }
+                case Op::Multiply: {
+                    const auto [a, b] = popTwo();
+                    stack.emplace_back(a * b);
+                    break;
+                }
+                case Op::Divide: {
+                    const auto [a, b] = popTwo();
+                    stack.emplace_back(a / b);
+                    break;
+                }
+                case Op::Modulus: {
+                    const auto [a, b] = popTwo();
+                    stack.emplace_back(a % b);
+                    break;
+                }
+                case Op::LogicNot: {
+                    const auto value = pop();
+                    stack.emplace_back(!value);
+                    break;
+                }
+                case Op::BitwiseNot: {
+                    const auto value = pop();
+                    stack.emplace_back(~value);
+                    break;
+                }
+                case Op::Negate: {
+                    const auto value = pop();
+                    stack.emplace_back(-value);
+                    break;
+                }
+                case Op::Plus: {
+                    const auto value = pop();
+                    stack.emplace_back(+value);
+                    break;
+                }
                 case Op::Call: {
-                    auto value = pop();
+                    const auto value = pop();
                     if (value.callable()) {
                         auto function = value.object()->asFunction();
                         opListStack.push_back(function->opList());
@@ -88,22 +212,8 @@ namespace poise::runtime
 
                     break;
                 }
-                case Op::DeclareFunction: {
-                    auto function = constantList[constantIndex++];
-                    availableFunctions.emplace_back(std::move(function));
-                    break;
-                }
                 case Op::Exit: {
                     return RunResult::Success;
-                }
-                case Op::LoadConstant: {
-                    stack.push_back(constantList[constantIndex++]);
-                    break;
-                }
-                case Op::PrintLn: {
-                    auto value = pop();
-                    value.printLn();
-                    break;
                 }
                 case Op::Return: {
                     opListStack.pop_back();
@@ -112,7 +222,6 @@ namespace poise::runtime
                     constantIndexStack.pop_back();
                     break;
                 }
-                default: break;
             }
         }
     }

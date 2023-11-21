@@ -33,14 +33,15 @@ namespace poise::runtime
         GreaterEqual,
         LeftShift,
         RightShift,
-        Plus,
-        Minus,
+        Addition,
+        Subtraction,
         Multiply,
         Divide,
+        Modulus,
         LogicNot,
         BitwiseNot,
         Negate,
-        Pow,
+        Plus,
 
         // jumping/control flow
         Call,

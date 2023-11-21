@@ -80,9 +80,9 @@ namespace poise::compiler
         m_previous = m_current;
         m_current = m_scanner.scanToken();
 
-// #ifdef POISE_DEBUG
-//         m_current->print();
-// #endif
+#ifdef POISE_DEBUG
+        m_current->print();
+#endif
 
         if (m_current->tokenType() == scanner::TokenType::Error) {
             errorAtCurrent("Invalid token");
@@ -146,6 +146,8 @@ namespace poise::compiler
             m_mainFunction = function;
         }
 
+        function.object()->asFunction()->printOps();
+
         emitConstant(std::move(function));
         emitOp(runtime::Op::DeclareFunction, line);
     }
@@ -178,76 +180,178 @@ namespace poise::compiler
 
     auto Compiler::expression() -> void
     {
-        logicOr();
+        // expressions can only start with a literal, unary op, or identifier
+        if (scanner::isLiteral(m_current->tokenType()) || scanner::isUnaryOp(m_current->tokenType())) {
+            logicOr();
+        }
     }
 
     auto Compiler::logicOr() -> void
     {
+        logicAnd();
+
         while (match(scanner::TokenType::Or)) {
             logicAnd();
-            emitOp(runtime::Op::LogicAnd, m_previous->line());
+            emitOp(runtime::Op::LogicOr, m_previous->line());
         }
     }
     
     auto Compiler::logicAnd() -> void
     {
-        
+        bitwiseOr();
+
+        while (match(scanner::TokenType::And)) {
+            bitwiseOr();
+            emitOp(runtime::Op::LogicAnd, m_previous->line());
+        }
     }
     
     auto Compiler::bitwiseOr() -> void
     {
-        
+        bitwiseXor();
+
+        while (match(scanner::TokenType::Pipe)) {
+            bitwiseXor();
+            emitOp(runtime::Op::BitwiseOr, m_previous->line());
+        }
     }
     
     auto Compiler::bitwiseXor() -> void
     {
-        
+        bitwiseAnd();
+
+        while (match(scanner::TokenType::Caret)) {
+            bitwiseAnd();
+            emitOp(runtime::Op::BitwiseXor, m_previous->line());
+        }
     }
     
     auto Compiler::bitwiseAnd() -> void
     {
-        
+        equality();
+
+        while (match(scanner::TokenType::Ampersand)) {
+            equality();
+            emitOp(runtime::Op::BitwiseAnd, m_previous->line());
+        }
     }
     
     auto Compiler::equality() -> void
     {
-        
+        comparison();
+
+        if (match(scanner::TokenType::EqualEqual)) {
+            comparison();
+            emitOp(runtime::Op::Equal, m_previous->line());
+        } else if (match(scanner::TokenType::NotEqual)) {
+            comparison();
+            emitOp(runtime::Op::NotEqual, m_previous->line());
+        }
     }
     
     auto Compiler::comparison() -> void
     {
-        
+        shift();
+
+        if (match(scanner::TokenType::Less)) {
+            shift();
+            emitOp(runtime::Op::LessThan, m_previous->line());
+        } else if (match(scanner::TokenType::LessEqual)) {
+            shift();
+            emitOp(runtime::Op::LessEqual, m_previous->line());
+        } else if (match(scanner::TokenType::Greater)) {
+            shift();
+            emitOp(runtime::Op::GreaterThan, m_previous->line());
+        } else if (match(scanner::TokenType::GreaterEqual)) {
+            shift();
+            emitOp(runtime::Op::GreaterEqual, m_previous->line());
+        }
     }
     
     auto Compiler::shift() -> void
     {
-        
+        term();
+
+        while (true) {
+            if (match(scanner::TokenType::ShiftLeft)) {
+                term();
+                emitOp(runtime::Op::LeftShift, m_previous->line());
+            } else if (match(scanner::TokenType::ShiftRight)) {
+                term();
+                emitOp(runtime::Op::RightShift, m_previous->line());
+            } else {
+                break;
+            }
+        }
     }
     
     auto Compiler::term() -> void
     {
-        
+        factor();
+
+        while (true) {
+            if (match(scanner::TokenType::Plus)) {
+                factor();
+                emitOp(runtime::Op::Addition, m_previous->line());
+            } else if (match(scanner::TokenType::Minus)) {
+                factor();
+                emitOp(runtime::Op::Subtraction, m_previous->line());
+            } else {
+                break;
+            }
+        }
     }
     
     auto Compiler::factor() -> void
     {
-        
+        unary();
+
+        while (true) {
+            if (match(scanner::TokenType::Star)) {
+                unary();
+                emitOp(runtime::Op::Multiply, m_previous->line());
+            } else if (match(scanner::TokenType::Slash)) {
+                unary();
+                emitOp(runtime::Op::Divide, m_previous->line());
+            } else if (match(scanner::TokenType::Modulus)) {
+                unary();
+                emitOp(runtime::Op::Modulus, m_previous->line());
+            } else {
+                break;
+            }
+        }
     }
     
     auto Compiler::unary() -> void
     {
-        
-    }
-    
-    auto Compiler::exponent() -> void
-    {
-        
+        if (match(scanner::TokenType::Minus)) {
+            auto line = m_previous->line();
+            unary();
+            emitOp(runtime::Op::Negate, line);
+        } else if (match(scanner::TokenType::Tilde)) {
+            auto line = m_previous->line();
+            unary();
+            emitOp(runtime::Op::BitwiseNot, line);
+        } else if (match(scanner::TokenType::Exclamation)) {
+            auto line = m_previous->line();
+            unary();
+            emitOp(runtime::Op::LogicNot, line);
+        } else if (match(scanner::TokenType::Plus)) {
+            auto line = m_previous->line();
+            unary();
+            emitOp(runtime::Op::Plus, line);
+        } else {
+            primary();
+        }
     }
     
     auto Compiler::primary() -> void
     {
         if (match(scanner::TokenType::False)) {
             emitConstant(false);
+            emitOp(runtime::Op::LoadConstant, m_previous->line());
+        } else if (match(scanner::TokenType::True)) {
+            emitConstant(true);
             emitOp(runtime::Op::LoadConstant, m_previous->line());
         } else if (match(scanner::TokenType::Float)) {
             parseFloat();
@@ -258,9 +362,6 @@ namespace poise::compiler
             emitOp(runtime::Op::LoadConstant, m_previous->line());
         } else if (match(scanner::TokenType::String)) {
             parseString();
-        } else if (match(scanner::TokenType::True)) {
-            emitConstant(true);
-            emitOp(runtime::Op::LoadConstant, m_previous->line());
         } else {
             errorAtCurrent("Invalid token at start of expression");
         }

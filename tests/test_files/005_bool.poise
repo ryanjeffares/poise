@@ -1,4 +1,0 @@
-func main():
-    println(true);
-    println(false);
-end

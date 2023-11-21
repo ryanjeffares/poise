@@ -56,10 +56,10 @@ namespace poise::runtime
         template<Primitive T>
         Value(T value)
         {
-            if constexpr (std::is_same_v<T, std::string>) {
+            if constexpr (IsString<T>) {
                 m_type = Type::String;
                 m_data.string = new std::string{std::move(value)};
-            } else if constexpr (std::is_same_v<T, std::nullptr_t>) {
+            } else if constexpr (IsNone<T>) {
                 m_type = Type::None;
                 m_data.none = value;
             } else if constexpr (IsInteger<T>) {
@@ -96,10 +96,10 @@ namespace poise::runtime
                 delete m_data.string;
             }
 
-            if constexpr (std::is_same_v<T, std::string>) {
+            if constexpr (IsString<T>) {
                 m_type = Type::String;
                 m_data.string = new std::string{std::move(value)};
-            } else if constexpr (std::is_same_v<T, std::nullptr_t>) {
+            } else if constexpr (IsNone<T>) {
                 m_type = Type::None;
                 m_data.none = value;
             } else if constexpr (IsInteger<T>) {
@@ -141,26 +141,30 @@ namespace poise::runtime
         [[nodiscard]] auto toString() const -> std::string;
         [[nodiscard]] auto callable() const -> bool;
 
-        auto operator|(const Value& other) const -> Value;
-        auto operator^(const Value& other) const -> Value;
-        auto operator<<(const Value& other) const -> Value;
-        auto operator>>(const Value& other) const -> Value;
-        auto operator+(const Value& other) const -> Value;
-        auto operator-(const Value& other) const -> Value;
-        auto operator/(const Value& other) const -> Value;
-        auto operator*(const Value& other) const -> Value;
-        auto operator%(const Value& other) const -> Value;
+        [[nodiscard]] auto operator|(const Value& other) const -> Value;
+        [[nodiscard]] auto operator^(const Value& other) const -> Value;
+        [[nodiscard]] auto operator&(const Value& other) const -> Value;
+        [[nodiscard]] auto operator<<(const Value& other) const -> Value;
+        [[nodiscard]] auto operator>>(const Value& other) const -> Value;
+        [[nodiscard]] auto operator+(const Value& other) const -> Value;
+        [[nodiscard]] auto operator-(const Value& other) const -> Value;
+        [[nodiscard]] auto operator/(const Value& other) const -> Value;
+        [[nodiscard]] auto operator*(const Value& other) const -> Value;
+        [[nodiscard]] auto operator%(const Value& other) const -> Value;
         
-        auto operator!() const -> Value;
-        auto operator~() const -> Value;
-        auto operator-() const -> Value;
+        [[nodiscard]] auto operator!() const -> Value;
+        [[nodiscard]] auto operator~() const -> Value;
+        [[nodiscard]] auto operator-() const -> Value;
+        [[nodiscard]] auto operator+() const -> Value;
 
-        auto operator==(const Value& other) const -> bool;
-        auto operator!=(const Value& other) const -> bool;
-        auto operator<(const Value& other) const -> bool;
-        auto operator<=(const Value& other) const -> bool;
-        auto operator>(const Value& other) const -> bool;
-        auto operator>=(const Value& other) const -> bool;
+        [[nodiscard]] auto operator==(const Value& other) const -> bool;
+        [[nodiscard]] auto operator!=(const Value& other) const -> bool;
+        [[nodiscard]] auto operator<(const Value& other) const -> bool;
+        [[nodiscard]] auto operator<=(const Value& other) const -> bool;
+        [[nodiscard]] auto operator>(const Value& other) const -> bool;
+        [[nodiscard]] auto operator>=(const Value& other) const -> bool;
+        [[nodiscard]] auto operator||(const Value& other) const -> bool;
+        [[nodiscard]] auto operator&&(const Value& other) const -> bool;
 
     private:
         union

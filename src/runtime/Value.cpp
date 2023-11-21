@@ -175,6 +175,22 @@ namespace poise::runtime
         }
     }
 
+    auto Value::operator&(const Value& other) const -> Value
+    {
+        switch (type()) {
+            case Type::Int: {
+                switch (other.type()) {
+                    case Type::Int:
+                        return value<i64>() & other.value<i64>();
+                    default:
+                        throw std::runtime_error(fmt::format("Invalid operand types for &: '{}' and '{}'", type(), other.type()));
+                }
+            }
+            default:
+                throw std::runtime_error(fmt::format("Invalid operand types for &: '{}' and '{}'", type(), other.type()));
+        }
+    }
+
     auto Value::operator<<(const Value& other) const -> Value
     {
         switch (type()) {
@@ -225,7 +241,7 @@ namespace poise::runtime
                     case Type::Float:
                         return static_cast<f64>(value<i64>()) + other.value<f64>();
                     case Type::Int:
-                        return value<i64>() + value<i64>();
+                        return value<i64>() + other.value<i64>();
                     default:
                         throw std::runtime_error(fmt::format("Invalid operand types for +: '{}' and '{}'", type(), other.type()));
                 }
@@ -255,7 +271,7 @@ namespace poise::runtime
                     case Type::Float:
                         return static_cast<f64>(value<i64>()) - other.value<f64>();
                     case Type::Int:
-                        return value<i64>() - value<i64>();
+                        return value<i64>() - other.value<i64>();
                     default:
                         throw std::runtime_error(fmt::format("Invalid operand types for -: '{}' and '{}'", type(), other.type()));
                 }
@@ -283,7 +299,7 @@ namespace poise::runtime
                     case Type::Float:
                         return static_cast<f64>(value<i64>()) / other.value<f64>();
                     case Type::Int:
-                        return value<i64>() / value<i64>();
+                        return value<i64>() / other.value<i64>();
                     default:
                         throw std::runtime_error(fmt::format("Invalid operand types for /: '{}' and '{}'", type(), other.type()));
                 }
@@ -311,7 +327,7 @@ namespace poise::runtime
                     case Type::Float:
                         return static_cast<f64>(value<i64>()) * other.value<f64>();
                     case Type::Int:
-                        return value<i64>() * value<i64>();
+                        return value<i64>() * other.value<i64>();
                     default:
                         throw std::runtime_error(fmt::format("Invalid operand types for *: '{}' and '{}'", type(), other.type()));
                 }
@@ -384,6 +400,18 @@ namespace poise::runtime
         }
     }
 
+    auto Value::operator+() const -> Value
+    {
+        switch (type()) {
+            case Type::Int:
+                return +value<i64>();
+            case Type::Float:
+                return +value<f64>();
+            default:
+                throw std::runtime_error(fmt::format("Invalid operand type for +: '{}'", type()));
+        }
+    }
+
     auto Value::operator==(const Value& other) const -> bool
     {
         switch (type()) {
@@ -435,6 +463,8 @@ namespace poise::runtime
             case Type::String: {
                 return other.type() == Type::String && string() == other.string();
             }
+            default:
+                return false;
         }
     }
 
@@ -517,6 +547,16 @@ namespace poise::runtime
         return !(*this < other);
     }
 
+    auto Value::operator||(const Value& other) const -> bool
+    {
+        return asBool() || other.asBool();
+    }
+
+    auto Value::operator&&(const Value& other) const -> bool
+    {
+        return asBool() && other.asBool();
+    }
+
     auto Value::data() const -> decltype(m_data)
     {
         return m_data;
@@ -553,6 +593,8 @@ namespace fmt
                 return formatter<string_view>::format("None", context);
             case Value::Type::String:
                 return formatter<string_view>::format("String", context);
+            default:
+                return formatter<string_view>::format("unknown", context);
         }
     }
 }

@@ -1,4 +1,0 @@
-func main():
-    println(3.14);
-    println(0.000000001);
-end
