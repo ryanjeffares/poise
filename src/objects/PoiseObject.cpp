@@ -24,6 +24,6 @@ namespace poise::objects
 
     auto PoiseObject::callable() const -> bool
     {
-      return false;
+        return false;
     }
 }

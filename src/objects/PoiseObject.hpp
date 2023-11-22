@@ -26,7 +26,7 @@ namespace poise::objects
         virtual ~PoiseObject() = default;
 
         auto incrementRefCount() -> usize;
-        auto decrementRefCount() -> usize;
+        [[nodiscard]] auto decrementRefCount() -> usize;
         [[nodiscard]] auto refCount() const -> usize;
 
         virtual auto asFunction() -> PoiseFunction*;
