@@ -23,6 +23,7 @@ namespace poise::objects
 
         auto emitOp(runtime::Op op, usize line) -> void;
         auto emitConstant(runtime::Value value) -> void;
+        auto setConstant(runtime::Value value, usize index) -> void;
 
         auto print() const -> void override;
         auto printLn() const -> void override;
@@ -30,7 +31,10 @@ namespace poise::objects
         [[nodiscard]] auto callable() const -> bool override;
 
         [[nodiscard]] auto opList() const -> std::span<const runtime::OpLine>;
+        [[nodiscard]] auto numOps() const -> usize;
         [[nodiscard]] auto constantList() const -> std::span<const runtime::Value>;
+        [[nodiscard]] auto numConstants() const -> usize;
+
         [[nodiscard]] auto name() const -> const std::string&;
 
         auto printOps() const -> void;

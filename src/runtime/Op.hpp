@@ -46,6 +46,9 @@ namespace poise::runtime
         // jumping/control flow
         Call,
         Exit,
+        Jump,
+        JumpIfFalse,
+        JumpIfTrue,
         Return,
     };
 

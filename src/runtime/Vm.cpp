@@ -44,13 +44,13 @@ namespace poise::runtime
         std::vector<usize> opIndexStack = {0zu};
         std::vector<usize> constantIndexStack = {0zu};
 
-        auto pop = [&stack] [[nodiscard]] -> Value {
+        auto pop = [&stack] -> Value {
             auto value = std::move(stack.back());
             stack.pop_back();
             return value;
         };
 
-        [[maybe_unused]] auto popTwo = [&stack] [[nodiscard]] -> std::tuple<Value, Value> {
+        [[maybe_unused]] auto popTwo = [&stack] -> std::tuple<Value, Value> {
             auto value1 = std::move(stack.back());
             stack.pop_back();
             auto value2 = std::move(stack.back());
@@ -214,6 +214,35 @@ namespace poise::runtime
                 }
                 case Op::Exit: {
                     return RunResult::Success;
+                }
+                case Op::Jump: {
+                    const auto& jumpIndex = constantList[constantIndex++];
+                    opIndex = jumpIndex.value<usize>();
+                    break;
+                }
+                case Op::JumpIfFalse: {
+                    const auto& value = stack.back();
+                    const auto& jumpConstantIndex = constantList[constantIndex++];
+                    const auto& jumpOpIndex = constantList[constantIndex++];
+
+                    if (!value.asBool()) {
+                        constantIndex = jumpConstantIndex.value<usize>();
+                        opIndex = jumpOpIndex.value<usize>();
+                    }
+
+                    break;
+                }
+                case Op::JumpIfTrue: {
+                    const auto& value = stack.back();
+                    const auto& jumpConstantIndex = constantList[constantIndex++];
+                    const auto& jumpOpIndex = constantList[constantIndex++];
+
+                    if (value.asBool()) {
+                        constantIndex = jumpConstantIndex.value<usize>();
+                        opIndex = jumpOpIndex.value<usize>();
+                    }
+
+                    break;
                 }
                 case Op::Return: {
                     opListStack.pop_back();

@@ -27,6 +27,11 @@ namespace poise::objects
         m_constants.emplace_back(std::move(value));
     }
 
+    auto PoiseFunction::setConstant(runtime::Value value, usize index) -> void
+    {
+        m_constants[index] = std::move(value);
+    }
+
     auto PoiseFunction::print() const -> void
     {
         fmt::print("{}", toString());
@@ -52,9 +57,19 @@ namespace poise::objects
         return m_ops;
     }
 
+    auto PoiseFunction::numOps() const -> usize
+    {
+        return m_ops.size();
+    }
+
     auto PoiseFunction::constantList() const -> std::span<const runtime::Value>
     {
         return m_constants;
+    }
+
+    auto PoiseFunction::numConstants() const -> usize
+    {
+        return m_constants.size();
     }
 
     auto PoiseFunction::name() const -> const std::string&

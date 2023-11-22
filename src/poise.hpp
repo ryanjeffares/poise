@@ -1,6 +1,7 @@
 #ifndef POISE_HPP
 #define POISE_HPP
 
+#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
@@ -22,6 +23,11 @@ namespace poise
 
     using f32 = float;
     using f64 = double;
+
+#ifndef POISE_UNREACHABLE
+#define POISE_UNREACHABLE() assert(false && "Unreachable code")
+#endif
+
 } // namespace grace
 
 #endif

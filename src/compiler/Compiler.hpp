@@ -32,6 +32,14 @@ namespace poise::compiler
         auto emitOp(runtime::Op op, usize line) -> void;
         auto emitConstant(runtime::Value value) -> void;
 
+        struct JumpIndexes
+        {
+            usize constantIndex, opIndex;
+        };
+
+        auto emitJump(bool jumpCondition) -> JumpIndexes;
+        auto patchJump(JumpIndexes jumpIndexes) -> void;
+
         auto advance() -> void;
         [[nodiscard]] auto match(scanner::TokenType expected) -> bool;
         [[nodiscard]] auto check(scanner::TokenType expected) -> bool;

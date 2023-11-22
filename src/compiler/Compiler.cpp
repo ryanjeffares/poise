@@ -75,9 +75,32 @@ namespace poise::compiler
         m_vm->emitConstant(std::move(value));
     }
 
+    auto Compiler::emitJump(bool jumpCondition) -> JumpIndexes
+    {
+        const auto function = m_vm->getCurrentFunction();
+        emitOp(jumpCondition ? runtime::Op::JumpIfTrue : runtime::Op::JumpIfFalse, m_previous->line());
+
+        const auto jumpConstantIndex = function->numConstants();
+        emitConstant(0zu);
+        const auto jumpOpIndex = function->numConstants();
+        emitConstant(0zu);
+
+        return {jumpConstantIndex, jumpOpIndex};
+    }
+
+    auto Compiler::patchJump(JumpIndexes jumpIndexes) -> void
+    {
+        const auto function = m_vm->getCurrentFunction();
+
+        const auto numOps = function->numOps();
+        const auto numConstants = function->numConstants();
+        function->setConstant(numOps, jumpIndexes.opIndex);
+        function->setConstant(numConstants, jumpIndexes.constantIndex);
+    }
+
     auto Compiler::advance() -> void
     {
-        m_previous = m_current;
+        m_previous = std::move(m_current);
         m_current = m_scanner.scanToken();
 
 #ifdef POISE_DEBUG
@@ -190,9 +213,21 @@ namespace poise::compiler
     {
         logicAnd();
 
+        JumpIndexes jumpIndexes;
+        auto needsJumpPatch = false;
+
+        if (check(scanner::TokenType::Or)) {
+            jumpIndexes = emitJump(true);
+            needsJumpPatch = true;
+        }
+
         while (match(scanner::TokenType::Or)) {
             logicAnd();
             emitOp(runtime::Op::LogicOr, m_previous->line());
+        }
+
+        if (needsJumpPatch) {
+            patchJump(jumpIndexes);
         }
     }
     
@@ -200,9 +235,21 @@ namespace poise::compiler
     {
         bitwiseOr();
 
+        JumpIndexes jumpIndexes;
+        auto needsJumpPatch = false;
+
+        if (check(scanner::TokenType::And)) {
+            jumpIndexes = emitJump(false);
+            needsJumpPatch = true;
+        }
+
         while (match(scanner::TokenType::And)) {
             bitwiseOr();
             emitOp(runtime::Op::LogicAnd, m_previous->line());
+        }
+
+        if (needsJumpPatch) {
+            patchJump(jumpIndexes);
         }
     }
     

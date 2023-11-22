@@ -59,12 +59,18 @@ namespace fmt
                 return formatter<string_view>::format("Plus", context);
             case Op::Call:
                 return formatter<string_view>::format("Call", context);
+            case Op::Jump:
+                return formatter<string_view>::format("Jump", context);
+            case Op::JumpIfFalse:
+                return formatter<string_view>::format("JumpIfFalse", context);
+            case Op::JumpIfTrue:
+                return formatter<string_view>::format("JumpIfTrue", context);
             case Op::Exit:
                 return formatter<string_view>::format("Exit", context);
             case Op::Return:
                 return formatter<string_view>::format("Print", context);
             default:
-                return formatter<string_view>::format("unknown", context);
+                POISE_UNREACHABLE();
         }
     }
 }

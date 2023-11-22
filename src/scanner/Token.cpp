@@ -88,7 +88,7 @@ namespace fmt
                 return formatter<string_view>::format("Error", context);
         }
 
-        return formatter<string_view>::format("Unknown", context);
+        POISE_UNREACHABLE();
     }
 }
 
