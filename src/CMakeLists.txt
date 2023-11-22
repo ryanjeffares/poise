@@ -13,6 +13,12 @@ if (CMAKE_BUILD_TYPE MATCHES Debug)
     target_compile_definitions(poise_scanner PRIVATE POISE_DEBUG)
 endif()
 
+target_include_directories(poise PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../third_party)
+target_include_directories(poise_compiler PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../third_party)
+target_include_directories(poise_objects PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../third_party)
+target_include_directories(poise_runtime PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../third_party)
+target_include_directories(poise_scanner PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../third_party)
+
 if (MSVC)
     target_compile_definitions(poise PRIVATE POISE_MSVC)
     target_compile_definitions(poise_compiler PRIVATE POISE_MSVC)

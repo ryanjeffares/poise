@@ -1,6 +1,10 @@
 #ifndef POISE_HPP
 #define POISE_HPP
 
+#include <boost/stacktrace.hpp>
+#include <fmt/core.h>
+#include <source_location/source_location.hpp>
+
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
@@ -23,11 +27,24 @@ namespace poise
 
     using f32 = float;
     using f64 = double;
+} // namespace grace
 
-#ifndef POISE_UNREACHABLE
-#define POISE_UNREACHABLE() assert(false && "Unreachable code")
+#ifndef POISE_ASSERT
+#define POISE_ASSERT(condition, message)                                                            \
+    do {                                                                                            \
+        if (!(condition)) {                                                                         \
+            const auto stacktrace = boost::stacktrace::stacktrace{};                                \
+            const auto stackTop = stacktrace.begin();                                               \
+            fmt::print(stderr, "Assertion failed with expression '{}': {}\n", #condition, message); \
+            fmt::print(stderr, "At {}:{}\n", stackTop->source_file(), stackTop->name());            \
+            fmt::print(stderr, "Stacktrace:\n{}\n", boost::stacktrace::to_string(stacktrace));      \
+            std::exit(-1);                                                                          \
+        }                                                                                           \
+    } while (false)
 #endif
 
-} // namespace grace
+#ifndef POISE_UNREACHABLE
+#define POISE_UNREACHABLE() POISE_ASSERT(false, "Unreachable code")
+#endif
 
 #endif

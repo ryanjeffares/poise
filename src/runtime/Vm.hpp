@@ -22,12 +22,12 @@ namespace poise::runtime
         };
 
         auto setCurrentFunction(objects::PoiseFunction* function) -> void;
-        auto getCurrentFunction() -> objects::PoiseFunction*;
+        [[nodiscard]] auto getCurrentFunction() -> objects::PoiseFunction*;
 
         auto emitOp(Op op, usize line) -> void;
         auto emitConstant(Value value) -> void;
 
-        auto run() -> RunResult;
+        [[nodiscard]] auto run() -> RunResult;
 
     private:
         std::vector<OpLine> m_globalOps;

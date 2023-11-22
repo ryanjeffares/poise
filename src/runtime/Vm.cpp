@@ -45,12 +45,14 @@ namespace poise::runtime
         std::vector<usize> constantIndexStack = {0zu};
 
         auto pop = [&stack] -> Value {
+            POISE_ASSERT(!stack.empty(), "Stack is empty, there has been an error in codegen");
             auto value = std::move(stack.back());
             stack.pop_back();
             return value;
         };
 
         [[maybe_unused]] auto popTwo = [&stack] -> std::tuple<Value, Value> {
+            POISE_ASSERT(stack.size() >= 2, "Stack is not big enough, there has been an error in codegen");
             auto value1 = std::move(stack.back());
             stack.pop_back();
             auto value2 = std::move(stack.back());
@@ -201,7 +203,7 @@ namespace poise::runtime
                 case Op::Call: {
                     const auto value = pop();
                     if (value.callable()) {
-                        auto function = value.object()->asFunction();
+                        const auto function = value.object()->asFunction();
                         opListStack.push_back(function->opList());
                         constantListStack.push_back(function->constantList());
                         opIndexStack.push_back(0zu);
@@ -221,6 +223,8 @@ namespace poise::runtime
                     break;
                 }
                 case Op::JumpIfFalse: {
+                    POISE_ASSERT(!stack.empty(), "Stack should not be empty, there has been an error in codegen");
+
                     const auto& value = stack.back();
                     const auto& jumpConstantIndex = constantList[constantIndex++];
                     const auto& jumpOpIndex = constantList[constantIndex++];
@@ -233,6 +237,8 @@ namespace poise::runtime
                     break;
                 }
                 case Op::JumpIfTrue: {
+                    POISE_ASSERT(!stack.empty(), "Stack should not be empty, there has been an error in codegen");
+
                     const auto& value = stack.back();
                     const auto& jumpConstantIndex = constantList[constantIndex++];
                     const auto& jumpOpIndex = constantList[constantIndex++];
