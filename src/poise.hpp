@@ -2,8 +2,8 @@
 #define POISE_HPP
 
 #include <boost/stacktrace.hpp>
+
 #include <fmt/core.h>
-#include <source_location/source_location.hpp>
 
 #include <cassert>
 #include <cstddef>

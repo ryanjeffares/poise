@@ -21,5 +21,21 @@ FetchContent_MakeAvailable(Catch2)
 
 add_compile_definitions(BOOST_STACKTRACE_GNU_SOURCE_NOT_REQUIRED=1)
 
+if(MSVC)
+    add_compile_definitions(POISE_MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /WX /external:templates- /external:W0 /std:c++latest")
+else()
+    add_compile_definitions(POISE_UNIX)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -Wpedantic -Wextra -Wconversion -std=gnu++2b")
+endif()
+
+if (CMAKE_BUILD_TYPE MATCHES "Debug")
+    add_compile_definitions(POISE_DEBUG)
+endif()
+
+if (POISE_BOOST_PATH)
+    include_directories(${POISE_BOOST_PATH})
+endif()
+
 add_subdirectory(src poise)
 add_subdirectory(tests poise_tests)
