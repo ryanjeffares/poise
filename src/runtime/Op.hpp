@@ -14,7 +14,10 @@ namespace poise::runtime
     {
         // stack/state modification
         DeclareFunction,
+        DeclareLocal,
         LoadConstant,
+        LoadLocal,
+        PopLocals,
 
         // statements
         PrintLn,

@@ -16,12 +16,16 @@ namespace fmt
                 return formatter<string_view>::format("And", context);
             case TokenType::End:
                 return formatter<string_view>::format("End", context);
+            case TokenType::Final:
+                return formatter<string_view>::format("Final", context);
             case TokenType::Func:
                 return formatter<string_view>::format("Func", context);
             case TokenType::Or:
                 return formatter<string_view>::format("Or", context);
             case TokenType::PrintLn:
                 return formatter<string_view>::format("PrintLn", context);
+            case TokenType::Var:
+                return formatter<string_view>::format("Var", context);
             case TokenType::Ampersand:
                 return formatter<string_view>::format("Ampersand", context);
             case TokenType::Caret:

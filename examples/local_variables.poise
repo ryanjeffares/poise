@@ -1,0 +1,12 @@
+func main():
+    var a = 2;
+    var b = "Hello";
+    final c = true;
+
+    println(a);
+    println(b);
+    println(c);
+    println(b * a);
+    println((b * a) or c);
+    // final d;
+end

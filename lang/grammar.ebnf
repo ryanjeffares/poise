@@ -1,29 +1,30 @@
 program = { declaration } EOF ;
 
-declaration = funcDecl | statement ;
+declaration = funcDecl | varDecl | finalDecl | statement ;
 
 funcDecl = "func", IDENTIFIER, "(", [ IDENTIFIER, [ { ",", IDENTIFIER } ] ], ")", ":", [ { declaration } ], "end" ;
+varDecl = "var", IDENTIFIER, [ "=", expression ] ";" ;
 
 statement = expressionStatement | printlnStatement ;
 expressionStatement = expression, ";" ;
 printlnStatement = "println", "(", expression, ")" ;
 
 expression = logic_or ;
-logic_or = logic_and [ { "or" logic_and } ] ;
-logic_and = bitwise_or [ { "and" bitwise_or } ] ;
-bitwise_or = bitwise_xor [ { "|" bitwise_xor } ] ;
-bitwise_xor = bitwise_and [ { "^" bitwise_and } ] ;
-bitwise_and = equality [ { "&" equality } ] ;
-equality = comparison [ { ( "!=" | "==" ) comparison } ] ;
-comparison = shift [ { ( ">" | ">=" | "<" | "<=" ) shift } ] ;
-shift = term [ { ( "<<" | ">>" ) term } ] ;
-term = factor [ { ( "-" | "+" ) factor } ] ;
-factor = unary [ { ( "/" | "*" ) unary } ] ;
-unary = [ ( "!" | "-" | "~" ) ] unary | primary ;
-primary = BOOL | NUMBER | STRING | "(" expression ")" ;
+logic_or = logic_and, [ { "or", logic_and } ] ;
+logic_and = bitwise_or, [ { "and", bitwise_or } ] ;
+bitwise_or = bitwise_xor, [ { "|", bitwise_xor } ] ;
+bitwise_xor = bitwise_and, [ { "^", bitwise_and } ] ;
+bitwise_and = equality, [ { "&", equality } ] ;
+equality = comparison, [ { ( "!=" | "==" ), comparison } ] ;
+comparison = shift, [ { ( ">" | ">=" | "<" | "<=" ), shift } ] ;
+shift = term, [ { ( "<<" | ">>" ), term } ] ;
+term = factor, [ { ( "-" | "+" ), factor } ] ;
+factor = unary, [ { ( "/" | "*" ), unary } ] ;
+unary = [ ( "!" | "-" | "~" ) ], ( unary | primary ) ;
+primary = BOOL | NUMBER | STRING | "(", expression, ")" ;
 
 BOOL = "false" | "true" ;
-FLOAT = { DIGIT } "." { DIGIT } ;
+FLOAT = { DIGIT }, ".", { DIGIT } ;
 INT = { DIGIT } ;
 NONE = "None" ;
 STRING = '"', [ { all characters } ], '"' ;

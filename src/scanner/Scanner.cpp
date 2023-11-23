@@ -28,12 +28,14 @@ namespace poise::scanner
         , m_keywordLookup{
             {"and", TokenType::And},
             {"end", TokenType::End},
+            {"final", TokenType::Final},
             {"func", TokenType::Func},
             {"false", TokenType::False},
             {"none", TokenType::None},
             {"or", TokenType::Or},
             {"println", TokenType::PrintLn},
             {"true", TokenType::True},
+            {"var", TokenType::Var},
         }
 
     {
@@ -128,7 +130,16 @@ namespace poise::scanner
                     m_column = 0zu;
                     advance();
                     break;
-                // TODO: comments
+                case '/': {
+                    if (peekNext().value_or(char{}) == '/') {
+                        while (peek().value_or(char{}) != '\n') {
+                            advance();
+                        }
+                    } else {
+                        return;
+                    }
+                    break;
+                }
                 default:
                     return;
             }
@@ -233,7 +244,7 @@ namespace poise::scanner
     {
         while (true) {
             if (auto c = peek()) {
-                if (*c == '"') {
+                if (*c == '"' && peekPrevious().value_or(char{}) != '\\') {
                     break;
                 }
 

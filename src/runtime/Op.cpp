@@ -9,8 +9,14 @@ namespace fmt
         switch (op) {
             case Op::DeclareFunction:
                 return formatter<string_view>::format("DeclareFunction", context);
+            case Op::DeclareLocal:
+                return formatter<string_view>::format("DeclareLocal", context);
             case Op::LoadConstant:
                 return formatter<string_view>::format("LoadConstant", context);
+            case Op::LoadLocal:
+                return formatter<string_view>::format("LoadLocal", context);
+            case Op::PopLocals:
+                return formatter<string_view>::format("PopLocals", context);
             case Op::PrintLn:
                 return formatter<string_view>::format("PrintLn", context);
             case Op::LogicOr:
@@ -68,7 +74,7 @@ namespace fmt
             case Op::Exit:
                 return formatter<string_view>::format("Exit", context);
             case Op::Return:
-                return formatter<string_view>::format("Print", context);
+                return formatter<string_view>::format("Return", context);
             default:
                 POISE_UNREACHABLE();
                 return formatter<string_view>::format("unknown", context);

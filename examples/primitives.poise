@@ -6,6 +6,7 @@ func main():
 
     println(true and false);
 
-    println("Hello world!");
-    println("hello" * 5);
+    // println("Hello world!");
+    // println("hello" * 5);
+    println("\"Hello\"");
 end

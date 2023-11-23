@@ -36,6 +36,7 @@ namespace poise::runtime
     auto Vm::run() -> RunResult
     {
         std::vector<Value> stack;
+        std::vector<Value> localVariables;
         std::vector<Value> availableFunctions;
 
         std::vector<std::span<const OpLine>> opListStack{m_globalOps};
@@ -81,8 +82,26 @@ namespace poise::runtime
                     availableFunctions.emplace_back(std::move(function));
                     break;
                 }
+                case Op::DeclareLocal: {
+                    auto value = pop();
+                    localVariables.emplace_back(std::move(value));
+                    break;
+                }
                 case Op::LoadConstant: {
                     stack.push_back(constantList[constantIndex++]);
+                    break;
+                }
+                case Op::LoadLocal: {
+                    const auto& localIndex = constantList[constantIndex++];
+                    const auto& localValue = localVariables[localIndex.value<usize>()];
+                    stack.push_back(localValue);
+                    break;
+                }
+                case Op::PopLocals: {
+                    const auto& numLocals = constantList[constantIndex++];
+                    for (auto i = 0zu; i < numLocals.value<usize>(); i++) {
+                        localVariables.pop_back();
+                    }
                     break;
                 }
                 case Op::PrintLn: {

@@ -12,6 +12,13 @@ namespace poise::tests
         REQUIRE(vm.run() == runtime::Vm::RunResult::Success);
     }
 
+    TEST_CASE("Compile and run 002_local_variables.poise") {
+        runtime::Vm vm;
+        compiler::Compiler compiler{&vm, "tests/test_files/002_local_variables.poise"};
+        REQUIRE(compiler.compile() == compiler::CompileResult::Success);
+        REQUIRE(vm.run() == runtime::Vm::RunResult::Success);
+    }
+
     TEST_CASE("Check binary operations on Value class") {
         using namespace poise::runtime;
 

@@ -34,6 +34,8 @@ namespace poise::compiler
             return CompileResult::FileError;
         }
 
+        m_contextStack.push_back(Context::TopLevel);
+
         while (true) {
             if (m_hadError) {
                 break;
@@ -50,6 +52,10 @@ namespace poise::compiler
             }
 
             declaration();
+        }
+
+        if (m_hadError) {
+            return CompileResult::CompileError;
         }
 
         if (m_mainFunction) {
@@ -131,6 +137,10 @@ namespace poise::compiler
     {
         if (match(scanner::TokenType::Func)) {
             funcDeclaration();
+        } else if (match(scanner::TokenType::Var)) {
+            varDeclaration();
+        } else if (match(scanner::TokenType::Final)) {
+            finalDeclaration();
         } else {
             statement();
         }
@@ -138,6 +148,8 @@ namespace poise::compiler
 
     auto Compiler::funcDeclaration() -> void
     {
+        m_contextStack.push_back(Context::Function);
+
         RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected function name");
         auto functionName = m_previous->string();
         auto line = m_previous->line();
@@ -161,6 +173,8 @@ namespace poise::compiler
         }
 
         // TODO: handle returns properly
+        emitConstant(m_localNames.size());
+        emitOp(runtime::Op::PopLocals, m_previous->line());
         emitOp(runtime::Op::Return, m_previous->line());
 
         m_vm->setCurrentFunction(prevFunction);
@@ -173,6 +187,63 @@ namespace poise::compiler
 
         emitConstant(std::move(function));
         emitOp(runtime::Op::DeclareFunction, line);
+
+        m_localNames.clear();
+        m_contextStack.pop_back();
+    }
+
+    auto Compiler::varDeclaration() -> void
+    {
+        if (std::find(m_contextStack.begin(), m_contextStack.end(), Context::Function) == m_contextStack.end()) {
+            errorAtPrevious("'var' only allowed inside a function");
+            return;
+        }
+
+        RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected 'var' name");
+
+        auto varName = m_previous->string();
+        if (std::find(m_localNames.begin(), m_localNames.end(), varName) != m_localNames.end()) {
+            errorAtPrevious("Local variable with the same name already declared");
+            return;
+        }
+
+        m_localNames.push_back(std::move(varName));
+
+        if (match(scanner::TokenType::Equal)) {
+            expression();
+        } else {
+            emitConstant(nullptr);
+            emitOp(runtime::Op::LoadConstant, m_previous->line());
+        }
+
+        emitOp(runtime::Op::DeclareLocal, m_previous->line());
+
+        EXPECT_SEMICOLON();
+    }
+
+    auto Compiler::finalDeclaration() -> void
+    {
+        if (std::find(m_contextStack.begin(), m_contextStack.end(), Context::Function) == m_contextStack.end()) {
+            errorAtPrevious("'final' only allowed inside a function");
+            return;
+        }
+
+        RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected 'final' name");
+
+        auto varName = m_previous->string();
+        if (std::find(m_localNames.begin(), m_localNames.end(), varName) != m_localNames.end()) {
+            errorAtPrevious("Local variable with the same name already declared");
+            return;
+        }
+
+        m_localNames.push_back(std::move(varName));
+
+        RETURN_IF_NO_MATCH(scanner::TokenType::Equal, "Expected assignment to 'final'");
+
+        expression();
+        emitOp(runtime::Op::DeclareLocal, m_previous->line());
+
+        EXPECT_SEMICOLON();
     }
 
     auto Compiler::statement() -> void
@@ -204,7 +275,7 @@ namespace poise::compiler
     auto Compiler::expression() -> void
     {
         // expressions can only start with a literal, unary op, or identifier
-        if (scanner::isLiteral(m_current->tokenType()) || scanner::isUnaryOp(m_current->tokenType())) {
+        if (scanner::isLiteral(m_current->tokenType()) || scanner::isUnaryOp(m_current->tokenType()) || m_current->tokenType() == scanner::TokenType::OpenParen) {
             logicOr();
         }
     }
@@ -230,7 +301,7 @@ namespace poise::compiler
             patchJump(jumpIndexes);
         }
     }
-    
+
     auto Compiler::logicAnd() -> void
     {
         bitwiseOr();
@@ -252,7 +323,7 @@ namespace poise::compiler
             patchJump(jumpIndexes);
         }
     }
-    
+
     auto Compiler::bitwiseOr() -> void
     {
         bitwiseXor();
@@ -262,7 +333,7 @@ namespace poise::compiler
             emitOp(runtime::Op::BitwiseOr, m_previous->line());
         }
     }
-    
+
     auto Compiler::bitwiseXor() -> void
     {
         bitwiseAnd();
@@ -272,7 +343,7 @@ namespace poise::compiler
             emitOp(runtime::Op::BitwiseXor, m_previous->line());
         }
     }
-    
+
     auto Compiler::bitwiseAnd() -> void
     {
         equality();
@@ -282,7 +353,7 @@ namespace poise::compiler
             emitOp(runtime::Op::BitwiseAnd, m_previous->line());
         }
     }
-    
+
     auto Compiler::equality() -> void
     {
         comparison();
@@ -295,7 +366,7 @@ namespace poise::compiler
             emitOp(runtime::Op::NotEqual, m_previous->line());
         }
     }
-    
+
     auto Compiler::comparison() -> void
     {
         shift();
@@ -314,7 +385,7 @@ namespace poise::compiler
             emitOp(runtime::Op::GreaterEqual, m_previous->line());
         }
     }
-    
+
     auto Compiler::shift() -> void
     {
         term();
@@ -331,7 +402,7 @@ namespace poise::compiler
             }
         }
     }
-    
+
     auto Compiler::term() -> void
     {
         factor();
@@ -348,7 +419,7 @@ namespace poise::compiler
             }
         }
     }
-    
+
     auto Compiler::factor() -> void
     {
         unary();
@@ -368,19 +439,19 @@ namespace poise::compiler
             }
         }
     }
-    
+
     auto Compiler::unary() -> void
     {
         if (match(scanner::TokenType::Minus)) {
-            auto line = m_previous->line();
+            const auto line = m_previous->line();
             unary();
             emitOp(runtime::Op::Negate, line);
         } else if (match(scanner::TokenType::Tilde)) {
-            auto line = m_previous->line();
+            const auto line = m_previous->line();
             unary();
             emitOp(runtime::Op::BitwiseNot, line);
         } else if (match(scanner::TokenType::Exclamation)) {
-            auto line = m_previous->line();
+            const auto line = m_previous->line();
             unary();
             emitOp(runtime::Op::LogicNot, line);
         } else if (match(scanner::TokenType::Plus)) {
@@ -391,7 +462,7 @@ namespace poise::compiler
             primary();
         }
     }
-    
+
     auto Compiler::primary() -> void
     {
         if (match(scanner::TokenType::False)) {
@@ -409,9 +480,29 @@ namespace poise::compiler
             emitOp(runtime::Op::LoadConstant, m_previous->line());
         } else if (match(scanner::TokenType::String)) {
             parseString();
+        } else if (match(scanner::TokenType::OpenParen)) {
+            expression();
+            RETURN_IF_NO_MATCH(scanner::TokenType::CloseParen, "Expected ')'");
+        } else if (match(scanner::TokenType::Identifier)) {
+            identifier();
         } else {
             errorAtCurrent("Invalid token at start of expression");
         }
+    }
+
+    auto Compiler::identifier() -> void
+    {
+        const auto identifier = m_previous->text();
+        const auto it = std::find(m_localNames.begin(), m_localNames.end(), identifier);
+
+        if (it == m_localNames.end()) {
+            errorAtPrevious(fmt::format("No local variable named '{}'", identifier));
+            return;
+        }
+
+        const auto localIndex = std::distance(m_localNames.begin(), it);
+        emitConstant(localIndex);
+        emitOp(runtime::Op::LoadLocal, m_previous->line());
     }
 
     static auto getEscapeCharacter(char c) -> std::optional<char>
@@ -420,7 +511,7 @@ namespace poise::compiler
             case 't': return '\t';
             case 'n': return '\n';
             case 'r': return '\r';
-            case '"': return '\"';
+            case '"': return '"';
             case '\\': return '\\';
             default: return {};
         }
@@ -429,7 +520,7 @@ namespace poise::compiler
     auto Compiler::parseString() -> void
     {
         std::string result;
-        auto tokenText = m_previous->text();
+        const auto tokenText = m_previous->text();
         auto i = 1zu;
         while (i < tokenText.length() - 1zu) {
             if (tokenText[i] == '\\') {
@@ -460,9 +551,9 @@ namespace poise::compiler
     auto Compiler::parseInt() -> void
     {
         i64 result;
-        auto text = m_previous->text();
-        auto [ptr, ec] = std::from_chars(text.data(), text.data() + text.length(), result);
-        
+        const auto text = m_previous->text();
+        const auto [ptr, ec] = std::from_chars(text.data(), text.data() + text.length(), result);
+
         if (ec == std::errc{}) {
             emitConstant(result);
             emitOp(runtime::Op::LoadConstant, m_previous->line());
@@ -477,10 +568,10 @@ namespace poise::compiler
 
     auto Compiler::parseFloat() -> void
     {
-        auto text = m_previous->string();
+        const auto text = m_previous->string();
 
         try {
-            auto result = std::stod(text);
+            const auto result = std::stod(text);
             emitConstant(result);
             emitOp(runtime::Op::LoadConstant, m_previous->line());
         } catch (const std::invalid_argument&) {

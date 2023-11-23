@@ -7,4 +7,6 @@ func main():
 
     println("Hello world!");
     println("hello" * 5);
+
+    println("\"Hello\"");
 end

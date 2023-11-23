@@ -29,6 +29,11 @@ namespace poise::compiler
         [[nodiscard]] auto compile() -> CompileResult;
 
     private:
+        enum class Context
+        {
+            TopLevel, Function,
+        };
+
         auto emitOp(runtime::Op op, usize line) -> void;
         auto emitConstant(runtime::Value value) -> void;
 
@@ -46,6 +51,8 @@ namespace poise::compiler
 
         auto declaration() -> void;
         auto funcDeclaration() -> void;
+        auto varDeclaration() -> void;
+        auto finalDeclaration() -> void;
 
         auto statement() -> void;
         auto expressionStatement() -> void;
@@ -65,6 +72,7 @@ namespace poise::compiler
         auto factor() -> void;
         auto unary() -> void;
         auto primary() -> void;
+        auto identifier() -> void;
 
         auto parseString() -> void;
         auto parseInt() -> void;
@@ -79,6 +87,8 @@ namespace poise::compiler
         scanner::Scanner m_scanner;
         std::filesystem::path m_filePath;
         std::optional<scanner::Token> m_previous, m_current;
+        std::vector<Context> m_contextStack;
+        std::vector<std::string> m_localNames;
 
         runtime::Vm* m_vm;
         std::optional<runtime::Value> m_mainFunction{};
