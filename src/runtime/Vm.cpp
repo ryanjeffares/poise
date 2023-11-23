@@ -10,7 +10,7 @@ namespace poise::runtime
         m_currentFunction = function;
     }
 
-    auto Vm::getCurrentFunction() -> objects::PoiseFunction*
+    auto Vm::getCurrentFunction() const -> objects::PoiseFunction*
     {
         return m_currentFunction;
     }
@@ -89,6 +89,17 @@ namespace poise::runtime
                 }
                 case Op::LoadConstant: {
                     stack.push_back(constantList[constantIndex++]);
+                    break;
+                }
+                case Op::LoadFunction: {
+                    const auto& functionName = constantList[constantIndex++];
+                    const auto it = std::find_if(availableFunctions.begin(), availableFunctions.end(), [&functionName] (const Value& function) {
+                        return function.object()->asFunction()->name() == functionName.string();
+                    });
+                    if (it == availableFunctions.end()) {
+                        PANIC(fmt::format("No variable or function named '{}'", functionName.string()));
+                    }
+                    stack.push_back(*it);
                     break;
                 }
                 case Op::LoadLocal: {

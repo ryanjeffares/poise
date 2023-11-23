@@ -13,6 +13,8 @@ namespace fmt
                 return formatter<string_view>::format("DeclareLocal", context);
             case Op::LoadConstant:
                 return formatter<string_view>::format("LoadConstant", context);
+            case Op::LoadFunction:
+                return formatter<string_view>::format("LoadFunction", context);
             case Op::LoadLocal:
                 return formatter<string_view>::format("LoadLocal", context);
             case Op::PopLocals:

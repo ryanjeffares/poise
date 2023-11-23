@@ -22,7 +22,7 @@ namespace poise::runtime
         };
 
         auto setCurrentFunction(objects::PoiseFunction* function) -> void;
-        [[nodiscard]] auto getCurrentFunction() -> objects::PoiseFunction*;
+        [[nodiscard]] auto getCurrentFunction() const -> objects::PoiseFunction*;
 
         auto emitOp(Op op, usize line) -> void;
         auto emitConstant(Value value) -> void;

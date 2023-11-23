@@ -18,12 +18,11 @@
 
 #define EXPECT_SEMICOLON() RETURN_IF_NO_MATCH(scanner::TokenType::Semicolon, "Expected ';'")
 
-namespace poise::compiler
-{
-    Compiler::Compiler(runtime::Vm* vm, std::filesystem::path inFilePath)
-        : m_scanner{inFilePath}
-        , m_filePath{std::move(inFilePath)}
-        , m_vm{vm}
+namespace poise::compiler {
+    Compiler::Compiler(runtime::Vm *vm, std::filesystem::path inFilePath)
+            : m_scanner{ inFilePath }
+            , m_filePath{ std::move(inFilePath) }
+            , m_vm{ vm }
     {
 
     }
@@ -91,7 +90,7 @@ namespace poise::compiler
         const auto jumpOpIndex = function->numConstants();
         emitConstant(0zu);
 
-        return {jumpConstantIndex, jumpOpIndex};
+        return { jumpConstantIndex, jumpOpIndex };
     }
 
     auto Compiler::patchJump(JumpIndexes jumpIndexes) -> void
@@ -160,7 +159,7 @@ namespace poise::compiler
 
         auto prevFunction = m_vm->getCurrentFunction();
 
-        auto function = runtime::Value::createObject<objects::PoiseFunction>(std::move(functionName), u8{0});
+        auto function = runtime::Value::createObject<objects::PoiseFunction>(std::move(functionName), u8{ 0 });
         m_vm->setCurrentFunction(function.object()->asFunction());
 
         while (!match(scanner::TokenType::End)) {
@@ -275,7 +274,8 @@ namespace poise::compiler
     auto Compiler::expression() -> void
     {
         // expressions can only start with a literal, unary op, or identifier
-        if (scanner::isLiteral(m_current->tokenType()) || scanner::isUnaryOp(m_current->tokenType()) || m_current->tokenType() == scanner::TokenType::OpenParen) {
+        if (scanner::isLiteral(m_current->tokenType()) || scanner::isUnaryOp(m_current->tokenType()) ||
+            m_current->tokenType() == scanner::TokenType::OpenParen) {
             logicOr();
         }
     }
@@ -493,27 +493,33 @@ namespace poise::compiler
     auto Compiler::identifier() -> void
     {
         const auto identifier = m_previous->text();
-        const auto it = std::find(m_localNames.begin(), m_localNames.end(), identifier);
+        const auto findLocal = std::find(m_localNames.begin(), m_localNames.end(), identifier);
 
-        if (it == m_localNames.end()) {
-            errorAtPrevious(fmt::format("No local variable named '{}'", identifier));
-            return;
+        if (findLocal == m_localNames.end()) {
+            emitConstant(identifier);
+            emitOp(runtime::Op::LoadFunction, m_previous->line());
+        } else {
+            const auto localIndex = std::distance(m_localNames.begin(), findLocal);
+            emitConstant(localIndex);
+            emitOp(runtime::Op::LoadLocal, m_previous->line());
         }
-
-        const auto localIndex = std::distance(m_localNames.begin(), it);
-        emitConstant(localIndex);
-        emitOp(runtime::Op::LoadLocal, m_previous->line());
     }
 
     static auto getEscapeCharacter(char c) -> std::optional<char>
     {
         switch (c) {
-            case 't': return '\t';
-            case 'n': return '\n';
-            case 'r': return '\r';
-            case '"': return '"';
-            case '\\': return '\\';
-            default: return {};
+            case 't':
+                return '\t';
+            case 'n':
+                return '\n';
+            case 'r':
+                return '\r';
+            case '"':
+                return '"';
+            case '\\':
+                return '\\';
+            default:
+                return {};
         }
     }
 
@@ -574,9 +580,9 @@ namespace poise::compiler
             const auto result = std::stod(text);
             emitConstant(result);
             emitOp(runtime::Op::LoadConstant, m_previous->line());
-        } catch (const std::invalid_argument&) {
+        } catch (const std::invalid_argument &) {
             errorAtPrevious(fmt::format("Unable to parse float '{}'", text));
-        } catch (const std::out_of_range&) {
+        } catch (const std::out_of_range &) {
             errorAtPrevious(fmt::format("Float out of range '{}'", text));
         }
     }
@@ -591,7 +597,7 @@ namespace poise::compiler
         error(*m_previous, message);
     }
 
-    auto Compiler::error(const scanner::Token& token, std::string_view message) -> void
+    auto Compiler::error(const scanner::Token &token, std::string_view message) -> void
     {
         m_hadError = true;
 

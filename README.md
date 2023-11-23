@@ -15,12 +15,13 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * Test individual important functions
     * Fuzzing
 * Think about object -> bool conversion
+* Think about functions as first class objects
 
 ## Roadmap
-* Expressions with primitives
-    * Short-circuiting
-* Variables
-* Functions
+* Expressions with primitives 🗸
+    * Short-circuiting 🗸
+* Variables 🗸
+* Functions 
 * Native functions
 * Builtin objects
     * Iterable collections
