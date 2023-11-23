@@ -72,7 +72,7 @@ namespace poise::objects
         return m_constants.size();
     }
 
-    auto PoiseFunction::name() const -> const std::string&
+    auto PoiseFunction::name() const -> std::string_view
     {
         return m_name;
     }

@@ -27,6 +27,7 @@ namespace poise::objects
 
         auto print() const -> void override;
         auto printLn() const -> void override;
+
         [[nodiscard]] auto toString() const -> std::string override;
         [[nodiscard]] auto callable() const -> bool override;
 
@@ -35,7 +36,7 @@ namespace poise::objects
         [[nodiscard]] auto constantList() const -> std::span<const runtime::Value>;
         [[nodiscard]] auto numConstants() const -> usize;
 
-        [[nodiscard]] auto name() const -> const std::string&;
+        [[nodiscard]] auto name() const -> std::string_view;
 
         auto printOps() const -> void;
 

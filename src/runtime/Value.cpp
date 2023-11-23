@@ -133,9 +133,10 @@ namespace poise::runtime
                 return object()->toString();
             case Type::String:
                 return string();
+            default:
+                POISE_UNREACHABLE();
+                return "unknown";
         }
-
-        POISE_UNREACHABLE();
     }
 
     auto Value::callable() const -> bool
@@ -595,6 +596,7 @@ namespace fmt
                 return formatter<string_view>::format("String", context);
             default:
                 POISE_UNREACHABLE();
+                return formatter<string_view>::format("unknown", context);
         }
     }
 }

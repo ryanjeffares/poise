@@ -15,9 +15,11 @@ namespace poise::scanner
         // keywords
         And,
         End,
+        Final,
         Func,
         Or,
         PrintLn,
+        Var,
 
         // symbols
         Ampersand,

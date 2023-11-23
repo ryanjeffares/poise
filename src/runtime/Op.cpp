@@ -71,6 +71,7 @@ namespace fmt
                 return formatter<string_view>::format("Print", context);
             default:
                 POISE_UNREACHABLE();
+                return formatter<string_view>::format("unknown", context);
         }
     }
 }

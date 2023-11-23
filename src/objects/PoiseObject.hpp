@@ -29,7 +29,7 @@ namespace poise::objects
         [[nodiscard]] auto decrementRefCount() -> usize;
         [[nodiscard]] auto refCount() const -> usize;
 
-        virtual auto asFunction() -> PoiseFunction*;
+        [[nodiscard]] virtual auto asFunction() -> PoiseFunction*;
 
         virtual auto print() const -> void = 0;
         virtual auto printLn() const -> void = 0;

@@ -86,9 +86,10 @@ namespace fmt
                 return formatter<string_view>::format("EndOfFile", context);
             case TokenType::Error:
                 return formatter<string_view>::format("Error", context);
+            default:
+                POISE_UNREACHABLE();
+                return formatter<string_view>::format("unknown", context);
         }
-
-        POISE_UNREACHABLE();
     }
 }
 

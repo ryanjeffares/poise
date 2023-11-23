@@ -189,13 +189,13 @@ namespace fmt
     template<>
     struct formatter<poise::runtime::Value> : formatter<string_view>
     {
-        auto format(const poise::runtime::Value& value, format_context& context) const -> decltype(context.out());
+        [[nodiscard]] auto format(const poise::runtime::Value& value, format_context& context) const -> decltype(context.out());
     };
 
     template<>
     struct formatter<poise::runtime::Value::Type> : formatter<string_view>
     {
-        auto format(poise::runtime::Value::Type type, format_context& context) const -> decltype(context.out());
+        [[nodiscard]] auto format(poise::runtime::Value::Type type, format_context& context) const -> decltype(context.out());
     };
 }
 #endif

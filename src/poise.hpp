@@ -29,6 +29,7 @@ namespace poise
     using f64 = double;
 } // namespace grace
 
+#ifdef POISE_DEBUG
 #ifndef POISE_ASSERT
 #define POISE_ASSERT(condition, message)                                                            \
     do {                                                                                            \
@@ -41,6 +42,11 @@ namespace poise
             std::exit(-1);                                                                          \
         }                                                                                           \
     } while (false)
+#endif
+#else
+#ifndef POISE_ASSERT
+#define POISE_ASSERT(condition, message)
+#endif
 #endif
 
 #ifndef POISE_UNREACHABLE

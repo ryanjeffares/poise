@@ -64,7 +64,7 @@ namespace fmt
     template<>
     struct formatter<poise::runtime::Op> : formatter<string_view>
     {
-        auto format(poise::runtime::Op op, format_context& context) -> decltype(context.out());
+        [[nodiscard]] auto format(poise::runtime::Op op, format_context& context) -> decltype(context.out());
     };
 }
 

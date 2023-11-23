@@ -19,6 +19,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 ## Roadmap
 * Expressions with primitives
     * Short-circuiting
+* Variables
 * Functions
 * Native functions
 * Builtin objects
