@@ -34,6 +34,8 @@ namespace fmt
                 return formatter<string_view>::format("CloseParen", context);
             case TokenType::Colon:
                 return formatter<string_view>::format("Colon", context);
+            case TokenType::Comma:
+                return formatter<string_view>::format("Comma", context);
             case TokenType::Equal:
                 return formatter<string_view>::format("Equal", context);
             case TokenType::EqualEqual:

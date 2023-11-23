@@ -26,6 +26,7 @@ namespace poise::scanner
         Caret,
         CloseParen,
         Colon,
+        Comma,
         Equal,
         EqualEqual,
         Exclamation,

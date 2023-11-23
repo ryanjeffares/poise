@@ -46,6 +46,7 @@ namespace poise::compiler
         auto patchJump(JumpIndexes jumpIndexes) -> void;
 
         auto advance() -> void;
+        auto consume(scanner::TokenType tokenType) -> void;
         [[nodiscard]] auto match(scanner::TokenType expected) -> bool;
         [[nodiscard]] auto check(scanner::TokenType expected) -> bool;
 
@@ -71,6 +72,7 @@ namespace poise::compiler
         auto term() -> void;
         auto factor() -> void;
         auto unary() -> void;
+        auto call() -> void;
         auto primary() -> void;
         auto identifier() -> void;
 

@@ -20,7 +20,8 @@ comparison = shift, [ { ( ">" | ">=" | "<" | "<=" ), shift } ] ;
 shift = term, [ { ( "<<" | ">>" ), term } ] ;
 term = factor, [ { ( "-" | "+" ), factor } ] ;
 factor = unary, [ { ( "/" | "*" ), unary } ] ;
-unary = [ ( "!" | "-" | "~" ) ], ( unary | primary ) ;
+unary = [ ( "!" | "-" | "~" ) ], ( unary | call ) ;
+call = primary [ { "(", [ expression [ { ",", expression } ] ] ")" } ] ;
 primary = BOOL | NUMBER | STRING | "(", expression, ")" ;
 
 BOOL = "false" | "true" ;

@@ -10,7 +10,7 @@ func main():
     println((b * a) or c);
     // final d;
 
-    final error = variable_that_doesnt_exist;
+    // final error = variable_that_doesnt_exist;
     final main_func = main;
     println(main_func);
 end

@@ -459,7 +459,33 @@ namespace poise::compiler {
             unary();
             emitOp(runtime::Op::Plus, line);
         } else {
-            primary();
+            call();
+        }
+    }
+
+    auto Compiler::call() -> void
+    {
+        primary();
+
+        while (match(scanner::TokenType::OpenParen)) {
+            while (true) {
+                if (match(scanner::TokenType::CloseParen)) {
+                    break;
+                }
+
+                expression();
+
+                // trailing commas are allowed but all arguments must be comma separated
+                // so here, if the next token is not a comma or a close paren, it's invalid
+                if (!check(scanner::TokenType::CloseParen) && !check(scanner::TokenType::Comma)) {
+                    errorAtCurrent("Expected ',' or '('");
+                    return;
+                }
+
+                if (check(scanner::TokenType::Comma)) {
+                    advance();
+                }
+            }
         }
     }
 
