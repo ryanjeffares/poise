@@ -12,6 +12,7 @@ namespace poise::scanner
             {'^', TokenType::Caret},
             {')', TokenType::CloseParen},
             {':', TokenType::Colon},
+            {',', TokenType::Comma},
             {'!', TokenType::Exclamation},
             {'>', TokenType::Greater},
             {'<', TokenType::Less},

@@ -62,12 +62,12 @@ namespace poise::runtime
             return {std::move(value2), std::move(value1)};
         };
 
-#define PANIC(message) \
-        do { \
-            fmt::print(stderr, fmt::emphasis::bold | fmt::fg(fmt::color::red), "PANIC: "); \
-            fmt::print(stderr, "{}\n", message); \
-            return RunResult::RuntimeError; \
-        } while (false) \
+#define PANIC(message)                                                                      \
+        do {                                                                                \
+            fmt::print(stderr, fmt::emphasis::bold | fmt::fg(fmt::color::red), "PANIC: ");  \
+            fmt::print(stderr, "{}\n", message);                                            \
+            return RunResult::RuntimeError;                                                 \
+        } while (false)                                                                     \
 
         while (true) {
             const auto opList = opListStack.back();
@@ -245,6 +245,10 @@ namespace poise::runtime
 
                     if (value.callable()) {
                         const auto function = value.object()->asFunction();
+                        if (function->arity() != numArgs) {
+                            PANIC(fmt::format("Function '{}' takes {} args but was given {}", function->name(), function->arity(), numArgs));
+                        }
+
                         opListStack.push_back(function->opList());
                         constantListStack.push_back(function->constantList());
                         opIndexStack.push_back(0zu);

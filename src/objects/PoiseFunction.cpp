@@ -77,6 +77,11 @@ namespace poise::objects
         return m_name;
     }
 
+    auto PoiseFunction::arity() const -> u8
+    {
+        return m_arity;
+    }
+
     auto PoiseFunction::printOps() const -> void
     {
         printLn();

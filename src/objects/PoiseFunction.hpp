@@ -37,6 +37,7 @@ namespace poise::objects
         [[nodiscard]] auto numConstants() const -> usize;
 
         [[nodiscard]] auto name() const -> std::string_view;
+        [[nodiscard]] auto arity() const -> u8;
 
         auto printOps() const -> void;
 

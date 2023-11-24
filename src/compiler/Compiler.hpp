@@ -80,6 +80,9 @@ namespace poise::compiler
         auto parseInt() -> void;
         auto parseFloat() -> void;
 
+        [[nodiscard]] auto parseCallArgs() -> u8;
+        [[nodiscard]] auto parseFunctionArgs() -> u8;
+
         auto errorAtCurrent(std::string_view message) -> void;
         auto errorAtPrevious(std::string_view message) -> void;
         auto error(const scanner::Token& token, std::string_view message) -> void;
@@ -90,7 +93,14 @@ namespace poise::compiler
         std::filesystem::path m_filePath;
         std::optional<scanner::Token> m_previous, m_current;
         std::vector<Context> m_contextStack;
-        std::vector<std::string> m_localNames;
+
+        struct LocalVariable
+        {
+            std::string name;
+            bool isFinal;
+        };
+
+        std::vector<LocalVariable> m_localNames;
 
         runtime::Vm* m_vm;
         std::optional<runtime::Value> m_mainFunction{};

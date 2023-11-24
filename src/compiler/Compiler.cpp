@@ -36,12 +36,12 @@ namespace poise::compiler {
 
         m_contextStack.push_back(Context::TopLevel);
 
+        advance();
+
         while (true) {
             if (m_hadError) {
                 break;
             }
-
-            advance();
 
             if (check(scanner::TokenType::Error)) {
                 return CompileResult::ParseError;
@@ -59,8 +59,8 @@ namespace poise::compiler {
         }
 
         if (m_mainFunction) {
-            emitConstant(*m_mainFunction);
-            emitOp(runtime::Op::LoadConstant, 0zu);
+            emitConstant("main");
+            emitOp(runtime::Op::LoadFunction, 0zu);
             emitConstant(0);
             emitOp(runtime::Op::Call, 0zu);
             emitOp(runtime::Op::Exit, m_scanner.getNumLines());
@@ -107,7 +107,7 @@ namespace poise::compiler {
 
     auto Compiler::advance() -> void
     {
-        m_previous = std::move(m_current);
+        m_previous = m_current;
         m_current = m_scanner.scanToken();
 
 #ifdef POISE_DEBUG
@@ -156,12 +156,13 @@ namespace poise::compiler {
         auto line = m_previous->line();
 
         RETURN_IF_NO_MATCH(scanner::TokenType::OpenParen, "Expected '(' after function name");
-        RETURN_IF_NO_MATCH(scanner::TokenType::CloseParen, "Expected ')' after function arguments");
+        const auto numArgs = parseFunctionArgs();
+
         RETURN_IF_NO_MATCH(scanner::TokenType::Colon, "Expected ':' after function signature");
 
         auto prevFunction = m_vm->getCurrentFunction();
 
-        auto function = runtime::Value::createObject<objects::PoiseFunction>(std::move(functionName), u8{ 0 });
+        auto function = runtime::Value::createObject<objects::PoiseFunction>(std::move(functionName), numArgs);
         m_vm->setCurrentFunction(function.object()->asFunction());
 
         while (!match(scanner::TokenType::End)) {
@@ -203,12 +204,14 @@ namespace poise::compiler {
         RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected 'var' name");
 
         auto varName = m_previous->string();
-        if (std::find(m_localNames.begin(), m_localNames.end(), varName) != m_localNames.end()) {
+        if (std::find_if(m_localNames.begin(), m_localNames.end(), [&varName] (const LocalVariable& local) {
+            return local.name == varName;
+        }) != m_localNames.end()) {
             errorAtPrevious("Local variable with the same name already declared");
             return;
         }
 
-        m_localNames.push_back(std::move(varName));
+        m_localNames.push_back({std::move(varName), false});
 
         if (match(scanner::TokenType::Equal)) {
             expression();
@@ -232,12 +235,14 @@ namespace poise::compiler {
         RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected 'final' name");
 
         auto varName = m_previous->string();
-        if (std::find(m_localNames.begin(), m_localNames.end(), varName) != m_localNames.end()) {
+        if (std::find_if(m_localNames.begin(), m_localNames.end(), [&varName] (const LocalVariable& local) {
+            return local.name == varName;
+        }) != m_localNames.end()) {
             errorAtPrevious("Local variable with the same name already declared");
             return;
         }
 
-        m_localNames.push_back(std::move(varName));
+        m_localNames.push_back({std::move(varName), true});
 
         RETURN_IF_NO_MATCH(scanner::TokenType::Equal, "Expected assignment to 'final'");
 
@@ -470,33 +475,7 @@ namespace poise::compiler {
         primary();
 
         while (match(scanner::TokenType::OpenParen)) {
-            u8 numArgs = 0;
-
-            while (true) {
-                if (match(scanner::TokenType::CloseParen)) {
-                    break;
-                }
-
-                if (numArgs == std::numeric_limits<u8>::max()) {
-                    errorAtCurrent("Maximum function parameters of 255 exceeded");
-                    return;
-                }
-
-                expression();
-                numArgs++;
-
-                // trailing commas are allowed but all arguments must be comma separated
-                // so here, if the next token is not a comma or a close paren, it's invalid
-                if (!check(scanner::TokenType::CloseParen) && !check(scanner::TokenType::Comma)) {
-                    errorAtCurrent("Expected ',' or '('");
-                    return;
-                }
-
-                if (check(scanner::TokenType::Comma)) {
-                    advance();
-                }
-            }
-
+            const auto numArgs = parseCallArgs();
             emitConstant(numArgs);
             emitOp(runtime::Op::Call, m_previous->line());
         }
@@ -532,7 +511,9 @@ namespace poise::compiler {
     auto Compiler::identifier() -> void
     {
         const auto identifier = m_previous->text();
-        const auto findLocal = std::find(m_localNames.begin(), m_localNames.end(), identifier);
+        const auto findLocal = std::find_if(m_localNames.begin(), m_localNames.end(), [&identifier] (const LocalVariable& local) {
+            return local.name == identifier;
+        });
 
         if (findLocal == m_localNames.end()) {
             emitConstant(identifier);
@@ -624,6 +605,84 @@ namespace poise::compiler {
         } catch (const std::out_of_range &) {
             errorAtPrevious(fmt::format("Float out of range '{}'", text));
         }
+    }
+
+    auto Compiler::parseCallArgs() -> u8
+    {
+        u8 numArgs = 0;
+
+        while (true) {
+            if (match(scanner::TokenType::CloseParen)) {
+                break;
+            }
+
+            if (numArgs == std::numeric_limits<u8>::max()) {
+                errorAtCurrent("Maximum function parameters of 255 exceeded");
+                break;
+            }
+
+            expression();
+            numArgs++;
+
+            // trailing commas are allowed but all arguments must be comma separated
+            // so here, if the next token is not a comma or a close paren, it's invalid
+            if (!check(scanner::TokenType::CloseParen) && !check(scanner::TokenType::Comma)) {
+                errorAtCurrent("Expected ',' or '('");
+                break;
+            }
+
+            if (check(scanner::TokenType::Comma)) {
+                advance();
+            }
+        }
+
+        return numArgs;
+    }
+
+    auto Compiler::parseFunctionArgs() -> u8
+    {
+        u8 numArgs = 0;
+
+        while (true) {
+            if (match(scanner::TokenType::CloseParen)) {
+                break;
+            }
+
+            if (numArgs == std::numeric_limits<u8>::max()) {
+                errorAtCurrent("Maximum function parameters of 255 exceeded");
+                break;
+            }
+
+            auto isFinal = match(scanner::TokenType::Final);
+
+            if (!match(scanner::TokenType::Identifier)) {
+                errorAtCurrent("Expected identifier");
+                break;
+            }
+
+            auto argName = m_previous->string();
+            if (std::find_if(m_localNames.begin(), m_localNames.end(), [&argName] (const LocalVariable& local) {
+                return local.name == argName;
+            }) != m_localNames.end()) {
+                errorAtPrevious("Function argument with the same name already declared");
+                break;
+            }
+
+            m_localNames.push_back({std::move(argName), isFinal});
+
+            // trailing commas are allowed but all arguments must be comma separated
+            // so here, if the next token is not a comma or a close paren, it's invalid
+            if (!check(scanner::TokenType::CloseParen) && !check(scanner::TokenType::Comma)) {
+                errorAtCurrent("Expected ',' or '('");
+                break;
+            }
+
+            if (check(scanner::TokenType::Comma)) {
+                advance();
+            }
+        }
+
+        return numArgs;
     }
 
     auto Compiler::errorAtCurrent(std::string_view message) -> void

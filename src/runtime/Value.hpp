@@ -94,6 +94,10 @@ namespace poise::runtime
         {
             if (type() == Type::String) {
                 delete m_data.string;
+            } else if (type() == Type::Object) {
+                if (object()->decrementRefCount() == 0zu) {
+                    delete m_data.object;
+                }
             }
 
             if constexpr (IsString<T>) {

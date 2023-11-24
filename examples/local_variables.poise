@@ -1,17 +1,33 @@
+func foo():
+    final v = "Hello from foo()";
+    println(v);
+    bar();
+end
+
+func bar(
+    a,
+    b,
+    final c,
+):
+    final v = "Hello from bar()";
+    println(v);
+end
+
 func main():
-    var a = 2;
+    // var a = 2;
     var b = "Hello";
     final c = true;
-
-    println(a);
-    println(b);
-    println(c);
-    println(b * a);
-    println((b * a) or c);
+//
+    // println(a);
+    // println(b);
+    // println(c);
+    // println(b * a);
+    // println((b * a) or c);
     // final d;
 
     // final error = variable_that_doesnt_exist;
     final main_func = main;
-    println(main_func);
-    main_func();
+    // println(main_func);
+    // main_func();
+    foo();
 end

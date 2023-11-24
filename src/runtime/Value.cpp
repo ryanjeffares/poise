@@ -15,6 +15,9 @@ namespace poise::runtime
     {
         if (type() == Type::String) {
             m_data.string = new std::string{other.string()};
+        } else if (type() == Type::Object) {
+            m_data.object = other.object();
+            object()->incrementRefCount();
         } else {
             m_data = other.m_data;
         }
@@ -24,7 +27,7 @@ namespace poise::runtime
         : m_data{other.data()}
         , m_type{other.type()}
     {
-        if (type() == Type::String) {
+        if (type() == Type::String || type() == Type::Object) {
             other.makeNone();
         }
     }
@@ -34,11 +37,19 @@ namespace poise::runtime
         if (this != &other) {
             if (type() == Type::String) {
                 delete m_data.string;
+            } else if (type() == Type::Object) {
+                if (object()->decrementRefCount() == 0zu) {
+                    delete m_data.object;
+                }
             }
 
             m_type = other.type();
+
             if (type() == Type::String) {
                 m_data.string = new std::string{other.toString()};
+            } else if (type() == Type::Object) {
+                m_data.object = other.object();
+                object()->incrementRefCount();
             } else {
                 m_data = other.data();
             }
@@ -52,12 +63,16 @@ namespace poise::runtime
         if (this != &other) {
             if (type() == Type::String) {
                 delete m_data.string;
+            } else if (type() == Type::Object) {
+                if (object()->decrementRefCount() == 0zu) {
+                    delete m_data.object;
+                }
             }
 
             m_type = other.type();
             m_data = other.data();
 
-            if (type() == Type::String) {
+            if (type() == Type::String || type() == Type::Object) {
                 other.makeNone();
             }
         }
@@ -69,6 +84,10 @@ namespace poise::runtime
     {
         if (type() == Type::String) {
             delete m_data.string;
+        } else if (type() == Type::Object) {
+            if (object()->decrementRefCount() == 0zu) {
+                delete m_data.object;
+            }
         }
     }
 
