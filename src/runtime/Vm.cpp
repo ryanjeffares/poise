@@ -42,6 +42,7 @@ namespace poise::runtime
         std::vector<std::span<const OpLine>> opListStack{m_globalOps};
         std::vector<std::span<const Value>> constantListStack{m_globalConstants};
 
+        std::vector<usize> localIndexOffsetStack = {0zu};
         std::vector<usize> opIndexStack = {0zu};
         std::vector<usize> constantIndexStack = {0zu};
 
@@ -103,7 +104,7 @@ namespace poise::runtime
                     break;
                 }
                 case Op::LoadLocal: {
-                    const auto& localIndex = constantList[constantIndex++];
+                    const auto& localIndex = constantList[constantIndex++] + localIndexOffsetStack.back();
                     const auto& localValue = localVariables[localIndex.value<usize>()];
                     stack.push_back(localValue);
                     break;
@@ -231,7 +232,17 @@ namespace poise::runtime
                     break;
                 }
                 case Op::Call: {
+                    localIndexOffsetStack.push_back(localVariables.size());
+
+                    const auto numArgs = constantList[constantIndex++].value<usize>();;
+                    localVariables.resize(localVariables.size() + numArgs);
+
+                    for (auto i = 0zu; i < numArgs; i++) {
+                        localVariables[localVariables.size() - 1zu - i] = pop();
+                    }
+
                     const auto value = pop();
+
                     if (value.callable()) {
                         const auto function = value.object()->asFunction();
                         opListStack.push_back(function->opList());
@@ -285,6 +296,7 @@ namespace poise::runtime
                     constantListStack.pop_back();
                     opIndexStack.pop_back();
                     constantIndexStack.pop_back();
+                    localIndexOffsetStack.pop_back();
                     break;
                 }
             }

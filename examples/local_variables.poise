@@ -13,4 +13,5 @@ func main():
     // final error = variable_that_doesnt_exist;
     final main_func = main;
     println(main_func);
+    main_func();
 end

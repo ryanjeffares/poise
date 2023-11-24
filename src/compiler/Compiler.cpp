@@ -7,6 +7,7 @@
 #include <fmt/format.h>
 
 #include <charconv>
+#include <limits>
 
 #define RETURN_IF_NO_MATCH(tokenType, message)          \
     do {                                                \
@@ -60,6 +61,7 @@ namespace poise::compiler {
         if (m_mainFunction) {
             emitConstant(*m_mainFunction);
             emitOp(runtime::Op::LoadConstant, 0zu);
+            emitConstant(0);
             emitOp(runtime::Op::Call, 0zu);
             emitOp(runtime::Op::Exit, m_scanner.getNumLines());
         } else {
@@ -468,12 +470,20 @@ namespace poise::compiler {
         primary();
 
         while (match(scanner::TokenType::OpenParen)) {
+            u8 numArgs = 0;
+
             while (true) {
                 if (match(scanner::TokenType::CloseParen)) {
                     break;
                 }
 
+                if (numArgs == std::numeric_limits<u8>::max()) {
+                    errorAtCurrent("Maximum function parameters of 255 exceeded");
+                    return;
+                }
+
                 expression();
+                numArgs++;
 
                 // trailing commas are allowed but all arguments must be comma separated
                 // so here, if the next token is not a comma or a close paren, it's invalid
@@ -486,6 +496,9 @@ namespace poise::compiler {
                     advance();
                 }
             }
+
+            emitConstant(numArgs);
+            emitOp(runtime::Op::Call, m_previous->line());
         }
     }
 
