@@ -669,6 +669,7 @@ namespace poise::compiler {
             }
 
             m_localNames.push_back({std::move(argName), isFinal});
+            numArgs++;
 
             // trailing commas are allowed but all arguments must be comma separated
             // so here, if the next token is not a comma or a close paren, it's invalid

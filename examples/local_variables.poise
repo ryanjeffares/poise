@@ -1,7 +1,7 @@
 func foo():
     final v = "Hello from foo()";
     println(v);
-    bar();
+    bar(0, 1, 2);
 end
 
 func bar(
@@ -11,6 +11,9 @@ func bar(
 ):
     final v = "Hello from bar()";
     println(v);
+    println(a);
+    println(b);
+    println(c);
 end
 
 func main():

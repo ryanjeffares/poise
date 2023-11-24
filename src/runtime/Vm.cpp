@@ -104,8 +104,8 @@ namespace poise::runtime
                     break;
                 }
                 case Op::LoadLocal: {
-                    const auto& localIndex = constantList[constantIndex++] + localIndexOffsetStack.back();
-                    const auto& localValue = localVariables[localIndex.value<usize>()];
+                    const auto& localIndex = constantList[constantIndex++];
+                    const auto& localValue = localVariables[localIndex.value<usize>() + localIndexOffsetStack.back()];
                     stack.push_back(localValue);
                     break;
                 }
