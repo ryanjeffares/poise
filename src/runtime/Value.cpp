@@ -91,6 +91,11 @@ namespace poise::runtime
         }
     }
 
+    auto Value::none() -> Value
+    {
+        return std::nullptr_t{};
+    }
+
     auto Value::type() const -> Type
     {
         return m_type;
@@ -600,22 +605,29 @@ namespace fmt
 
     auto formatter<Value::Type>::format(Value::Type type, format_context& context) const -> decltype(context.out())
     {
+        string_view result = "unknown";
+
         switch (type) {
             case Value::Type::Bool:
-                return formatter<string_view>::format("Bool", context);
+                result = "Bool";
+                break;
             case Value::Type::Float:
-                return formatter<string_view>::format("Float", context);
+                result = "Float";
+                break;
             case Value::Type::Int:
-                return formatter<string_view>::format("Int", context);
+                result = "Int";
+                break;
             case Value::Type::Object:
-                return formatter<string_view>::format("Object", context);
+                result = "Object";
+                break;
             case Value::Type::None:
-                return formatter<string_view>::format("None", context);
+                result = "None";
+                break;
             case Value::Type::String:
-                return formatter<string_view>::format("String", context);
-            default:
-                POISE_UNREACHABLE();
-                return formatter<string_view>::format("unknown", context);
+                result = "String";
+                break;
         }
+
+        return formatter<string_view>::format(result, context);
     }
 }

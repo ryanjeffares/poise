@@ -35,6 +35,7 @@ namespace poise::scanner
             {"none", TokenType::None},
             {"or", TokenType::Or},
             {"println", TokenType::PrintLn},
+            {"return", TokenType::Return},
             {"true", TokenType::True},
             {"var", TokenType::Var},
         }

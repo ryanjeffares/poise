@@ -5,9 +5,10 @@ declaration = funcDecl | varDecl | finalDecl | statement ;
 funcDecl = "func", IDENTIFIER, "(", [ IDENTIFIER, [ { ",", IDENTIFIER } ] ], ")", ":", [ { declaration } ], "end" ;
 varDecl = "var", IDENTIFIER, [ "=", expression ] ";" ;
 
-statement = expressionStatement | printlnStatement ;
+statement = expressionStatement | printlnStatement | returnStatement ;
 expressionStatement = expression, ";" ;
 printlnStatement = "println", "(", expression, ")" ;
+returnStatement = "return", [ expression ], ";" ;
 
 expression = logic_or ;
 logic_or = logic_and, [ { "or", logic_and } ] ;

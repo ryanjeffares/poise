@@ -19,6 +19,7 @@ namespace poise::scanner
         Func,
         Or,
         PrintLn,
+        Return,
         Var,
 
         // symbols

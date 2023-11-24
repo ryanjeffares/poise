@@ -89,6 +89,8 @@ namespace poise::runtime
             return value;
         }
 
+        [[nodiscard]] static auto none() -> Value;
+
         template<Primitive T>
         Value& operator=(T value)
         {

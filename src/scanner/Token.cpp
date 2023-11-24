@@ -11,91 +11,135 @@ namespace fmt
 
     auto formatter<TokenType>::format(TokenType tokenType, format_context& context) const
     {
+        string_view result = "unknown";
+
         switch (tokenType) {
             case TokenType::And:
-                return formatter<string_view>::format("And", context);
+                result = "And";
+                break;
             case TokenType::End:
-                return formatter<string_view>::format("End", context);
+                result = "End";
+                break;
             case TokenType::Final:
-                return formatter<string_view>::format("Final", context);
+                result = "Final";
+                break;
             case TokenType::Func:
-                return formatter<string_view>::format("Func", context);
+                result = "Func";
+                break;
             case TokenType::Or:
-                return formatter<string_view>::format("Or", context);
+                result = "Or";
+                break;
             case TokenType::PrintLn:
-                return formatter<string_view>::format("PrintLn", context);
+                result = "PrintLn";
+                break;
+            case TokenType::Return:
+                result = "Return";
+                break;
             case TokenType::Var:
-                return formatter<string_view>::format("Var", context);
+                result = "Var";
+                break;
             case TokenType::Ampersand:
-                return formatter<string_view>::format("Ampersand", context);
+                result = "Ampersand";
+                break;
             case TokenType::Caret:
-                return formatter<string_view>::format("Caret", context);
+                result = "Caret";
+                break;
             case TokenType::CloseParen:
-                return formatter<string_view>::format("CloseParen", context);
+                result = "CloseParen";
+                break;
             case TokenType::Colon:
-                return formatter<string_view>::format("Colon", context);
+                result = "Colon";
+                break;
             case TokenType::Comma:
-                return formatter<string_view>::format("Comma", context);
+                result = "Comma";
+                break;
             case TokenType::Equal:
-                return formatter<string_view>::format("Equal", context);
+                result = "Equal";
+                break;
             case TokenType::EqualEqual:
-                return formatter<string_view>::format("EqualEqual", context);
+                result = "EqualEqual";
+                break;
             case TokenType::Exclamation:
-                return formatter<string_view>::format("Exclamation", context);
+                result = "Exclamation";
+                break;
             case TokenType::Greater:
-                return formatter<string_view>::format("Greater", context);
+                result = "Greater";
+                break;
             case TokenType::GreaterEqual:
-                return formatter<string_view>::format("GreaterEqual", context);
+                result = "GreaterEqual";
+                break;
             case TokenType::Less:
-                return formatter<string_view>::format("Less", context);
+                result = "Less";
+                break;
             case TokenType::LessEqual:
-                return formatter<string_view>::format("LessEqual", context);
+                result = "LessEqual";
+                break;
             case TokenType::Modulus:
-                return formatter<string_view>::format("Modulus", context);
+                result = "Modulus";
+                break;
             case TokenType::Minus:
-                return formatter<string_view>::format("Subtraction", context);
+                result = "Subtraction";
+                break;
             case TokenType::NotEqual:
-                return formatter<string_view>::format("NotEqual", context);
+                result = "NotEqual";
+                break;
             case TokenType::OpenParen:
-                return formatter<string_view>::format("OpenParen", context);
+                result = "OpenParen";
+                break;
             case TokenType::Pipe:
-                return formatter<string_view>::format("Pipe", context);
+                result = "Pipe";
+                break;
             case TokenType::Plus:
-                return formatter<string_view>::format("Addition", context);
+                result = "Addition";
+                break;
             case TokenType::Semicolon:
-                return formatter<string_view>::format("Semicolon", context);
+                result = "Semicolon";
+                break;
             case TokenType::ShiftLeft:
-                return formatter<string_view>::format("ShiftLeft", context);
+                result = "ShiftLeft";
+                break;
             case TokenType::ShiftRight:
-                return formatter<string_view>::format("ShiftRight", context);
+                result = "ShiftRight";
+                break;
             case TokenType::Slash:
-                return formatter<string_view>::format("Slash", context);
+                result = "Slash";
+                break;
             case TokenType::Star:
-                return formatter<string_view>::format("Star", context);
+                result = "Star";
+                break;
             case TokenType::Tilde:
-                return formatter<string_view>::format("Tilde", context);
+                result = "Tilde";
+                break;
             case TokenType::False:
-                return formatter<string_view>::format("False", context);
+                result = "False";
+                break;
             case TokenType::Float:
-                return formatter<string_view>::format("Float", context);
+                result = "Float";
+                break;
             case TokenType::Identifier:
-                return formatter<string_view>::format("Identifier", context);
+                result = "Identifier";
+                break;
             case TokenType::Int:
-                return formatter<string_view>::format("Int", context);
+                result = "Int";
+                break;
             case TokenType::None:
-                return formatter<string_view>::format("None", context);
+                result = "None";
+                break;
             case TokenType::String:
-                return formatter<string_view>::format("String", context);
+                result = "String";
+                break;
             case TokenType::True:
-                return formatter<string_view>::format("True", context);
+                result = "True";
+                break;
             case TokenType::EndOfFile:
-                return formatter<string_view>::format("EndOfFile", context);
+                result = "EndOfFile";
+                break;
             case TokenType::Error:
-                return formatter<string_view>::format("Error", context);
-            default:
-                POISE_UNREACHABLE();
-                return formatter<string_view>::format("unknown", context);
+                result = "Error";
+                break;
         }
+
+        return formatter<string_view>::format(result, context);
     }
 }
 

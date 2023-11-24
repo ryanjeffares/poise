@@ -16,12 +16,17 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * Fuzzing
 * Think about object -> bool conversion
 * Think about functions as first class objects
+* Think about types as first class objects
 
 ## Roadmap
-* Expressions with primitives 🗸
-    * Short-circuiting 🗸
-* Variables 🗸
+* Pop unused expression/return results
+* ~~Expressions with primitives~~
+    * ~~Short-circuiting~~
+* ~~Variables~~
 * Functions 
+  * ~~Declaration~~
+  * ~~Calling~~
+  * Returning
 * Native functions
 * Builtin objects
     * Iterable collections

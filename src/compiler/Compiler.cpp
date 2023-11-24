@@ -72,6 +72,11 @@ namespace poise::compiler {
         return CompileResult::Success;
     }
 
+    auto Compiler::checkContext(Context context) -> bool
+    {
+        return std::find(m_contextStack.begin(), m_contextStack.end(), context) != m_contextStack.end();
+    }
+
     auto Compiler::emitOp(runtime::Op op, usize line) -> void
     {
         m_vm->emitOp(op, line);
@@ -149,6 +154,11 @@ namespace poise::compiler {
 
     auto Compiler::funcDeclaration() -> void
     {
+        if (m_contextStack.back() != Context::TopLevel) {
+            errorAtPrevious("Function declaration only allowed at top level");
+            return;
+        }
+
         m_contextStack.push_back(Context::Function);
 
         RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected function name");
@@ -174,10 +184,13 @@ namespace poise::compiler {
             declaration();
         }
 
-        // TODO: handle returns properly
-        emitConstant(m_localNames.size());
-        emitOp(runtime::Op::PopLocals, m_previous->line());
-        emitOp(runtime::Op::Return, m_previous->line());
+        if (function.object()->asFunction()->opList().back().op != runtime::Op::Return) {
+            emitConstant(m_localNames.size());
+            emitOp(runtime::Op::PopLocals, m_previous->line());
+            emitConstant(runtime::Value::none());
+            emitOp(runtime::Op::LoadConstant, m_previous->line());
+            emitOp(runtime::Op::Return, m_previous->line());
+        }
 
         m_vm->setCurrentFunction(prevFunction);
 
@@ -196,7 +209,7 @@ namespace poise::compiler {
 
     auto Compiler::varDeclaration(bool isFinal) -> void
     {
-        if (std::find(m_contextStack.begin(), m_contextStack.end(), Context::Function) == m_contextStack.end()) {
+        if (!checkContext(Context::Function)) {
             errorAtPrevious("Variable declaration only allowed inside a function");
             return;
         }
@@ -221,7 +234,7 @@ namespace poise::compiler {
                 return;
             }
 
-            emitConstant(nullptr);
+            emitConstant(runtime::Value::none());
             emitOp(runtime::Op::LoadConstant, m_previous->line());
         }
 
@@ -232,11 +245,24 @@ namespace poise::compiler {
 
     auto Compiler::statement() -> void
     {
+        if (!checkContext(Context::Function)) {
+            errorAtCurrent("Statements only allowed within functions");
+            return;
+        }
+
         if (match(scanner::TokenType::PrintLn)) {
             printLnStatement();
+        } else if (match(scanner::TokenType::Return)) {
+            returnStatement();
         } else {
             expressionStatement();
         }
+    }
+
+    auto Compiler::expressionStatement() -> void
+    {
+        expression();
+        EXPECT_SEMICOLON();
     }
 
     auto Compiler::printLnStatement() -> void
@@ -250,9 +276,21 @@ namespace poise::compiler {
         EXPECT_SEMICOLON();
     }
 
-    auto Compiler::expressionStatement() -> void
+    auto Compiler::returnStatement() -> void
     {
-        expression();
+        // in case of early return, pop locals
+        emitConstant(m_localNames.size());
+        emitOp(runtime::Op::PopLocals, m_previous->line());
+
+        if (match(scanner::TokenType::Semicolon)) {
+            emitConstant(runtime::Value::none());
+            emitOp(runtime::Op::LoadConstant, m_previous->line());
+            emitOp(runtime::Op::Return, m_previous->line());
+        } else {
+            expression();
+            emitOp(runtime::Op::Return, m_previous->line());
+        }
+
         EXPECT_SEMICOLON();
     }
 
@@ -472,7 +510,7 @@ namespace poise::compiler {
         } else if (match(scanner::TokenType::Int)) {
             parseInt();
         } else if (match(scanner::TokenType::None)) {
-            emitConstant(std::nullptr_t{});
+            emitConstant(runtime::Value::none());
             emitOp(runtime::Op::LoadConstant, m_previous->line());
         } else if (match(scanner::TokenType::String)) {
             parseString();

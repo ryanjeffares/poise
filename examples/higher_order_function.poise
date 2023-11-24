@@ -1,0 +1,11 @@
+func foo(a, b):
+    return a + b;
+end
+
+func make_foo():
+    return foo;
+end
+
+func main():
+    println(make_foo()(3, 2));
+end

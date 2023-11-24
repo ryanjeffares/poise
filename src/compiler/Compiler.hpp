@@ -34,6 +34,8 @@ namespace poise::compiler
             TopLevel, Function,
         };
 
+        auto checkContext(Context context) -> bool;
+
         auto emitOp(runtime::Op op, usize line) -> void;
         auto emitConstant(runtime::Value value) -> void;
 
@@ -56,6 +58,7 @@ namespace poise::compiler
         auto statement() -> void;
         auto expressionStatement() -> void;
         auto printLnStatement() -> void;
+        auto returnStatement() -> void;
 
         auto expression() -> void;
 

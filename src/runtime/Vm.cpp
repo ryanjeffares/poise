@@ -69,6 +69,12 @@ namespace poise::runtime
             return RunResult::RuntimeError;                                                 \
         } while (false)                                                                     \
 
+#define PRINT_STACK()
+        do {
+
+        }
+        while (false)
+
         while (true) {
             const auto opList = opListStack.back();
             const auto constantList = constantListStack.back();
@@ -260,6 +266,7 @@ namespace poise::runtime
                     break;
                 }
                 case Op::Exit: {
+                    POISE_ASSERT(stack.empty(), "Stack not empty after runtime, there has been an error in codegen");
                     return RunResult::Success;
                 }
                 case Op::Jump: {
@@ -305,5 +312,8 @@ namespace poise::runtime
                 }
             }
         }
+
+#undef PANIC
+#undef PRINT_STACK
     }
 }

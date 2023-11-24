@@ -6,80 +6,116 @@ namespace fmt
 
     auto formatter<Op>::format(poise::runtime::Op op, fmt::format_context& context) -> decltype(context.out())
     {
+        string_view result = "unknown";
+
         switch (op) {
             case Op::DeclareFunction:
-                return formatter<string_view>::format("DeclareFunction", context);
+                result = "DeclareFunction";
+                break;
             case Op::DeclareLocal:
-                return formatter<string_view>::format("DeclareLocal", context);
+                result = "DeclareLocal";
+                break;
             case Op::LoadConstant:
-                return formatter<string_view>::format("LoadConstant", context);
+                result = "LoadConstant";
+                break;
             case Op::LoadFunction:
-                return formatter<string_view>::format("LoadFunction", context);
+                result = "LoadFunction";
+                break;
             case Op::LoadLocal:
-                return formatter<string_view>::format("LoadLocal", context);
+                result = "LoadLocal";
+                break;
             case Op::PopLocals:
-                return formatter<string_view>::format("PopLocals", context);
+                result = "PopLocals";
+                break;
             case Op::PrintLn:
-                return formatter<string_view>::format("PrintLn", context);
+                result = "PrintLn";
+                break;
             case Op::LogicOr:
-                return formatter<string_view>::format("LogicOr", context);
+                result = "LogicOr";
+                break;
             case Op::LogicAnd:
-                return formatter<string_view>::format("LogicAnd", context);
+                result = "LogicAnd";
+                break;
             case Op::BitwiseOr:
-                return formatter<string_view>::format("BitwiseOr", context);
+                result = "BitwiseOr";
+                break;
             case Op::BitwiseXor:
-                return formatter<string_view>::format("BitwiseXor", context);
+                result = "BitwiseXor";
+                break;
             case Op::BitwiseAnd:
-                return formatter<string_view>::format("BitwiseAnd", context);
+                result = "BitwiseAnd";
+                break;
             case Op::Equal:
-                return formatter<string_view>::format("Equal", context);
+                result = "Equal";
+                break;
             case Op::NotEqual:
-                return formatter<string_view>::format("NotEqual", context);
+                result = "NotEqual";
+                break;
             case Op::LessThan:
-                return formatter<string_view>::format("LessThan", context);
+                result = "LessThan";
+                break;
             case Op::LessEqual:
-                return formatter<string_view>::format("LessEqual", context);
+                result = "LessEqual";
+                break;
             case Op::GreaterThan:
-                return formatter<string_view>::format("GreaterThan", context);
+                result = "GreaterThan";
+                break;
             case Op::GreaterEqual:
-                return formatter<string_view>::format("GreaterEqual", context);
+                result = "GreaterEqual";
+                break;
             case Op::LeftShift:
-                return formatter<string_view>::format("LeftShift", context);
+                result = "LeftShift";
+                break;
             case Op::RightShift:
-                return formatter<string_view>::format("RightShift", context);
+                result = "RightShift";
+                break;
             case Op::Addition:
-                return formatter<string_view>::format("Addition", context);
+                result = "Addition";
+                break;
             case Op::Subtraction:
-                return formatter<string_view>::format("Subtraction", context);
+                result = "Subtraction";
+                break;
             case Op::Multiply:
-                return formatter<string_view>::format("Multiply", context);
+                result = "Multiply";
+                break;
             case Op::Divide:
-                return formatter<string_view>::format("Divide", context);
+                result = "Divide";
+                break;
             case Op::Modulus:
-                return formatter<string_view>::format("Modulus", context);
+                result = "Modulus";
+                break;
             case Op::LogicNot:
-                return formatter<string_view>::format("LogicNot", context);
+                result = "LogicNot";
+                break;
             case Op::BitwiseNot:
-                return formatter<string_view>::format("BitwiseNot", context);
+                result = "BitwiseNot";
+                break;
             case Op::Negate:
-                return formatter<string_view>::format("Negate", context);
+                result = "Negate";
+                break;
             case Op::Plus:
-                return formatter<string_view>::format("Plus", context);
+                result = "Plus";
+                break;
             case Op::Call:
-                return formatter<string_view>::format("Call", context);
+                result = "Call";
+                break;
             case Op::Jump:
-                return formatter<string_view>::format("Jump", context);
+                result = "Jump";
+                break;
             case Op::JumpIfFalse:
-                return formatter<string_view>::format("JumpIfFalse", context);
+                result = "JumpIfFalse";
+                break;
             case Op::JumpIfTrue:
-                return formatter<string_view>::format("JumpIfTrue", context);
+                result = "JumpIfTrue";
+                break;
             case Op::Exit:
-                return formatter<string_view>::format("Exit", context);
+                result = "Exit";
+                break;
             case Op::Return:
-                return formatter<string_view>::format("Return", context);
-            default:
-                POISE_UNREACHABLE();
-                return formatter<string_view>::format("unknown", context);
+                result = "Return";
+                break;
         }
+
+        return formatter<string_view>::format(result, context);
     }
 }
