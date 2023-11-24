@@ -139,9 +139,9 @@ namespace poise::compiler {
         if (match(scanner::TokenType::Func)) {
             funcDeclaration();
         } else if (match(scanner::TokenType::Var)) {
-            varDeclaration();
+            varDeclaration(false);
         } else if (match(scanner::TokenType::Final)) {
-            finalDeclaration();
+            varDeclaration(true);
         } else {
             statement();
         }
@@ -194,14 +194,14 @@ namespace poise::compiler {
         m_contextStack.pop_back();
     }
 
-    auto Compiler::varDeclaration() -> void
+    auto Compiler::varDeclaration(bool isFinal) -> void
     {
         if (std::find(m_contextStack.begin(), m_contextStack.end(), Context::Function) == m_contextStack.end()) {
-            errorAtPrevious("'var' only allowed inside a function");
+            errorAtPrevious("Variable declaration only allowed inside a function");
             return;
         }
 
-        RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected 'var' name");
+        RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected identifier");
 
         auto varName = m_previous->string();
         if (std::find_if(m_localNames.begin(), m_localNames.end(), [&varName] (const LocalVariable& local) {
@@ -211,42 +211,20 @@ namespace poise::compiler {
             return;
         }
 
-        m_localNames.push_back({std::move(varName), false});
+        m_localNames.push_back({std::move(varName), isFinal});
 
         if (match(scanner::TokenType::Equal)) {
             expression();
         } else {
+            if (isFinal) {
+                errorAtCurrent("Expected assignment after 'final'");
+                return;
+            }
+
             emitConstant(nullptr);
             emitOp(runtime::Op::LoadConstant, m_previous->line());
         }
 
-        emitOp(runtime::Op::DeclareLocal, m_previous->line());
-
-        EXPECT_SEMICOLON();
-    }
-
-    auto Compiler::finalDeclaration() -> void
-    {
-        if (std::find(m_contextStack.begin(), m_contextStack.end(), Context::Function) == m_contextStack.end()) {
-            errorAtPrevious("'final' only allowed inside a function");
-            return;
-        }
-
-        RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected 'final' name");
-
-        auto varName = m_previous->string();
-        if (std::find_if(m_localNames.begin(), m_localNames.end(), [&varName] (const LocalVariable& local) {
-            return local.name == varName;
-        }) != m_localNames.end()) {
-            errorAtPrevious("Local variable with the same name already declared");
-            return;
-        }
-
-        m_localNames.push_back({std::move(varName), true});
-
-        RETURN_IF_NO_MATCH(scanner::TokenType::Equal, "Expected assignment to 'final'");
-
-        expression();
         emitOp(runtime::Op::DeclareLocal, m_previous->line());
 
         EXPECT_SEMICOLON();

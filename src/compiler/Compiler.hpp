@@ -46,14 +46,12 @@ namespace poise::compiler
         auto patchJump(JumpIndexes jumpIndexes) -> void;
 
         auto advance() -> void;
-        auto consume(scanner::TokenType tokenType) -> void;
         [[nodiscard]] auto match(scanner::TokenType expected) -> bool;
         [[nodiscard]] auto check(scanner::TokenType expected) -> bool;
 
         auto declaration() -> void;
         auto funcDeclaration() -> void;
-        auto varDeclaration() -> void;
-        auto finalDeclaration() -> void;
+        auto varDeclaration(bool isFinal) -> void;
 
         auto statement() -> void;
         auto expressionStatement() -> void;
