@@ -18,6 +18,7 @@ namespace poise::runtime
         LoadConstant,
         LoadFunction,
         LoadLocal,
+        Pop,
         PopLocals,
 
         // statements

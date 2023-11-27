@@ -24,6 +24,9 @@ namespace fmt
             case Op::LoadLocal:
                 result = "LoadLocal";
                 break;
+            case Op::Pop:
+                result = "Pop";
+                break;
             case Op::PopLocals:
                 result = "PopLocals";
                 break;

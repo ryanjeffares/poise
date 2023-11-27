@@ -63,6 +63,7 @@ namespace poise::compiler {
             emitOp(runtime::Op::LoadFunction, 0zu);
             emitConstant(0);
             emitOp(runtime::Op::Call, 0zu);
+            emitOp(runtime::Op::Pop, 0zu);
             emitOp(runtime::Op::Exit, m_scanner.getNumLines());
         } else {
             errorAtPrevious("No main function declared");
@@ -173,7 +174,8 @@ namespace poise::compiler {
         auto prevFunction = m_vm->getCurrentFunction();
 
         auto function = runtime::Value::createObject<objects::PoiseFunction>(std::move(functionName), numArgs);
-        m_vm->setCurrentFunction(function.object()->asFunction());
+        auto functionPtr = function.object()->asFunction();
+        m_vm->setCurrentFunction(functionPtr);
 
         while (!match(scanner::TokenType::End)) {
             if (check(scanner::TokenType::EndOfFile)) {
@@ -184,7 +186,8 @@ namespace poise::compiler {
             declaration();
         }
 
-        if (function.object()->asFunction()->opList().back().op != runtime::Op::Return) {
+        if (functionPtr->opList().back().op != runtime::Op::Return) {
+            // if no return statement, make sure we pop locals and implicitly return none
             emitConstant(m_localNames.size());
             emitOp(runtime::Op::PopLocals, m_previous->line());
             emitConstant(runtime::Value::none());
@@ -194,11 +197,11 @@ namespace poise::compiler {
 
         m_vm->setCurrentFunction(prevFunction);
 
-        if (function.object()->asFunction()->name() == "main") {
+        if (functionPtr->name() == "main") {
             m_mainFunction = function;
         }
 
-        function.object()->asFunction()->printOps();
+        functionPtr->printOps();
 
         emitConstant(std::move(function));
         emitOp(runtime::Op::DeclareFunction, line);
@@ -278,15 +281,17 @@ namespace poise::compiler {
 
     auto Compiler::returnStatement() -> void
     {
-        // in case of early return, pop locals
+        // pop local variables
         emitConstant(m_localNames.size());
         emitOp(runtime::Op::PopLocals, m_previous->line());
 
         if (match(scanner::TokenType::Semicolon)) {
+            // emit none value to return if no value is returned
             emitConstant(runtime::Value::none());
             emitOp(runtime::Op::LoadConstant, m_previous->line());
             emitOp(runtime::Op::Return, m_previous->line());
         } else {
+            // else the return value should be any expression
             expression();
             emitOp(runtime::Op::Return, m_previous->line());
         }

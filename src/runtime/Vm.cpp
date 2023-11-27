@@ -53,7 +53,7 @@ namespace poise::runtime
             return value;
         };
 
-        [[maybe_unused]] auto popTwo = [&stack] -> std::tuple<Value, Value> {
+        auto popTwo = [&stack] -> std::tuple<Value, Value> {
             POISE_ASSERT(stack.size() >= 2, "Stack is not big enough, there has been an error in codegen");
             auto value1 = std::move(stack.back());
             stack.pop_back();
@@ -69,11 +69,14 @@ namespace poise::runtime
             return RunResult::RuntimeError;                                                 \
         } while (false)                                                                     \
 
-#define PRINT_STACK()
-        do {
-
-        }
-        while (false)
+#define PRINT_STACK()                           \
+        do {                                    \
+            fmt::print("STACK:\n");             \
+            for (const auto& value : stack) {   \
+                fmt::print("\t{}\n", value);    \
+            }                                   \
+        }                                       \
+        while (false)                           \
 
         while (true) {
             const auto opList = opListStack.back();
@@ -120,6 +123,10 @@ namespace poise::runtime
                     for (auto i = 0zu; i < numLocals.value<usize>(); i++) {
                         localVariables.pop_back();
                     }
+                    break;
+                }
+                case Op::Pop: {
+                    pop();
                     break;
                 }
                 case Op::PrintLn: {
@@ -303,6 +310,7 @@ namespace poise::runtime
                     break;
                 }
                 case Op::Return: {
+                    PRINT_STACK();
                     opListStack.pop_back();
                     constantListStack.pop_back();
                     opIndexStack.pop_back();
