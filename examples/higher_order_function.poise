@@ -8,4 +8,5 @@ end
 
 func main():
     println(make_foo()(3, 2));
+    make_foo();
 end

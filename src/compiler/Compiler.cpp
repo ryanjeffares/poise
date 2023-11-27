@@ -264,7 +264,19 @@ namespace poise::compiler {
 
     auto Compiler::expressionStatement() -> void
     {
+        /*
+            calling `expression()` in any other context means the result of that expression is being consumed
+            but this function is called when you have a line that's just like
+
+            ```
+            5 + 5;
+            some_void_function();
+            ```
+
+            so emit an extra `Pop` instruction to remove that unused result            
+        */
         expression();
+        emitOp(runtime::Op::Pop, m_previous->line());
         EXPECT_SEMICOLON();
     }
 

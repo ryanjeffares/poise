@@ -19,7 +19,8 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * Think about types as first class objects
 
 ## Roadmap
-* Pop unused expression/return results
+* ~~Pop unused expression/return results~~
+* Assertion failure in formatting compiler error output for missing semicolons
 * ~~Expressions with primitives~~
     * ~~Short-circuiting~~
 * ~~Variables~~
