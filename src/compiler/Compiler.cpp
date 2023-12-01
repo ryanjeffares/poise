@@ -201,7 +201,9 @@ namespace poise::compiler {
             m_mainFunction = function;
         }
 
+#ifdef POISE_DEBUG
         functionPtr->printOps();
+#endif
 
         emitConstant(std::move(function));
         emitOp(runtime::Op::DeclareFunction, line);

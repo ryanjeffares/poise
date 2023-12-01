@@ -27,15 +27,15 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * ~~Pop unused expression/return results~~
 * ~~Create values by calling type as a constructor, eg `Int()`, `Float(1.0)`~~
 * ~~Implement types as first class objects - see below~~
-    * Dont except for user defined classes when we get to that..
+    * Done except for user defined classes when we get to that..
 * Assertion failure in formatting compiler error output for missing semicolons
 * ~~Expressions with primitives~~
     * ~~Short-circuiting~~
 * ~~Variables~~
 * Functions 
-  * ~~Declaration~~
-  * ~~Calling~~
-  * ~~Returning~~
+    * ~~Declaration~~
+    * ~~Calling~~
+    * ~~Returning~~
 * Error handling
 * Native functions
 * Imports + Namespaces
@@ -72,3 +72,4 @@ int_value = t_int(5);
 final t = typeof(Int);  // error - cannot take type of type
 ```
 
+* This is **ALL DONE** now, just need to consider user defined classes and collections when we add them (and __maybe__ constructing Types themselves...)

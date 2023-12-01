@@ -21,5 +21,5 @@ func main():
     println(return_type(f)(3.14));
 
     var t = typeof(foo);
-    t(foo)();
+    t(foo)()
 end

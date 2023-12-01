@@ -51,6 +51,13 @@ namespace poise::scanner
         std::stringstream inCodeStream;
         inCodeStream << inFileStream.rdbuf();
         m_code = inCodeStream.str();
+
+        if (!m_code.empty() && m_code.back() != '\n') {
+            // hack to make our compiler errors not throw assertion failures
+            // if the error is on the last line of the file
+            // and there's no trailing newline
+            m_code.push_back('\n');
+        }
     }
 
     auto Scanner::getCodeAtLine(usize line) const -> std::string_view
