@@ -309,7 +309,7 @@ namespace poise::runtime
                 }
             }
             case Type::String:
-                return string() + other.string();
+                return string() + other.toString();
             default:
                 throw std::runtime_error(fmt::format("Invalid operand types for +: '{}' and '{}'", type(), other.type()));
         }

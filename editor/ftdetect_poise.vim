@@ -1,0 +1,1 @@
+au BufNewFile,BufRead *.poise set filetype=poise
