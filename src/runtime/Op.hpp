@@ -13,6 +13,7 @@ namespace poise::runtime
     enum class Op : u8
     {
         // stack/state modification
+        CaptureLocal,
         ConstructBuiltin,
         DeclareFunction,
         DeclareLocal,

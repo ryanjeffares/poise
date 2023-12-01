@@ -79,6 +79,7 @@ namespace poise::compiler
         auto identifier() -> void;
         auto typeIdent() -> void;
         auto typeOf() -> void;
+        auto lambda() -> void;
 
         auto parseString() -> void;
         auto parseInt() -> void;

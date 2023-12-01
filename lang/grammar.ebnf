@@ -1,9 +1,9 @@
 program = { declaration } EOF ;
 
-declaration = funcDecl | varDecl | finalDecl | statement ;
+declaration = funcDecl | varDecl | statement ;
 
-funcDecl = "func", IDENTIFIER, "(", [ IDENTIFIER, [ { ",", IDENTIFIER } ] ], ")", ":", [ { declaration } ], "end" ;
-varDecl = "var", IDENTIFIER, [ "=", expression ] ";" ;
+funcDecl = "func", IDENTIFIER, "(", [ FUNCTION_ARGS ], ")", ":", [ { declaration } ], "end" ;
+varDecl = ("var" | "final") , IDENTIFIER, [ "=", expression ] ";" ;
 
 statement = expressionStatement | printlnStatement | returnStatement ;
 expressionStatement = expression, ";" ;
@@ -22,13 +22,20 @@ shift = term, [ { ( "<<" | ">>" ), term } ] ;
 term = factor, [ { ( "-" | "+" ), factor } ] ;
 factor = unary, [ { ( "/" | "*" ), unary } ] ;
 unary = [ ( "!" | "-" | "~" ) ], ( unary | call ) ;
-call = primary [ { "(", [ expression [ { ",", expression } ] ] ")" } ] ;
-primary = BOOL | NUMBER | STRING | "(", expression, ")" ;
+call = primary [ { "(", [ CALL_ARGS ], ")" } ] ;
+primary = BOOL | NUMBER | STRING | "(", expression, ")" | TYPE | TYPEOF | LAMBDA ;
 
 BOOL = "false" | "true" ;
 FLOAT = { DIGIT }, ".", { DIGIT } ;
 INT = { DIGIT } ;
 NONE = "None" ;
 STRING = '"', [ { all characters } ], '"' ;
+TYPE = "Bool", "Float", "Int", "None", "String", "Function" ;
+TYPEOF = "typeof", "(", expression, ")" ;
+LAMBDA = "|", [ CAPTURE_LIST ], "|", "(", [ FUNCTION_ARGS ], ")", ":", [ { declaration } ], "end" ;
 
-DIGIT = 0 ... 9 ;
+DIGIT = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 ;
+
+CAPTURE_LIST = IDENTIFIER, [ { ",", IDENTIFIER } ] ;
+CALL_ARGS = expression, [ { ",", expression } ] ;
+FUNCTION_ARGS = IDENTIFIER, [ { ",", IDENTIFIER } ] ;

@@ -100,6 +100,13 @@ namespace poise::runtime
             const auto [op, line] = opList[opIndex++];
 
             switch (op) {
+                case Op::CaptureLocal: {
+                    auto& lambda = stack.back();
+                    const auto index = constantList[constantIndex++].value<usize>();
+                    const auto& local = localVariables[index + localIndexOffsetStack.back()];
+                    lambda.object()->asFunction()->addCapture(local);
+                    break;
+                }
                 case Op::ConstructBuiltin: {
                     const auto type = static_cast<types::Type>(constantList[constantIndex++].value<u8>());
                     const auto numArgs = constantList[constantIndex++].value<u8>();

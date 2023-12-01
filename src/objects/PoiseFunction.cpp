@@ -88,6 +88,21 @@ namespace poise::objects
         return m_arity;
     }
 
+    auto PoiseFunction::numLambdas() const -> u32
+    {
+        return m_numLambdas;
+    }
+
+    auto PoiseFunction::lamdaAdded() -> void
+    {
+        m_numLambdas++;
+    }
+
+    auto PoiseFunction::addCapture(runtime::Value value) -> void
+    {
+        m_captures.emplace_back(std::move(value));
+    }
+
     auto PoiseFunction::printOps() const -> void
     {
         printLn();

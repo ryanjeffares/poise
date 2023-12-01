@@ -51,7 +51,8 @@ namespace poise::scanner
             || isUnaryOp(tokenType) 
             || isTypeIdent(tokenType) 
             || isBuiltinFunction(tokenType) 
-            || tokenType == TokenType::OpenParen;
+            || tokenType == TokenType::OpenParen
+            || tokenType == TokenType::Pipe;    // for lambdas
     }
 }   // namespace poise::scanner
 

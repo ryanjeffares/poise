@@ -295,20 +295,21 @@ namespace poise::compiler {
 
     auto Compiler::returnStatement() -> void
     {
-        // pop local variables
-        emitConstant(m_localNames.size());
-        emitOp(runtime::Op::PopLocals, m_previous->line());
-
         if (match(scanner::TokenType::Semicolon)) {
             // emit none value to return if no value is returned
             emitConstant(runtime::Value::none());
             emitOp(runtime::Op::LoadConstant, m_previous->line());
-            emitOp(runtime::Op::Return, m_previous->line());
         } else {
             // else the return value should be any expression
             expression();
-            emitOp(runtime::Op::Return, m_previous->line());
         }
+        
+        // pop local variables
+        emitConstant(m_localNames.size());
+        emitOp(runtime::Op::PopLocals, m_previous->line());
+
+        // expression above is still on the stack
+        emitOp(runtime::Op::Return, m_previous->line());
 
         EXPECT_SEMICOLON();
     }
@@ -544,6 +545,8 @@ namespace poise::compiler {
             typeIdent();
         } else if (match(scanner::TokenType::TypeOf)) {
             typeOf();
+        } else if (match(scanner::TokenType::Pipe)) {
+            lambda();
         } else {
             errorAtCurrent("Invalid token at start of expression");
         }
@@ -596,6 +599,101 @@ namespace poise::compiler {
         expression();
         emitOp(runtime::Op::TypeOf, m_previous->line());
         RETURN_IF_NO_MATCH(scanner::TokenType::CloseParen, "Expected ')");
+    }
+
+    auto Compiler::lambda() -> void
+    {
+        std::vector<usize> captureIndexes;
+        std::vector<LocalVariable> captures;
+
+        while (!match(scanner::TokenType::Pipe)) {
+            if (match(scanner::TokenType::Identifier)) {
+                if (captures.size() == std::numeric_limits<u8>::max()) {
+                    errorAtCurrent("Maximum amount of captures exceeded");
+                    return;
+                }
+
+                const auto text = m_previous->text();
+                const auto localIt = std::find_if(m_localNames.begin(), m_localNames.end(), [text] (const LocalVariable& local) {
+                    return local.name == text;
+                });
+
+                if (localIt == m_localNames.end()) {
+                    errorAtPrevious(fmt::format("No local variable named '{}' to capture", text));
+                }
+
+                const auto index = std::distance(m_localNames.begin(), localIt);
+                captures.push_back(*localIt);
+                captureIndexes.push_back(static_cast<usize>(index));
+
+                // trailing commas are allowed but all arguments must be comma separated
+                // so here, if the next token is not a comma or a pipe, it's invalid
+                if (!check(scanner::TokenType::Pipe) && !check(scanner::TokenType::Comma)) {
+                    errorAtCurrent("Expected ',' or '|'");
+                    break;
+                }
+
+                if (check(scanner::TokenType::Comma)) {
+                    advance();
+                }
+            } else {
+                errorAtCurrent("Expected identifier for capture");
+            }
+        }
+
+        auto oldLocals = std::move(m_localNames);
+        m_localNames = std::move(captures);
+
+        u8 numArgs = 0;
+        if (match(scanner::TokenType::OpenParen)) {
+            numArgs = parseFunctionArgs();
+        }
+
+        RETURN_IF_NO_MATCH(scanner::TokenType::Colon, "Expected ':");
+
+        const auto prevFunction = m_vm->getCurrentFunction();
+
+        m_contextStack.push_back(Context::Function);
+        
+        auto lambdaName = fmt::format("{}_lambda{}", prevFunction->name(), prevFunction->numLambdas());
+        auto lambda = runtime::Value::createObject<objects::PoiseFunction>(std::move(lambdaName), numArgs);
+        auto functionPtr = lambda.object()->asFunction();
+
+        m_vm->setCurrentFunction(functionPtr);
+    
+        while (!match(scanner::TokenType::End)) {
+            if (check(scanner::TokenType::EndOfFile)) {
+                errorAtCurrent("Unterminated lambda");
+                return;
+            }
+
+            declaration();
+        }
+
+        if (functionPtr->opList().empty() || functionPtr->opList().back().op != runtime::Op::Return) {
+            // if no return statement, make sure we pop locals and implicitly return none
+            emitConstant(m_localNames.size());
+            emitOp(runtime::Op::PopLocals, m_previous->line());
+            emitConstant(runtime::Value::none());
+            emitOp(runtime::Op::LoadConstant, m_previous->line());
+            emitOp(runtime::Op::Return, m_previous->line());
+        }
+
+#ifdef POISE_DEBUG
+        functionPtr->printOps();
+#endif
+
+        m_localNames = std::move(oldLocals);
+        m_contextStack.pop_back();
+
+        m_vm->setCurrentFunction(prevFunction);
+        
+        emitConstant(std::move(lambda));
+        emitOp(runtime::Op::LoadConstant, m_previous->line());
+        for (const auto index : captureIndexes) {
+            emitConstant(index);
+            emitOp(runtime::Op::CaptureLocal, m_previous->line());
+        }
     }
 
     static auto getEscapeCharacter(char c) -> std::optional<char>

@@ -28,7 +28,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * ~~Create values by calling type as a constructor, eg `Int()`, `Float(1.0)`~~
 * ~~Implement types as first class objects - see below~~
     * Done except for user defined classes when we get to that..
-* Assertion failure in formatting compiler error output for missing semicolons
+* ~~Assertion failure in formatting compiler error output for missing semicolons~~
 * ~~Expressions with primitives~~
     * ~~Short-circuiting~~
 * ~~Variables~~
@@ -36,6 +36,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * ~~Declaration~~
     * ~~Calling~~
     * ~~Returning~~
+    * Lambdas
 * Error handling
 * Native functions
 * Imports + Namespaces

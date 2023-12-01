@@ -9,6 +9,9 @@ namespace fmt
         string_view result = "unknown";
 
         switch (op) {
+            case Op::CaptureLocal:
+                result = "CaptureLocal";
+                break;
             case Op::ConstructBuiltin:
                 result = "ConstructBuiltin";
                 break;

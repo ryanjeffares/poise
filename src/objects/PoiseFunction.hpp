@@ -38,15 +38,20 @@ namespace poise::objects
 
         [[nodiscard]] auto name() const -> std::string_view;
         [[nodiscard]] auto arity() const -> u8;
+        [[nodiscard]] auto numLambdas() const -> u32;
+        auto lamdaAdded() -> void;
+        auto addCapture(runtime::Value value) -> void;
 
         auto printOps() const -> void;
 
     private:
         std::string m_name;
-        [[maybe_unused]] u8 m_arity;
+        u8 m_arity;
+        u32 m_numLambdas{0};
 
         std::vector<runtime::OpLine> m_ops;
         std::vector<runtime::Value> m_constants;
+        std::vector<runtime::Value> m_captures;
     };
 }
 
