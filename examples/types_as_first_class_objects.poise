@@ -1,0 +1,25 @@
+func return_type(final value):
+    return typeof(value);
+end
+
+func foo():
+    println("Hello from foo()");
+end
+
+func main():
+    var t_int = Int;
+    println(t_int);
+    println(Int(4));
+
+    println(String("Hello!"));
+    println(String(Int("5")));
+
+    println(t_int(69));
+
+    var f = Float();
+    println(return_type(none)(typeof(None())()));
+    println(return_type(f)(3.14));
+
+    var t = typeof(foo);
+    t(foo)();
+end

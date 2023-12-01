@@ -7,6 +7,11 @@ func make_foo():
 end
 
 func main():
+    final foo = make_foo();
+    final res = foo(4, 3);
+    println(res);
+
     println(make_foo()(3, 2));
+
     make_foo();
 end

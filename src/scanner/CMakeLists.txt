@@ -1,4 +1,4 @@
-add_library(poise_scanner Scanner.cpp Token.cpp)
+add_library(poise_scanner Scanner.cpp Token.cpp TokenType.cpp)
 
 target_compile_definitions(poise_scanner PRIVATE ${POISE_COMPILE_DEFINITIONS})
 target_compile_options(poise_scanner PRIVATE ${POISE_COMPILE_OPTIONS})

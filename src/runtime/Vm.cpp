@@ -1,4 +1,6 @@
 #include "Vm.hpp"
+#include "../objects/PoiseType.hpp"
+#include "../scanner/TokenType.hpp"
 
 #include <fmt/color.h>
 #include <fmt/core.h>
@@ -35,6 +37,22 @@ namespace poise::runtime
 
     auto Vm::run() -> RunResult
     {
+#define PANIC(message)                                                                      \
+        do {                                                                                \
+            fmt::print(stderr, fmt::emphasis::bold | fmt::fg(fmt::color::red), "PANIC: ");  \
+            fmt::print(stderr, "{}\n", message);                                            \
+            return RunResult::RuntimeError;                                                 \
+        } while (false)                                                                     \
+
+#define PRINT_STACK()                           \
+        do {                                    \
+            fmt::print("STACK:\n");             \
+            for (const auto& value : stack) {   \
+                fmt::print("\t{}\n", value);    \
+            }                                   \
+        }                                       \
+        while (false)                           \
+
         std::vector<Value> stack;
         std::vector<Value> localVariables;
         std::vector<Value> availableFunctions;
@@ -62,21 +80,16 @@ namespace poise::runtime
             return {std::move(value2), std::move(value1)};
         };
 
-#define PANIC(message)                                                                      \
-        do {                                                                                \
-            fmt::print(stderr, fmt::emphasis::bold | fmt::fg(fmt::color::red), "PANIC: ");  \
-            fmt::print(stderr, "{}\n", message);                                            \
-            return RunResult::RuntimeError;                                                 \
-        } while (false)                                                                     \
+        auto popCallArgs = [&pop] [[nodiscard]] (u8 numArgs) -> std::vector<Value> {
+            std::vector<Value> args;
+            args.resize(numArgs);
 
-#define PRINT_STACK()                           \
-        do {                                    \
-            fmt::print("STACK:\n");             \
-            for (const auto& value : stack) {   \
-                fmt::print("\t{}\n", value);    \
-            }                                   \
-        }                                       \
-        while (false)                           \
+            for (auto i = 0zu; i < numArgs; i++) {
+                args[args.size() - 1zu - i] = pop();
+            }
+
+            return args;
+        };
 
         while (true) {
             const auto opList = opListStack.back();
@@ -87,6 +100,13 @@ namespace poise::runtime
             const auto [op, line] = opList[opIndex++];
 
             switch (op) {
+                case Op::ConstructBuiltin: {
+                    const auto type = static_cast<types::Type>(constantList[constantIndex++].value<u8>());
+                    const auto numArgs = constantList[constantIndex++].value<u8>();
+                    const auto args = popCallArgs(numArgs);
+                    stack.emplace_back(types::s_typeLookup.at(type).object()->asType()->construct(args));
+                    break;
+                }
                 case Op::DeclareFunction: {
                     auto function = constantList[constantIndex++];
                     availableFunctions.emplace_back(std::move(function));
@@ -118,6 +138,11 @@ namespace poise::runtime
                     stack.push_back(localValue);
                     break;
                 }
+                case Op::LoadType: {
+                    const auto type = static_cast<types::Type>(constantList[constantIndex++].value<u8>());
+                    stack.push_back(types::s_typeLookup.at(type));
+                    break;
+                }
                 case Op::PopLocals: {
                     const auto& numLocals = constantList[constantIndex++];
                     for (auto i = 0zu; i < numLocals.value<usize>(); i++) {
@@ -127,6 +152,10 @@ namespace poise::runtime
                 }
                 case Op::Pop: {
                     pop();
+                    break;
+                }
+                case Op::TypeOf: {
+                    stack.emplace_back(pop().typeValue());
                     break;
                 }
                 case Op::PrintLn: {
@@ -245,27 +274,28 @@ namespace poise::runtime
                     break;
                 }
                 case Op::Call: {
-                    localIndexOffsetStack.push_back(localVariables.size());
-
-                    const auto numArgs = constantList[constantIndex++].value<usize>();;
-                    localVariables.resize(localVariables.size() + numArgs);
-
-                    for (auto i = 0zu; i < numArgs; i++) {
-                        localVariables[localVariables.size() - 1zu - i] = pop();
-                    }
-
+                    const auto numArgs = constantList[constantIndex++].value<u8>();
+                    auto args = popCallArgs(numArgs);   // not const so we can move into local vars if needed
                     const auto value = pop();
 
-                    if (value.callable()) {
-                        const auto function = value.object()->asFunction();
-                        if (function->arity() != numArgs) {
-                            PANIC(fmt::format("Function '{}' takes {} args but was given {}", function->name(), function->arity(), numArgs));
-                        }
+                    if (auto object = value.object()) {
+                        if (auto function = object->asFunction()) {
+                            if (function->arity() != numArgs) {
+                                PANIC(fmt::format("Function '{}' takes {} args but was given {}", function->name(), function->arity(), numArgs));
+                            }
 
-                        opListStack.push_back(function->opList());
-                        constantListStack.push_back(function->constantList());
-                        opIndexStack.push_back(0zu);
-                        constantIndexStack.push_back(0zu);
+                            localIndexOffsetStack.push_back(localVariables.size());
+                            localVariables.insert(localVariables.end(), std::make_move_iterator(args.begin()), std::make_move_iterator(args.end()));
+
+                            opListStack.push_back(function->opList());
+                            constantListStack.push_back(function->constantList());
+                            opIndexStack.push_back(0zu);
+                            constantIndexStack.push_back(0zu);
+                        } else if (auto type = object->asType()){
+                            stack.emplace_back(type->construct(args));
+                        } else {
+                            PANIC(fmt::format("{} is not callable", value));
+                        }
                     } else {
                         PANIC(fmt::format("{} is not callable", value));
                     }
@@ -288,7 +318,7 @@ namespace poise::runtime
                     const auto& jumpConstantIndex = constantList[constantIndex++];
                     const auto& jumpOpIndex = constantList[constantIndex++];
 
-                    if (!value.asBool()) {
+                    if (!value.toBool()) {
                         constantIndex = jumpConstantIndex.value<usize>();
                         opIndex = jumpOpIndex.value<usize>();
                     }
@@ -302,7 +332,7 @@ namespace poise::runtime
                     const auto& jumpConstantIndex = constantList[constantIndex++];
                     const auto& jumpOpIndex = constantList[constantIndex++];
 
-                    if (value.asBool()) {
+                    if (value.toBool()) {
                         constantIndex = jumpConstantIndex.value<usize>();
                         opIndex = jumpOpIndex.value<usize>();
                     }

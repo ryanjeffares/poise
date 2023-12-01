@@ -6,16 +6,22 @@
 #include <cstddef>
 #include <string>
 
+namespace poise::runtime
+{
+    class Value;
+}
+
 namespace poise::objects
 {
     class PoiseFunction;
+    class PoiseType;
 
     class PoiseObject
     {
     public:
         enum class ObjectType
         {
-            Function,
+            Function, Type,
         };
 
         PoiseObject() = default;
@@ -30,11 +36,13 @@ namespace poise::objects
         [[nodiscard]] auto refCount() const -> usize;
 
         [[nodiscard]] virtual auto asFunction() -> PoiseFunction*;
+        [[nodiscard]] virtual auto asType() -> PoiseType*;
 
         virtual auto print() const -> void = 0;
         virtual auto printLn() const -> void = 0;
         [[nodiscard]] virtual auto toString() const -> std::string = 0;
-        [[nodiscard]] virtual auto callable() const -> bool;
+        [[nodiscard]] virtual auto typeValue() const -> const runtime::Value& = 0;
+        [[nodiscard]] virtual auto objectType() const -> ObjectType = 0;
 
     private:
         usize m_refCount{};

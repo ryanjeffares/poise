@@ -2,69 +2,13 @@
 #define POISE_TOKEN_HPP
 
 #include "../poise.hpp"
-
-#include <fmt/core.h>
+#include "TokenType.hpp"
 
 #include <cstdlib>
 #include <string_view>
 
 namespace poise::scanner
 {
-    enum class TokenType
-    {
-        // keywords
-        And,
-        End,
-        Final,
-        Func,
-        Or,
-        PrintLn,
-        Return,
-        Var,
-
-        // symbols
-        Ampersand,
-        Caret,
-        CloseParen,
-        Colon,
-        Comma,
-        Equal,
-        EqualEqual,
-        Exclamation,
-        Greater,
-        GreaterEqual,
-        Less,
-        LessEqual,
-        Minus,
-        Modulus,
-        NotEqual,
-        OpenParen,
-        Pipe,
-        Plus,
-        Semicolon,
-        ShiftLeft,
-        ShiftRight,
-        Slash,
-        Star,
-        Tilde,
-
-        // value types
-        False,
-        Float,
-        Identifier,
-        Int,
-        None,
-        String,
-        True,
-
-        // other
-        EndOfFile,
-        Error,
-    };
-
-    [[nodiscard]] auto isLiteral(TokenType tokenType) -> bool;
-    [[nodiscard]] auto isUnaryOp(TokenType tokenType) -> bool;
-
     class Token
     {
     public:
@@ -82,15 +26,6 @@ namespace poise::scanner
         TokenType m_tokenType;
         usize m_line, m_column;
         std::string_view m_text;
-    };
-}
-
-namespace fmt
-{
-    template<>
-    struct formatter<poise::scanner::TokenType> : formatter<string_view>
-    {
-        auto format(poise::scanner::TokenType tokenType, format_context& context) const;
     };
 }
 

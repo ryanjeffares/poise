@@ -17,9 +17,17 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * Think about object -> bool conversion
 * Think about functions as first class objects
 * Think about types as first class objects
+* Think about imports
+    * Could do simple file opening during compilation, but how do we resolve what has been imported during runtime?
+        * I GUESS we could have some sort of map, file -> imported namespaces
+        * yeah I think I like this
+    * Or a Python style thing where a `namespace` is a type
 
 ## Roadmap
 * ~~Pop unused expression/return results~~
+* ~~Create values by calling type as a constructor, eg `Int()`, `Float(1.0)`~~
+* ~~Implement types as first class objects - see below~~
+    * Dont except for user defined classes when we get to that..
 * Assertion failure in formatting compiler error output for missing semicolons
 * ~~Expressions with primitives~~
     * ~~Short-circuiting~~
@@ -27,8 +35,10 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * Functions 
   * ~~Declaration~~
   * ~~Calling~~
-  * Returning
+  * ~~Returning~~
+* Error handling
 * Native functions
+* Imports + Namespaces
 * Builtin objects
     * Iterable collections
         * Lists
@@ -37,4 +47,28 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
         * Sets
         * Ranges
     * Option and Result types
+* Classes
 * GC
+
+### Types as First Class Objects
+* So, a variable can hold an instance of a `PoiseType` which describes some type
+* Need name, primitive/object
+* Contructing any object can be done by calling an instance of its type like a constructor:
+
+```
+final t_list = typeof([]);
+final list_instance = t_list();
+
+final t_int = Int;
+int_value = t_int(5);
+```
+
+* To allow the above, naming a type (`Int`, `Float`, `MyClass` (if MyClass is defined)) without a call (`()`) will load an instance of `PoiseType` made for each of these
+* For user defined classes, these will hold a `Value` which is the constructor function
+* For builtins, there will just be some bytecode
+* Cannot get type of a type, __for now__:
+
+```
+final t = typeof(Int);  // error - cannot take type of type
+```
+

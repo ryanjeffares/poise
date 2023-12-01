@@ -41,12 +41,8 @@ namespace poise::runtime
     public:
         enum class Type
         {
-            Bool,
-            Float,
-            Int,
-            Object,
-            None,
-            String,
+            // order matches primitive type tokens
+            Bool, Float, Int, None, String, Object,
         };
 
         Value();
@@ -139,13 +135,15 @@ namespace poise::runtime
         [[nodiscard]] auto string() const -> const std::string&;
         [[nodiscard]] auto object() const -> objects::PoiseObject*;
         [[nodiscard]] auto type() const -> Type;
+        [[nodiscard]] auto typeValue() const -> const Value&;
 
         auto print() const -> void;
         auto printLn() const -> void;
 
-        [[nodiscard]] auto asBool() const -> bool;
+        [[nodiscard]] auto toBool() const -> bool;
+        [[nodiscard]] auto toFloat() const -> f64;
+        [[nodiscard]] auto toInt() const -> i64;
         [[nodiscard]] auto toString() const -> std::string;
-        [[nodiscard]] auto callable() const -> bool;
 
         [[nodiscard]] auto operator|(const Value& other) const -> Value;
         [[nodiscard]] auto operator^(const Value& other) const -> Value;

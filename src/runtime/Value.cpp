@@ -1,4 +1,5 @@
 #include "Value.hpp"
+#include "../objects/PoiseType.hpp"
 
 #include <fmt/core.h>
 
@@ -101,6 +102,15 @@ namespace poise::runtime
         return m_type;
     }
 
+    auto Value::typeValue() const -> const Value&
+    {
+        if (type() == Type::Object) {
+            return object()->typeValue();
+        } else {
+            return types::s_typeLookup.at(static_cast<types::Type>(type()));
+        }
+    }
+
     auto Value::string() const -> const std::string&
     {
         return *m_data.string;
@@ -121,7 +131,7 @@ namespace poise::runtime
         fmt::print("{}\n", toString());
     }
 
-    auto Value::asBool() const -> bool
+    auto Value::toBool() const -> bool
     {
         switch (type())
         {
@@ -142,6 +152,38 @@ namespace poise::runtime
         return false;
     }
 
+    auto Value::toFloat() const -> f64
+    {
+        switch (type()) {
+            case Type::Bool:
+                return value<bool>() ? 1.0 : 0.0;
+            case Type::Float:
+                return value<f64>();
+            case Type::Int:
+                return static_cast<f64>(value<i64>());
+            case Type::String:
+                return std::stod(string());
+            default:
+                throw std::runtime_error(fmt::format("Cannot convert {} to Float", type()));
+        }
+    }
+
+    auto Value::toInt() const -> i64
+    {
+        switch (type()) {
+            case Type::Bool:
+                return value<bool>() ? 1 : 0;
+            case Type::Float:
+                return static_cast<i64>(value<f64>());
+            case Type::Int:
+                return value<i64>();
+            case Type::String:
+                return std::stoi(string());
+            default:
+                throw std::runtime_error(fmt::format("Cannot convert {} to Float", type()));
+        }
+    }
+
     auto Value::toString() const -> std::string
     {
         switch (type()) {
@@ -152,7 +194,7 @@ namespace poise::runtime
             case Type::Int:
                 return fmt::format("{}", value<i64>());
             case Type::None:
-                return "None";
+                return "none";
             case Type::Object:
                 return object()->toString();
             case Type::String:
@@ -161,11 +203,6 @@ namespace poise::runtime
                 POISE_UNREACHABLE();
                 return "unknown";
         }
-    }
-
-    auto Value::callable() const -> bool
-    {
-        return type() == Type::Object && object()->callable();
     }
 
     auto Value::operator|(const Value& other) const -> Value
@@ -400,7 +437,7 @@ namespace poise::runtime
 
     auto Value::operator!() const -> Value
     {
-        return !asBool();
+        return !toBool();
     }
 
     auto Value::operator~() const -> Value
@@ -574,12 +611,12 @@ namespace poise::runtime
 
     auto Value::operator||(const Value& other) const -> bool
     {
-        return asBool() || other.asBool();
+        return toBool() || other.toBool();
     }
 
     auto Value::operator&&(const Value& other) const -> bool
     {
-        return asBool() && other.asBool();
+        return toBool() && other.toBool();
     }
 
     auto Value::data() const -> decltype(m_data)

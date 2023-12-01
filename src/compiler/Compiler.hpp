@@ -75,7 +75,10 @@ namespace poise::compiler
         auto unary() -> void;
         auto call() -> void;
         auto primary() -> void;
+
         auto identifier() -> void;
+        auto typeIdent() -> void;
+        auto typeOf() -> void;
 
         auto parseString() -> void;
         auto parseInt() -> void;

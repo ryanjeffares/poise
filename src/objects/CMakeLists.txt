@@ -1,4 +1,4 @@
-add_library(poise_objects PoiseFunction.cpp PoiseObject.cpp)
+add_library(poise_objects PoiseFunction.cpp PoiseObject.cpp PoiseType.cpp)
 
 target_compile_definitions(poise_objects PRIVATE ${POISE_COMPILE_DEFINITIONS})
 target_compile_options(poise_objects PRIVATE ${POISE_COMPILE_OPTIONS})

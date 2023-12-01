@@ -22,8 +22,8 @@ namespace poise::objects
         return nullptr;
     }
 
-    auto PoiseObject::callable() const -> bool
+    auto PoiseObject::asType() -> PoiseType*
     {
-        return false;
+        return nullptr;
     }
 }

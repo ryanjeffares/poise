@@ -9,6 +9,9 @@ namespace fmt
         string_view result = "unknown";
 
         switch (op) {
+            case Op::ConstructBuiltin:
+                result = "ConstructBuiltin";
+                break;
             case Op::DeclareFunction:
                 result = "DeclareFunction";
                 break;
@@ -24,11 +27,17 @@ namespace fmt
             case Op::LoadLocal:
                 result = "LoadLocal";
                 break;
+            case Op::LoadType:
+                result = "LoadType";
+                break;
             case Op::Pop:
                 result = "Pop";
                 break;
             case Op::PopLocals:
                 result = "PopLocals";
+                break;
+            case Op::TypeOf:
+                result = "TypeOf";
                 break;
             case Op::PrintLn:
                 result = "PrintLn";

@@ -186,7 +186,7 @@ namespace poise::compiler {
             declaration();
         }
 
-        if (functionPtr->opList().back().op != runtime::Op::Return) {
+        if (functionPtr->opList().empty() || functionPtr->opList().back().op != runtime::Op::Return) {
             // if no return statement, make sure we pop locals and implicitly return none
             emitConstant(m_localNames.size());
             emitOp(runtime::Op::PopLocals, m_previous->line());
@@ -314,9 +314,10 @@ namespace poise::compiler {
     auto Compiler::expression() -> void
     {
         // expressions can only start with a literal, unary op, or identifier
-        if (scanner::isLiteral(m_current->tokenType()) || scanner::isUnaryOp(m_current->tokenType()) ||
-            m_current->tokenType() == scanner::TokenType::OpenParen) {
+        if (scanner::isValidStartOfExpression(m_current->tokenType())) {
             logicOr();
+        } else {
+            errorAtCurrent("Expected expression;");
         }
     }
 
@@ -536,6 +537,11 @@ namespace poise::compiler {
             RETURN_IF_NO_MATCH(scanner::TokenType::CloseParen, "Expected ')'");
         } else if (match(scanner::TokenType::Identifier)) {
             identifier();
+        } else if (scanner::isTypeIdent(m_current->tokenType())) {
+            advance();
+            typeIdent();
+        } else if (match(scanner::TokenType::TypeOf)) {
+            typeOf();
         } else {
             errorAtCurrent("Invalid token at start of expression");
         }
@@ -556,6 +562,38 @@ namespace poise::compiler {
             emitConstant(localIndex);
             emitOp(runtime::Op::LoadLocal, m_previous->line());
         }
+    }
+
+    auto Compiler::typeIdent() -> void
+    {
+        const auto tokenType = m_previous->tokenType();
+
+        if (match(scanner::TokenType::OpenParen)) {
+            // constructing an instance of the type
+            const auto numArgs = parseCallArgs();
+
+            if (numArgs > 1) {
+                // TODO: this will be different for collections
+                errorAtPrevious(fmt::format("'{}' can only be constructed from a single argument but was given {}", tokenType, numArgs));
+                return;
+            }
+
+            emitConstant(static_cast<u8>(tokenType));
+            emitConstant(numArgs);
+            emitOp(runtime::Op::ConstructBuiltin, m_previous->line());
+        } else {
+            // just loading the type itself
+            emitConstant(static_cast<u8>(tokenType));
+            emitOp(runtime::Op::LoadType, m_previous->line());
+        }
+    }
+
+    auto Compiler::typeOf() -> void
+    {
+        RETURN_IF_NO_MATCH(scanner::TokenType::OpenParen, "Expected '('");
+        expression();
+        emitOp(runtime::Op::TypeOf, m_previous->line());
+        RETURN_IF_NO_MATCH(scanner::TokenType::CloseParen, "Expected ')");
     }
 
     static auto getEscapeCharacter(char c) -> std::optional<char>
@@ -590,7 +628,7 @@ namespace poise::compiler {
                     return;
                 }
 
-                if (auto escapeChar = getEscapeCharacter(tokenText[i])) {
+                if (const auto escapeChar = getEscapeCharacter(tokenText[i])) {
                     result.push_back(*escapeChar);
                 } else {
                     errorAtPrevious(fmt::format("Unrecognised escape character '{}'", tokenText[i]));

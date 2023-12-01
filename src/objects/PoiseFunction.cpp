@@ -1,4 +1,5 @@
 #include "PoiseFunction.hpp"
+#include "PoiseType.hpp"
 
 #include <fmt/core.h>
 #include <fmt/format.h>
@@ -47,9 +48,14 @@ namespace poise::objects
         return fmt::format("<function instance '{}' at {}>", m_name, fmt::ptr(this));
     }
 
-    auto PoiseFunction::callable() const -> bool
+    auto PoiseFunction::typeValue() const -> const runtime::Value&
     {
-        return true;
+        return types::s_functionType;
+    }
+
+    auto PoiseFunction::objectType() const -> ObjectType
+    {
+        return ObjectType::Function;
     }
 
     auto PoiseFunction::opList() const -> std::span<const runtime::OpLine>

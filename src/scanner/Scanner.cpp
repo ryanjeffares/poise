@@ -36,10 +36,16 @@ namespace poise::scanner
             {"or", TokenType::Or},
             {"println", TokenType::PrintLn},
             {"return", TokenType::Return},
+            {"typeof", TokenType::TypeOf},
             {"true", TokenType::True},
             {"var", TokenType::Var},
+            {"Bool", TokenType::BoolIdent},
+            {"Float", TokenType::FloatIdent},
+            {"Int", TokenType::IntIdent},
+            {"None", TokenType::NoneIdent},
+            {"String", TokenType::StringIdent},
+            {"Function", TokenType::FunctionIdent},
         }
-
     {
         std::ifstream inFileStream{inFilePath};
         std::stringstream inCodeStream;
@@ -71,7 +77,7 @@ namespace poise::scanner
     auto Scanner::getNumLines() const -> usize
     {
         auto count = 0zu;
-        for (char i : m_code) {
+        for (const auto i : m_code) {
             if (i == '\n') {
                 count++;
             }
@@ -85,7 +91,7 @@ namespace poise::scanner
         skipWhitespace();
         m_start = m_current;
 
-        if (auto current = advance()) {
+        if (const auto current = advance()) {
             if (std::isalpha(*current) || *current == '_') {
                 return identifier();
             }
@@ -106,7 +112,7 @@ namespace poise::scanner
                 case '"':
                     return string();
                 default: {
-                    if (auto t = m_symbolLookup.find(*current); t != m_symbolLookup.end()) {
+                    if (const auto t = m_symbolLookup.find(*current); t != m_symbolLookup.end()) {
                         return makeToken(t->second);
                     }
 
@@ -120,7 +126,7 @@ namespace poise::scanner
 
     auto Scanner::skipWhitespace() -> void
     {
-        while (auto c = peek()) {
+        while (const auto c = peek()) {
             switch (*c) {
                 case '\t':
                 case '\r':
@@ -200,7 +206,7 @@ namespace poise::scanner
 
     auto Scanner::identifier() -> Token
     {
-        while (auto c = peek()) {
+        while (const auto c = peek()) {
             if (std::isalnum(*c) || *c == '_') {
                 advance();
             } else {
@@ -208,7 +214,7 @@ namespace poise::scanner
             }
         }
 
-        if (auto t = m_keywordLookup.find(m_code.substr(m_start, m_current - m_start));
+        if (const auto t = m_keywordLookup.find(m_code.substr(m_start, m_current - m_start));
                 t != m_keywordLookup.end()) {
             return makeToken(t->second);
         }
@@ -218,7 +224,7 @@ namespace poise::scanner
 
     auto Scanner::number() -> Token
     {
-        while (auto c = peek()) {
+        while (const auto c = peek()) {
             if (std::isdigit(*c)) {
                 advance();
             } else {
@@ -228,7 +234,7 @@ namespace poise::scanner
 
         if (peek().value_or(char{}) == '.' && std::isdigit(peekNext().value_or(char{}))) {
             advance();
-            while (auto c = peek()) {
+            while (const auto c = peek()) {
                 if (std::isdigit(*c)) {
                     advance();
                 } else {
@@ -245,7 +251,7 @@ namespace poise::scanner
     auto Scanner::string() -> Token
     {
         while (true) {
-            if (auto c = peek()) {
+            if (const auto c = peek()) {
                 if (*c == '"' && peekPrevious().value_or(char{}) != '\\') {
                     break;
                 }
