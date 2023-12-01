@@ -19,7 +19,6 @@ namespace poise::scanner
 
         // keywords
         And,
-        End,
         Final,
         Func,
         Or,
@@ -31,8 +30,8 @@ namespace poise::scanner
         // symbols
         Ampersand,
         Caret,
+        CloseBrace,
         CloseParen,
-        Colon,
         Comma,
         Equal,
         EqualEqual,
@@ -44,6 +43,7 @@ namespace poise::scanner
         Minus,
         Modulus,
         NotEqual,
+        OpenBrace,
         OpenParen,
         Pipe,
         Plus,

@@ -44,6 +44,7 @@ namespace poise::runtime
             return RunResult::RuntimeError;                                                 \
         } while (false)                                                                     \
 
+#ifdef POISE_DEBUG
 #define PRINT_STACK()                           \
         do {                                    \
             fmt::print("STACK:\n");             \
@@ -51,7 +52,10 @@ namespace poise::runtime
                 fmt::print("\t{}\n", value);    \
             }                                   \
         }                                       \
-        while (false)                           \
+        while (false)
+#else
+#define PRINT_STACK()
+#endif
 
         std::vector<Value> stack;
         std::vector<Value> localVariables;
@@ -63,6 +67,8 @@ namespace poise::runtime
         std::vector<usize> localIndexOffsetStack = {0zu};
         std::vector<usize> opIndexStack = {0zu};
         std::vector<usize> constantIndexStack = {0zu};
+
+        std::vector<objects::PoiseFunction*> callStack;
 
         auto pop = [&stack] -> Value {
             POISE_ASSERT(!stack.empty(), "Stack is empty, there has been an error in codegen");
@@ -122,6 +128,12 @@ namespace poise::runtime
                 case Op::DeclareLocal: {
                     auto value = pop();
                     localVariables.emplace_back(std::move(value));
+                    break;
+                }
+                case Op::LoadCapture: {
+                    const auto index = constantList[constantIndex++].value<usize>();
+                    const auto& capture = callStack.back()->getCapture(index);
+                    localVariables.emplace_back(capture);
                     break;
                 }
                 case Op::LoadConstant: {
@@ -298,6 +310,8 @@ namespace poise::runtime
                             constantListStack.push_back(function->constantList());
                             opIndexStack.push_back(0zu);
                             constantIndexStack.push_back(0zu);
+
+                            callStack.emplace_back(function);
                         } else if (auto type = object->asType()){
                             stack.emplace_back(type->construct(args));
                         } else {
@@ -353,6 +367,7 @@ namespace poise::runtime
                     opIndexStack.pop_back();
                     constantIndexStack.pop_back();
                     localIndexOffsetStack.pop_back();
+                    callStack.pop_back();
                     break;
                 }
             }

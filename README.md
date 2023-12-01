@@ -19,15 +19,16 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * Think about types as first class objects
 * Think about imports
     * Could do simple file opening during compilation, but how do we resolve what has been imported during runtime?
-        * I GUESS we could have some sort of map, file -> imported namespaces
-        * yeah I think I like this
+        * I GUESS we could have some sort of map, file -> imported namespaces if we can keep track of what file the currently executing function is in during the runtime
+        * Yeah I think I like this
     * Or a Python style thing where a `namespace` is a type
+* Generally improve compiler errors and stop it from spitting out nonsense after one error, eg lambda capture errors
 
 ## Roadmap
 * ~~Pop unused expression/return results~~
 * ~~Create values by calling type as a constructor, eg `Int()`, `Float(1.0)`~~
 * ~~Implement types as first class objects - see below~~
-    * Done except for user defined classes when we get to that..
+    * Done except for user defined classes when we get to that...
 * ~~Assertion failure in formatting compiler error output for missing semicolons~~
 * ~~Expressions with primitives~~
     * ~~Short-circuiting~~
@@ -38,18 +39,23 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * ~~Returning~~
     * Lambdas
 * Error handling
+* If statements
+* While loops
 * Native functions
 * Imports + Namespaces
 * Builtin objects
     * Iterable collections
         * Lists
+        * Ranges?
         * Dicts
             * Pair
         * Sets
         * Ranges
     * Option and Result types
+* For loops
 * Classes
 * GC
+* Type hints
 
 ### Types as First Class Objects
 * So, a variable can hold an instance of a `PoiseType` which describes some type

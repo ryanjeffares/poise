@@ -41,6 +41,7 @@ namespace poise::objects
         [[nodiscard]] auto numLambdas() const -> u32;
         auto lamdaAdded() -> void;
         auto addCapture(runtime::Value value) -> void;
+        auto getCapture(usize index) const -> const runtime::Value&;
 
         auto printOps() const -> void;
 

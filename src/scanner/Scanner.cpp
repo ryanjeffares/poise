@@ -10,14 +10,15 @@ namespace poise::scanner
         : m_symbolLookup{
             {'&', TokenType::Ampersand},
             {'^', TokenType::Caret},
+            {'}', TokenType::CloseBrace},
             {')', TokenType::CloseParen},
-            {':', TokenType::Colon},
             {',', TokenType::Comma},
             {'!', TokenType::Exclamation},
             {'>', TokenType::Greater},
             {'<', TokenType::Less},
             {'-', TokenType::Minus},
             {'%', TokenType::Modulus},
+            {'{', TokenType::OpenBrace},
             {'(', TokenType::OpenParen},
             {'|', TokenType::Pipe},
             {'+', TokenType::Plus},
@@ -28,7 +29,6 @@ namespace poise::scanner
         }
         , m_keywordLookup{
             {"and", TokenType::And},
-            {"end", TokenType::End},
             {"final", TokenType::Final},
             {"func", TokenType::Func},
             {"false", TokenType::False},

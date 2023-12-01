@@ -1,4 +1,4 @@
-func main():
+func main() {
     var a = 2;
     var b = "Hello";
     final c = true;
@@ -9,4 +9,4 @@ func main():
     println(b * a);
     println((b * a) or c);
     // final d;
-end
+}

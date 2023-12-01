@@ -17,6 +17,7 @@ namespace poise::runtime
         ConstructBuiltin,
         DeclareFunction,
         DeclareLocal,
+        LoadCapture,
         LoadConstant,
         LoadFunction,
         LoadLocal,

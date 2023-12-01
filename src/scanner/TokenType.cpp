@@ -86,9 +86,6 @@ namespace fmt
             case TokenType::And:
                 result = "And";
                 break;
-            case TokenType::End:
-                result = "End";
-                break;
             case TokenType::Final:
                 result = "Final";
                 break;
@@ -116,11 +113,11 @@ namespace fmt
             case TokenType::Caret:
                 result = "Caret";
                 break;
+            case TokenType::CloseBrace:
+                result = "CloseBrace";
+                break;
             case TokenType::CloseParen:
                 result = "CloseParen";
-                break;
-            case TokenType::Colon:
-                result = "Colon";
                 break;
             case TokenType::Comma:
                 result = "Comma";
@@ -154,6 +151,9 @@ namespace fmt
                 break;
             case TokenType::NotEqual:
                 result = "NotEqual";
+                break;
+            case TokenType::OpenBrace:
+                result = "OpenBrace";
                 break;
             case TokenType::OpenParen:
                 result = "OpenParen";

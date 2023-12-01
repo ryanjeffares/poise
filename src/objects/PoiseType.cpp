@@ -71,7 +71,7 @@ namespace poise::objects
     {
         switch (type()) {
             case types::Type::Bool:
-                return args.empty() ? false : args[0].toBool();
+                return !args.empty() && args[0].toBool();
             case types::Type::Float:
                 return args.empty() ? 0.0 : args[0].toFloat();
             case types::Type::Int:
@@ -99,6 +99,9 @@ namespace poise::objects
             }
             case types::Type::Type:
                 throw std::runtime_error("Cannot construct Type");
+            default:
+                POISE_UNREACHABLE();
+                return runtime::Value::none();
         }
     }
 }

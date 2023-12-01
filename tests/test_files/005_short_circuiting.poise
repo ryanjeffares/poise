@@ -1,0 +1,19 @@
+func say_hello() {
+    println("Hello");
+    return true;
+}
+
+func say_goodbye() {
+    println("goodbye");
+    return false;
+}
+
+func main() {
+    println(say_hello() or say_goodbye());
+    println("---");
+    println(say_hello() and say_goodbye());
+    println("---");
+    println(say_goodbye() or say_hello());
+    println("---");
+    println(say_goodbye() and say_hello());
+}

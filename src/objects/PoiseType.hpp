@@ -1,12 +1,12 @@
 #ifndef POISE_TYPE_HPP
 #define POISE_TYPE_HPP
 
+#include "PoiseObject.hpp"
+#include "../runtime/Value.hpp"
+
 #include <optional>
 #include <span>
 #include <unordered_map>
-
-#include "PoiseObject.hpp"
-#include "../runtime/Value.hpp"
 
 namespace poise::types
 {

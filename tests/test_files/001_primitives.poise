@@ -1,4 +1,4 @@
-func main():
+func main() {
     println(105 * 4);
     println(138 / 2);
 
@@ -9,4 +9,4 @@ func main():
     println("hello" * 5);
 
     println("\"Hello\"");
-end
+}

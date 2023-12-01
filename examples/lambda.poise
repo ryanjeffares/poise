@@ -1,18 +1,18 @@
-func main():
-    final hello_world = ||:
+func main() {
+    final hello_world = || {
         println("Hello, world!");
-    end;
+    };
 
     hello_world();
 
     final c = 2;
 
-    final multiply = |c| (final value):
+    final multiply = |c| (final value) {
         return value * c;
-    end;
+    };
 
     println(multiply(2));
     println(multiply(4));
     println(multiply(8));
     println(multiply(16));
-end
+}

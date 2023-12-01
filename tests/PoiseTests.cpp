@@ -19,6 +19,27 @@ namespace poise::tests
         REQUIRE(vm.run() == runtime::Vm::RunResult::Success);
     }
 
+    TEST_CASE("Compile and run 003_functions.poise") {
+        runtime::Vm vm;
+        compiler::Compiler compiler{&vm, "tests/test_files/003_functions.poise"};
+        REQUIRE(compiler.compile() == compiler::CompileResult::Success);
+        REQUIRE(vm.run() == runtime::Vm::RunResult::Success);
+    }
+
+    TEST_CASE("Compile and run 004_types.poise") {
+        runtime::Vm vm;
+        compiler::Compiler compiler{&vm, "tests/test_files/004_types.poise"};
+        REQUIRE(compiler.compile() == compiler::CompileResult::Success);
+        REQUIRE(vm.run() == runtime::Vm::RunResult::Success);
+    }
+
+    TEST_CASE("Compile and run 005_short_circuiting.poise") {
+        runtime::Vm vm;
+        compiler::Compiler compiler{&vm, "tests/test_files/005_short_circuiting.poise"};
+        REQUIRE(compiler.compile() == compiler::CompileResult::Success);
+        REQUIRE(vm.run() == runtime::Vm::RunResult::Success);
+    }
+
     TEST_CASE("Check binary operations on Value class") {
         using namespace poise::runtime;
 

@@ -103,6 +103,11 @@ namespace poise::objects
         m_captures.emplace_back(std::move(value));
     }
 
+    auto PoiseFunction::getCapture(poise::usize index) const -> const runtime::Value&
+    {
+        return m_captures[index];
+    }
+
     auto PoiseFunction::printOps() const -> void
     {
         printLn();

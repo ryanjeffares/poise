@@ -21,6 +21,9 @@ namespace fmt
             case Op::DeclareLocal:
                 result = "DeclareLocal";
                 break;
+            case Op::LoadCapture:
+                result = "LoadCapture";
+                break;
             case Op::LoadConstant:
                 result = "LoadConstant";
                 break;

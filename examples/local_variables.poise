@@ -1,22 +1,22 @@
-func foo():
+func foo() {
     final v = "Hello from foo()";
     println(v);
     bar(0, 1, 2);
-end
+}
 
 func bar(
     a,
     b,
     final c,
-):
+) {
     final v = "Hello from bar()";
     println(v);
     println(a);
     println(b);
     println(c);
-end
+}
 
-func main():
+func main() {
     // var a = 2;
     var b = "Hello";
     final c = true;
@@ -33,4 +33,4 @@ func main():
     // println(main_func);
     // main_func();
     foo();
-end
+}

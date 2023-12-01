@@ -1,5 +1,0 @@
-func fib(final n):
-    return fib(n - 1) + fib(n - 2);
-
-func main():
-    println

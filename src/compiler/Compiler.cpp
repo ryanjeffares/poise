@@ -169,7 +169,7 @@ namespace poise::compiler {
         RETURN_IF_NO_MATCH(scanner::TokenType::OpenParen, "Expected '(' after function name");
         const auto numArgs = parseFunctionArgs();
 
-        RETURN_IF_NO_MATCH(scanner::TokenType::Colon, "Expected ':' after function signature");
+        RETURN_IF_NO_MATCH(scanner::TokenType::OpenBrace, "Expected '{' after function signature");
 
         auto prevFunction = m_vm->getCurrentFunction();
 
@@ -177,9 +177,13 @@ namespace poise::compiler {
         auto functionPtr = function.object()->asFunction();
         m_vm->setCurrentFunction(functionPtr);
 
-        while (!match(scanner::TokenType::End)) {
+        while (!match(scanner::TokenType::CloseBrace)) {
             if (check(scanner::TokenType::EndOfFile)) {
                 errorAtCurrent("Unterminated function");
+                return;
+            }
+
+            if (m_hadError) {
                 return;
             }
 
@@ -320,7 +324,7 @@ namespace poise::compiler {
         if (scanner::isValidStartOfExpression(m_current->tokenType())) {
             logicOr();
         } else {
-            errorAtCurrent("Expected expression;");
+            errorAtCurrent("Expected expression");
         }
     }
 
@@ -328,12 +332,9 @@ namespace poise::compiler {
     {
         logicAnd();
 
-        JumpIndexes jumpIndexes;
-        auto needsJumpPatch = false;
-
+        std::optional<JumpIndexes> jumpIndexes;
         if (check(scanner::TokenType::Or)) {
             jumpIndexes = emitJump(true);
-            needsJumpPatch = true;
         }
 
         while (match(scanner::TokenType::Or)) {
@@ -341,8 +342,8 @@ namespace poise::compiler {
             emitOp(runtime::Op::LogicOr, m_previous->line());
         }
 
-        if (needsJumpPatch) {
-            patchJump(jumpIndexes);
+        if (jumpIndexes) {
+            patchJump(*jumpIndexes);
         }
     }
 
@@ -350,12 +351,9 @@ namespace poise::compiler {
     {
         bitwiseOr();
 
-        JumpIndexes jumpIndexes;
-        auto needsJumpPatch = false;
-
+        std::optional<JumpIndexes> jumpIndexes;
         if (check(scanner::TokenType::And)) {
             jumpIndexes = emitJump(false);
-            needsJumpPatch = true;
         }
 
         while (match(scanner::TokenType::And)) {
@@ -363,8 +361,8 @@ namespace poise::compiler {
             emitOp(runtime::Op::LogicAnd, m_previous->line());
         }
 
-        if (needsJumpPatch) {
-            patchJump(jumpIndexes);
+        if (jumpIndexes) {
+            patchJump(*jumpIndexes);
         }
     }
 
@@ -622,6 +620,13 @@ namespace poise::compiler {
                     errorAtPrevious(fmt::format("No local variable named '{}' to capture", text));
                 }
 
+                if (std::find_if(captures.begin(), captures.end(), [&text] (const LocalVariable& local) {
+                    return local.name == text;
+                }) != captures.end()) {
+                    errorAtPrevious(fmt::format("Local variable '{}' has already been captured", text));
+                    return;
+                }
+
                 const auto index = std::distance(m_localNames.begin(), localIt);
                 captures.push_back(*localIt);
                 captureIndexes.push_back(static_cast<usize>(index));
@@ -649,7 +654,7 @@ namespace poise::compiler {
             numArgs = parseFunctionArgs();
         }
 
-        RETURN_IF_NO_MATCH(scanner::TokenType::Colon, "Expected ':");
+        RETURN_IF_NO_MATCH(scanner::TokenType::OpenBrace, "Expected '{");
 
         const auto prevFunction = m_vm->getCurrentFunction();
 
@@ -660,10 +665,19 @@ namespace poise::compiler {
         auto functionPtr = lambda.object()->asFunction();
 
         m_vm->setCurrentFunction(functionPtr);
-    
-        while (!match(scanner::TokenType::End)) {
+
+        for (auto i = 0zu; i < m_localNames.size() - numArgs; i++) {
+            emitConstant(i);
+            emitOp(runtime::Op::LoadCapture, m_previous->line());
+        }
+
+        while (!match(scanner::TokenType::CloseBrace)) {
             if (check(scanner::TokenType::EndOfFile)) {
                 errorAtCurrent("Unterminated lambda");
+                return;
+            }
+
+            if (m_hadError) {
                 return;
             }
 
@@ -687,6 +701,7 @@ namespace poise::compiler {
         m_contextStack.pop_back();
 
         m_vm->setCurrentFunction(prevFunction);
+        prevFunction->lamdaAdded();
         
         emitConstant(std::move(lambda));
         emitOp(runtime::Op::LoadConstant, m_previous->line());

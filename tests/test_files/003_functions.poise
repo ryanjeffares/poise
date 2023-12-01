@@ -6,6 +6,10 @@ func make_foo() {
     return foo;
 }
 
+func bar(final s, multiplier) {
+    return s * multiplier;
+}
+
 func main() {
     final foo = make_foo();
     final res = foo(4, 3);
@@ -14,4 +18,6 @@ func main() {
     println(make_foo()(3, 2));
 
     make_foo();
+
+    println(bar("Hello", 10));
 }
