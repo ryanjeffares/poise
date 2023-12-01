@@ -5,13 +5,13 @@ func foo(final param) {
 func main() {
     var param = "Ryan";
 
-    final call_foo = |param| () {
+    final call_foo = |param| {
         foo(param);
     };
 
     call_foo();
 
-    |call_foo| () {
+    |call_foo| {
         call_foo();
     }();
 

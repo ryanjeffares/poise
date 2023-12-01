@@ -56,11 +56,12 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * Classes
 * GC
 * Type hints
+* CL arg parsing
 
 ### Types as First Class Objects
 * So, a variable can hold an instance of a `PoiseType` which describes some type
 * Need name, primitive/object
-* Contructing any object can be done by calling an instance of its type like a constructor:
+* Constructing any object can be done by calling an instance of its type like a constructor:
 
 ```
 final t_list = typeof([]);
