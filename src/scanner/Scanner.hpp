@@ -1,7 +1,7 @@
 #ifndef POISE_SCANNER_HPP
 #define POISE_SCANNER_HPP
 
-#include "../poise.hpp"
+#include "../Poise.hpp"
 
 #include "Token.hpp"
 
@@ -12,40 +12,40 @@
 #include <string_view>
 #include <unordered_map>
 
-namespace poise::scanner
+namespace poise::scanner {
+class Scanner
 {
-    class Scanner
-    {
-    public:
-        explicit Scanner(const std::filesystem::path& inFilePath);
+public:
+    explicit Scanner(const std::filesystem::path& inFilePath);
 
-        [[nodiscard]] auto getCodeAtLine(usize line) const -> std::string_view;
-        [[nodiscard]] auto getNumLines() const -> usize;
-        [[nodiscard]] auto scanToken() -> Token;
+    [[nodiscard]] auto getCodeAtLine(usize line) const -> std::string_view;
+    [[nodiscard]] auto getNumLines() const -> usize;
+    [[nodiscard]] auto scanToken() -> Token;
 
-    private:
-        auto skipWhitespace() -> void;
-        auto advance() -> std::optional<char>;
+private:
+    auto skipWhitespace() -> void;
+    auto advance() -> std::optional<char>;
 
-        [[nodiscard]] auto peek() -> std::optional<char>;
-        [[nodiscard]] auto peekNext() -> std::optional<char>;
-        [[nodiscard]] auto peekPrevious() -> std::optional<char>;
+    [[nodiscard]] auto peek() -> std::optional<char>;
+    [[nodiscard]] auto peekNext() -> std::optional<char>;
+    [[nodiscard]] auto peekPrevious() -> std::optional<char>;
 
-        [[nodiscard]] auto multiCharSymbol(const std::unordered_map<char, TokenType>& pairs, TokenType defaultType) -> Token;
-        [[nodiscard]] auto identifier() -> Token;
-        [[nodiscard]] auto number() -> Token;
-        [[nodiscard]] auto string() -> Token;
+    [[nodiscard]] auto multiCharSymbol(const std::unordered_map<char, TokenType>& pairs, TokenType defaultType) -> Token;
+    [[nodiscard]] auto identifier() -> Token;
+    [[nodiscard]] auto number() -> Token;
+    [[nodiscard]] auto string() -> Token;
 
-        [[nodiscard]] auto makeToken(TokenType tokenType) -> Token;
+    [[nodiscard]] auto makeToken(TokenType tokenType) -> Token;
 
-        std::string m_code;
+private:
+    std::string m_code;
 
-        usize m_start{}, m_current{};
-        usize m_line{1zu}, m_column{0zu};
+    usize m_start{}, m_current{};
+    usize m_line{1zu}, m_column{0zu};
 
-        std::unordered_map<char, TokenType> m_symbolLookup;
-        std::unordered_map<std::string_view, TokenType> m_keywordLookup;
-    };
-}
+    std::unordered_map<char, TokenType> m_symbolLookup;
+    std::unordered_map<std::string_view, TokenType> m_keywordLookup;
+};  // class Scanner
+}   // namespace poise::scanner
 
-#endif
+#endif  // #ifndef POISE_SCANNER_HPP

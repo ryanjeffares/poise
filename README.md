@@ -5,7 +5,6 @@ The Poise programming language.
 This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grace was a mess (the name is a synonym).
 
 ## Issues
-* Think about how to treat functions and how to handle main function/top level code
 * Parse argv properly, main function in general
 * Error Handling
     * Option/Result types as built in language types
@@ -15,8 +14,6 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * Test individual important functions
     * Fuzzing
 * Think about object -> bool conversion
-* Think about functions as first class objects
-* Think about types as first class objects
 * Think about imports
     * Could do simple file opening during compilation, but how do we resolve what has been imported during runtime?
         * I GUESS we could have some sort of map, file -> imported namespaces if we can keep track of what file the currently executing function is in during the runtime
@@ -37,7 +34,8 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * ~~Declaration~~
     * ~~Calling~~
     * ~~Returning~~
-    * Lambdas
+    * ~~Lambda~~
+* Assignment statements
 * Error handling
 * If statements
 * While loops

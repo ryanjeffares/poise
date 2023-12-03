@@ -53,4 +53,4 @@ namespace poise
 #define POISE_UNREACHABLE() POISE_ASSERT(false, "Unreachable code")
 #endif
 
-#endif
+#endif  // #ifndef POISE_HPP

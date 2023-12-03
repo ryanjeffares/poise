@@ -1,10 +1,7 @@
 #include "Compiler.hpp"
-#include "../runtime/Value.hpp"
-#include "../objects/PoiseFunction.hpp"
 
 #include <fmt/color.h>
 #include <fmt/core.h>
-#include <fmt/format.h>
 
 #include <charconv>
 #include <limits>
@@ -20,901 +17,902 @@
 #define EXPECT_SEMICOLON() RETURN_IF_NO_MATCH(scanner::TokenType::Semicolon, "Expected ';'")
 
 namespace poise::compiler {
-    Compiler::Compiler(runtime::Vm *vm, std::filesystem::path inFilePath)
-            : m_scanner{ inFilePath }
-            , m_filePath{ std::move(inFilePath) }
-            , m_vm{ vm }
-    {
+Compiler::Compiler(runtime::Vm* vm, std::filesystem::path inFilePath)
+    : m_scanner{inFilePath}
+    , m_filePath{std::move(inFilePath)}
+    , m_vm{vm}
+{
 
+}
+
+auto Compiler::compile() -> CompileResult
+{
+    if (!std::filesystem::exists(m_filePath) || m_filePath.extension() != ".poise") {
+        return CompileResult::FileError;
     }
 
-    auto Compiler::compile() -> CompileResult
-    {
-        if (!std::filesystem::exists(m_filePath) || m_filePath.extension() != ".poise") {
-            return CompileResult::FileError;
+    m_contextStack.push_back(Context::TopLevel);
+
+    advance();
+
+    while (true) {
+        if (m_hadError) {
+            break;
         }
 
-        m_contextStack.push_back(Context::TopLevel);
+        if (check(scanner::TokenType::Error)) {
+            return CompileResult::ParseError;
+        }
 
-        advance();
+        if (check(scanner::TokenType::EndOfFile)) {
+            break;
+        }
 
-        while (true) {
-            if (m_hadError) {
-                break;
-            }
+        declaration();
+    }
 
-            if (check(scanner::TokenType::Error)) {
-                return CompileResult::ParseError;
-            }
+    if (m_hadError) {
+        return CompileResult::CompileError;
+    }
 
-            if (check(scanner::TokenType::EndOfFile)) {
-                break;
-            }
+    if (m_mainFunction) {
+        emitConstant("main");
+        emitOp(runtime::Op::LoadFunction, 0zu);
+        emitConstant(0);
+        emitOp(runtime::Op::Call, 0zu);
+        emitOp(runtime::Op::Pop, 0zu);
+        emitOp(runtime::Op::Exit, m_scanner.getNumLines());
+    } else {
+        errorAtPrevious("No main function declared");
+        return CompileResult::CompileError;
+    }
 
-            declaration();
+    return CompileResult::Success;
+}
+
+auto Compiler::checkContext(Context context) -> bool
+{
+    return std::find(m_contextStack.begin(), m_contextStack.end(), context) != m_contextStack.end();
+}
+
+auto Compiler::emitOp(runtime::Op op, usize line) -> void
+{
+    m_vm->emitOp(op, line);
+}
+
+auto Compiler::emitConstant(runtime::Value value) -> void
+{
+    m_vm->emitConstant(std::move(value));
+}
+
+auto Compiler::emitJump(bool jumpCondition) -> JumpIndexes
+{
+    const auto function = m_vm->getCurrentFunction();
+    emitOp(jumpCondition ? runtime::Op::JumpIfTrue : runtime::Op::JumpIfFalse, m_previous->line());
+
+    const auto jumpConstantIndex = function->numConstants();
+    emitConstant(0zu);
+    const auto jumpOpIndex = function->numConstants();
+    emitConstant(0zu);
+
+    return {jumpConstantIndex, jumpOpIndex};
+}
+
+auto Compiler::patchJump(JumpIndexes jumpIndexes) -> void
+{
+    const auto function = m_vm->getCurrentFunction();
+
+    const auto numOps = function->numOps();
+    const auto numConstants = function->numConstants();
+    function->setConstant(numOps, jumpIndexes.opIndex);
+    function->setConstant(numConstants, jumpIndexes.constantIndex);
+}
+
+auto Compiler::advance() -> void
+{
+    m_previous = m_current;
+    m_current = m_scanner.scanToken();
+
+#ifdef POISE_DEBUG
+    m_current->print();
+#endif
+
+    if (m_current->tokenType() == scanner::TokenType::Error) {
+        errorAtCurrent("Invalid token");
+    }
+}
+
+auto Compiler::match(scanner::TokenType expected) -> bool
+{
+    if (!check(expected)) {
+        return false;
+    }
+
+    advance();
+    return true;
+}
+
+auto Compiler::check(scanner::TokenType expected) -> bool
+{
+    return m_current && m_current->tokenType() == expected;
+}
+
+auto Compiler::declaration() -> void
+{
+    if (match(scanner::TokenType::Func)) {
+        funcDeclaration();
+    } else if (match(scanner::TokenType::Var)) {
+        varDeclaration(false);
+    } else if (match(scanner::TokenType::Final)) {
+        varDeclaration(true);
+    } else {
+        statement();
+    }
+}
+
+auto Compiler::funcDeclaration() -> void
+{
+    if (m_contextStack.back() != Context::TopLevel) {
+        errorAtPrevious("Function declaration only allowed at top level");
+        return;
+    }
+
+    m_contextStack.push_back(Context::Function);
+
+    RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected function name");
+    auto functionName = m_previous->string();
+    auto line = m_previous->line();
+
+    RETURN_IF_NO_MATCH(scanner::TokenType::OpenParen, "Expected '(' after function name");
+    const auto numArgs = parseFunctionArgs();
+
+    RETURN_IF_NO_MATCH(scanner::TokenType::OpenBrace, "Expected '{' after function signature");
+
+    auto prevFunction = m_vm->getCurrentFunction();
+
+    auto function = runtime::Value::createObject<objects::PoiseFunction>(std::move(functionName), numArgs);
+    auto functionPtr = function.object()->asFunction();
+    m_vm->setCurrentFunction(functionPtr);
+
+    while (!match(scanner::TokenType::CloseBrace)) {
+        if (check(scanner::TokenType::EndOfFile)) {
+            errorAtCurrent("Unterminated function");
+            return;
         }
 
         if (m_hadError) {
-            return CompileResult::CompileError;
-        }
-
-        if (m_mainFunction) {
-            emitConstant("main");
-            emitOp(runtime::Op::LoadFunction, 0zu);
-            emitConstant(0);
-            emitOp(runtime::Op::Call, 0zu);
-            emitOp(runtime::Op::Pop, 0zu);
-            emitOp(runtime::Op::Exit, m_scanner.getNumLines());
-        } else {
-            errorAtPrevious("No main function declared");
-            return CompileResult::CompileError;
-        }
-
-        return CompileResult::Success;
-    }
-
-    auto Compiler::checkContext(Context context) -> bool
-    {
-        return std::find(m_contextStack.begin(), m_contextStack.end(), context) != m_contextStack.end();
-    }
-
-    auto Compiler::emitOp(runtime::Op op, usize line) -> void
-    {
-        m_vm->emitOp(op, line);
-    }
-
-    auto Compiler::emitConstant(runtime::Value value) -> void
-    {
-        m_vm->emitConstant(std::move(value));
-    }
-
-    auto Compiler::emitJump(bool jumpCondition) -> JumpIndexes
-    {
-        const auto function = m_vm->getCurrentFunction();
-        emitOp(jumpCondition ? runtime::Op::JumpIfTrue : runtime::Op::JumpIfFalse, m_previous->line());
-
-        const auto jumpConstantIndex = function->numConstants();
-        emitConstant(0zu);
-        const auto jumpOpIndex = function->numConstants();
-        emitConstant(0zu);
-
-        return { jumpConstantIndex, jumpOpIndex };
-    }
-
-    auto Compiler::patchJump(JumpIndexes jumpIndexes) -> void
-    {
-        const auto function = m_vm->getCurrentFunction();
-
-        const auto numOps = function->numOps();
-        const auto numConstants = function->numConstants();
-        function->setConstant(numOps, jumpIndexes.opIndex);
-        function->setConstant(numConstants, jumpIndexes.constantIndex);
-    }
-
-    auto Compiler::advance() -> void
-    {
-        m_previous = m_current;
-        m_current = m_scanner.scanToken();
-
-#ifdef POISE_DEBUG
-        m_current->print();
-#endif
-
-        if (m_current->tokenType() == scanner::TokenType::Error) {
-            errorAtCurrent("Invalid token");
-        }
-    }
-
-    auto Compiler::match(scanner::TokenType expected) -> bool
-    {
-        if (!check(expected)) {
-            return false;
-        }
-
-        advance();
-        return true;
-    }
-
-    auto Compiler::check(scanner::TokenType expected) -> bool
-    {
-        return m_current && m_current->tokenType() == expected;
-    }
-
-    auto Compiler::declaration() -> void
-    {
-        if (match(scanner::TokenType::Func)) {
-            funcDeclaration();
-        } else if (match(scanner::TokenType::Var)) {
-            varDeclaration(false);
-        } else if (match(scanner::TokenType::Final)) {
-            varDeclaration(true);
-        } else {
-            statement();
-        }
-    }
-
-    auto Compiler::funcDeclaration() -> void
-    {
-        if (m_contextStack.back() != Context::TopLevel) {
-            errorAtPrevious("Function declaration only allowed at top level");
             return;
         }
 
-        m_contextStack.push_back(Context::Function);
-
-        RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected function name");
-        auto functionName = m_previous->string();
-        auto line = m_previous->line();
-
-        RETURN_IF_NO_MATCH(scanner::TokenType::OpenParen, "Expected '(' after function name");
-        const auto numArgs = parseFunctionArgs();
-
-        RETURN_IF_NO_MATCH(scanner::TokenType::OpenBrace, "Expected '{' after function signature");
-
-        auto prevFunction = m_vm->getCurrentFunction();
-
-        auto function = runtime::Value::createObject<objects::PoiseFunction>(std::move(functionName), numArgs);
-        auto functionPtr = function.object()->asFunction();
-        m_vm->setCurrentFunction(functionPtr);
-
-        while (!match(scanner::TokenType::CloseBrace)) {
-            if (check(scanner::TokenType::EndOfFile)) {
-                errorAtCurrent("Unterminated function");
-                return;
-            }
-
-            if (m_hadError) {
-                return;
-            }
-
-            declaration();
-        }
-
-        if (functionPtr->opList().empty() || functionPtr->opList().back().op != runtime::Op::Return) {
-            // if no return statement, make sure we pop locals and implicitly return none
-            emitConstant(m_localNames.size());
-            emitOp(runtime::Op::PopLocals, m_previous->line());
-            emitConstant(runtime::Value::none());
-            emitOp(runtime::Op::LoadConstant, m_previous->line());
-            emitOp(runtime::Op::Return, m_previous->line());
-        }
-
-        m_vm->setCurrentFunction(prevFunction);
-
-        if (functionPtr->name() == "main") {
-            m_mainFunction = function;
-        }
-
-#ifdef POISE_DEBUG
-        functionPtr->printOps();
-#endif
-
-        emitConstant(std::move(function));
-        emitOp(runtime::Op::DeclareFunction, line);
-
-        m_localNames.clear();
-        m_contextStack.pop_back();
+        declaration();
     }
 
-    auto Compiler::varDeclaration(bool isFinal) -> void
-    {
-        if (!checkContext(Context::Function)) {
-            errorAtPrevious("Variable declaration only allowed inside a function");
-            return;
-        }
-
-        RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected identifier");
-
-        auto varName = m_previous->string();
-        if (std::find_if(m_localNames.begin(), m_localNames.end(), [&varName] (const LocalVariable& local) {
-            return local.name == varName;
-        }) != m_localNames.end()) {
-            errorAtPrevious("Local variable with the same name already declared");
-            return;
-        }
-
-        m_localNames.push_back({std::move(varName), isFinal});
-
-        if (match(scanner::TokenType::Equal)) {
-            expression();
-        } else {
-            if (isFinal) {
-                errorAtCurrent("Expected assignment after 'final'");
-                return;
-            }
-
-            emitConstant(runtime::Value::none());
-            emitOp(runtime::Op::LoadConstant, m_previous->line());
-        }
-
-        emitOp(runtime::Op::DeclareLocal, m_previous->line());
-
-        EXPECT_SEMICOLON();
-    }
-
-    auto Compiler::statement() -> void
-    {
-        if (!checkContext(Context::Function)) {
-            errorAtCurrent("Statements only allowed within functions");
-            return;
-        }
-
-        if (match(scanner::TokenType::PrintLn)) {
-            printLnStatement();
-        } else if (match(scanner::TokenType::Return)) {
-            returnStatement();
-        } else {
-            expressionStatement();
-        }
-    }
-
-    auto Compiler::expressionStatement() -> void
-    {
-        /*
-            calling `expression()` in any other context means the result of that expression is being consumed
-            but this function is called when you have a line that's just like
-
-            ```
-            5 + 5;
-            some_void_function();
-            ```
-
-            so emit an extra `Pop` instruction to remove that unused result            
-        */
-        expression();
-        emitOp(runtime::Op::Pop, m_previous->line());
-        EXPECT_SEMICOLON();
-    }
-
-    auto Compiler::printLnStatement() -> void
-    {
-        RETURN_IF_NO_MATCH(scanner::TokenType::OpenParen, "Expected '(' after 'println'");
-
-        expression();
-        emitOp(runtime::Op::PrintLn, m_previous->line());
-
-        RETURN_IF_NO_MATCH(scanner::TokenType::CloseParen, "Expected ')' after 'println'");
-        EXPECT_SEMICOLON();
-    }
-
-    auto Compiler::returnStatement() -> void
-    {
-        if (match(scanner::TokenType::Semicolon)) {
-            // emit none value to return if no value is returned
-            emitConstant(runtime::Value::none());
-            emitOp(runtime::Op::LoadConstant, m_previous->line());
-        } else {
-            // else the return value should be any expression
-            expression();
-        }
-        
-        // pop local variables
+    if (functionPtr->opList().empty() || functionPtr->opList().back().op != runtime::Op::Return) {
+        // if no return statement, make sure we pop locals and implicitly return none
         emitConstant(m_localNames.size());
         emitOp(runtime::Op::PopLocals, m_previous->line());
-
-        // expression above is still on the stack
+        emitConstant(runtime::Value::none());
+        emitOp(runtime::Op::LoadConstant, m_previous->line());
         emitOp(runtime::Op::Return, m_previous->line());
-
-        EXPECT_SEMICOLON();
     }
 
-    auto Compiler::expression() -> void
-    {
-        // expressions can only start with a literal, unary op, or identifier
-        if (scanner::isValidStartOfExpression(m_current->tokenType())) {
-            logicOr();
-        } else {
-            errorAtCurrent("Expected expression");
-        }
+    m_vm->setCurrentFunction(prevFunction);
+
+    if (functionPtr->name() == "main") {
+        m_mainFunction = function;
     }
-
-    auto Compiler::logicOr() -> void
-    {
-        logicAnd();
-
-        std::optional<JumpIndexes> jumpIndexes;
-        if (check(scanner::TokenType::Or)) {
-            jumpIndexes = emitJump(true);
-        }
-
-        while (match(scanner::TokenType::Or)) {
-            logicAnd();
-            emitOp(runtime::Op::LogicOr, m_previous->line());
-        }
-
-        if (jumpIndexes) {
-            patchJump(*jumpIndexes);
-        }
-    }
-
-    auto Compiler::logicAnd() -> void
-    {
-        bitwiseOr();
-
-        std::optional<JumpIndexes> jumpIndexes;
-        if (check(scanner::TokenType::And)) {
-            jumpIndexes = emitJump(false);
-        }
-
-        while (match(scanner::TokenType::And)) {
-            bitwiseOr();
-            emitOp(runtime::Op::LogicAnd, m_previous->line());
-        }
-
-        if (jumpIndexes) {
-            patchJump(*jumpIndexes);
-        }
-    }
-
-    auto Compiler::bitwiseOr() -> void
-    {
-        bitwiseXor();
-
-        while (match(scanner::TokenType::Pipe)) {
-            bitwiseXor();
-            emitOp(runtime::Op::BitwiseOr, m_previous->line());
-        }
-    }
-
-    auto Compiler::bitwiseXor() -> void
-    {
-        bitwiseAnd();
-
-        while (match(scanner::TokenType::Caret)) {
-            bitwiseAnd();
-            emitOp(runtime::Op::BitwiseXor, m_previous->line());
-        }
-    }
-
-    auto Compiler::bitwiseAnd() -> void
-    {
-        equality();
-
-        while (match(scanner::TokenType::Ampersand)) {
-            equality();
-            emitOp(runtime::Op::BitwiseAnd, m_previous->line());
-        }
-    }
-
-    auto Compiler::equality() -> void
-    {
-        comparison();
-
-        if (match(scanner::TokenType::EqualEqual)) {
-            comparison();
-            emitOp(runtime::Op::Equal, m_previous->line());
-        } else if (match(scanner::TokenType::NotEqual)) {
-            comparison();
-            emitOp(runtime::Op::NotEqual, m_previous->line());
-        }
-    }
-
-    auto Compiler::comparison() -> void
-    {
-        shift();
-
-        if (match(scanner::TokenType::Less)) {
-            shift();
-            emitOp(runtime::Op::LessThan, m_previous->line());
-        } else if (match(scanner::TokenType::LessEqual)) {
-            shift();
-            emitOp(runtime::Op::LessEqual, m_previous->line());
-        } else if (match(scanner::TokenType::Greater)) {
-            shift();
-            emitOp(runtime::Op::GreaterThan, m_previous->line());
-        } else if (match(scanner::TokenType::GreaterEqual)) {
-            shift();
-            emitOp(runtime::Op::GreaterEqual, m_previous->line());
-        }
-    }
-
-    auto Compiler::shift() -> void
-    {
-        term();
-
-        while (true) {
-            if (match(scanner::TokenType::ShiftLeft)) {
-                term();
-                emitOp(runtime::Op::LeftShift, m_previous->line());
-            } else if (match(scanner::TokenType::ShiftRight)) {
-                term();
-                emitOp(runtime::Op::RightShift, m_previous->line());
-            } else {
-                break;
-            }
-        }
-    }
-
-    auto Compiler::term() -> void
-    {
-        factor();
-
-        while (true) {
-            if (match(scanner::TokenType::Plus)) {
-                factor();
-                emitOp(runtime::Op::Addition, m_previous->line());
-            } else if (match(scanner::TokenType::Minus)) {
-                factor();
-                emitOp(runtime::Op::Subtraction, m_previous->line());
-            } else {
-                break;
-            }
-        }
-    }
-
-    auto Compiler::factor() -> void
-    {
-        unary();
-
-        while (true) {
-            if (match(scanner::TokenType::Star)) {
-                unary();
-                emitOp(runtime::Op::Multiply, m_previous->line());
-            } else if (match(scanner::TokenType::Slash)) {
-                unary();
-                emitOp(runtime::Op::Divide, m_previous->line());
-            } else if (match(scanner::TokenType::Modulus)) {
-                unary();
-                emitOp(runtime::Op::Modulus, m_previous->line());
-            } else {
-                break;
-            }
-        }
-    }
-
-    auto Compiler::unary() -> void
-    {
-        if (match(scanner::TokenType::Minus)) {
-            const auto line = m_previous->line();
-            unary();
-            emitOp(runtime::Op::Negate, line);
-        } else if (match(scanner::TokenType::Tilde)) {
-            const auto line = m_previous->line();
-            unary();
-            emitOp(runtime::Op::BitwiseNot, line);
-        } else if (match(scanner::TokenType::Exclamation)) {
-            const auto line = m_previous->line();
-            unary();
-            emitOp(runtime::Op::LogicNot, line);
-        } else if (match(scanner::TokenType::Plus)) {
-            auto line = m_previous->line();
-            unary();
-            emitOp(runtime::Op::Plus, line);
-        } else {
-            call();
-        }
-    }
-
-    auto Compiler::call() -> void
-    {
-        primary();
-
-        while (match(scanner::TokenType::OpenParen)) {
-            const auto numArgs = parseCallArgs();
-            emitConstant(numArgs);
-            emitOp(runtime::Op::Call, m_previous->line());
-        }
-    }
-
-    auto Compiler::primary() -> void
-    {
-        if (match(scanner::TokenType::False)) {
-            emitConstant(false);
-            emitOp(runtime::Op::LoadConstant, m_previous->line());
-        } else if (match(scanner::TokenType::True)) {
-            emitConstant(true);
-            emitOp(runtime::Op::LoadConstant, m_previous->line());
-        } else if (match(scanner::TokenType::Float)) {
-            parseFloat();
-        } else if (match(scanner::TokenType::Int)) {
-            parseInt();
-        } else if (match(scanner::TokenType::None)) {
-            emitConstant(runtime::Value::none());
-            emitOp(runtime::Op::LoadConstant, m_previous->line());
-        } else if (match(scanner::TokenType::String)) {
-            parseString();
-        } else if (match(scanner::TokenType::OpenParen)) {
-            expression();
-            RETURN_IF_NO_MATCH(scanner::TokenType::CloseParen, "Expected ')'");
-        } else if (match(scanner::TokenType::Identifier)) {
-            identifier();
-        } else if (scanner::isTypeIdent(m_current->tokenType())) {
-            advance();
-            typeIdent();
-        } else if (match(scanner::TokenType::TypeOf)) {
-            typeOf();
-        } else if (match(scanner::TokenType::Pipe)) {
-            lambda();
-        } else {
-            errorAtCurrent("Invalid token at start of expression");
-        }
-    }
-
-    auto Compiler::identifier() -> void
-    {
-        const auto identifier = m_previous->text();
-        const auto findLocal = std::find_if(m_localNames.begin(), m_localNames.end(), [&identifier] (const LocalVariable& local) {
-            return local.name == identifier;
-        });
-
-        if (findLocal == m_localNames.end()) {
-            emitConstant(identifier);
-            emitOp(runtime::Op::LoadFunction, m_previous->line());
-        } else {
-            const auto localIndex = std::distance(m_localNames.begin(), findLocal);
-            emitConstant(localIndex);
-            emitOp(runtime::Op::LoadLocal, m_previous->line());
-        }
-    }
-
-    auto Compiler::typeIdent() -> void
-    {
-        const auto tokenType = m_previous->tokenType();
-
-        if (match(scanner::TokenType::OpenParen)) {
-            // constructing an instance of the type
-            const auto numArgs = parseCallArgs();
-
-            if (numArgs > 1) {
-                // TODO: this will be different for collections
-                errorAtPrevious(fmt::format("'{}' can only be constructed from a single argument but was given {}", tokenType, numArgs));
-                return;
-            }
-
-            emitConstant(static_cast<u8>(tokenType));
-            emitConstant(numArgs);
-            emitOp(runtime::Op::ConstructBuiltin, m_previous->line());
-        } else {
-            // just loading the type itself
-            emitConstant(static_cast<u8>(tokenType));
-            emitOp(runtime::Op::LoadType, m_previous->line());
-        }
-    }
-
-    auto Compiler::typeOf() -> void
-    {
-        RETURN_IF_NO_MATCH(scanner::TokenType::OpenParen, "Expected '('");
-        expression();
-        emitOp(runtime::Op::TypeOf, m_previous->line());
-        RETURN_IF_NO_MATCH(scanner::TokenType::CloseParen, "Expected ')");
-    }
-
-    auto Compiler::lambda() -> void
-    {
-        std::vector<usize> captureIndexes;
-        std::vector<LocalVariable> captures;
-
-        while (!match(scanner::TokenType::Pipe)) {
-            if (match(scanner::TokenType::Identifier)) {
-                if (captures.size() == std::numeric_limits<u8>::max()) {
-                    errorAtCurrent("Maximum amount of captures exceeded");
-                    return;
-                }
-
-                const auto text = m_previous->text();
-                const auto localIt = std::find_if(m_localNames.begin(), m_localNames.end(), [text] (const LocalVariable& local) {
-                    return local.name == text;
-                });
-
-                if (localIt == m_localNames.end()) {
-                    errorAtPrevious(fmt::format("No local variable named '{}' to capture", text));
-                }
-
-                if (std::find_if(captures.begin(), captures.end(), [&text] (const LocalVariable& local) {
-                    return local.name == text;
-                }) != captures.end()) {
-                    errorAtPrevious(fmt::format("Local variable '{}' has already been captured", text));
-                    return;
-                }
-
-                const auto index = std::distance(m_localNames.begin(), localIt);
-                captures.push_back(*localIt);
-                captureIndexes.push_back(static_cast<usize>(index));
-
-                // trailing commas are allowed but all arguments must be comma separated
-                // so here, if the next token is not a comma or a pipe, it's invalid
-                if (!check(scanner::TokenType::Pipe) && !check(scanner::TokenType::Comma)) {
-                    errorAtCurrent("Expected ',' or '|'");
-                    break;
-                }
-
-                if (check(scanner::TokenType::Comma)) {
-                    advance();
-                }
-            } else {
-                errorAtCurrent("Expected identifier for capture");
-            }
-        }
-
-        auto oldLocals = std::move(m_localNames);
-        m_localNames = std::move(captures);
-
-        u8 numArgs = 0;
-        if (match(scanner::TokenType::OpenParen)) {
-            numArgs = parseFunctionArgs();
-        }
-
-        RETURN_IF_NO_MATCH(scanner::TokenType::OpenBrace, "Expected '{");
-
-        const auto prevFunction = m_vm->getCurrentFunction();
-
-        m_contextStack.push_back(Context::Function);
-        
-        auto lambdaName = fmt::format("{}_lambda{}", prevFunction->name(), prevFunction->numLambdas());
-        auto lambda = runtime::Value::createObject<objects::PoiseFunction>(std::move(lambdaName), numArgs);
-        auto functionPtr = lambda.object()->asFunction();
-
-        m_vm->setCurrentFunction(functionPtr);
-
-        for (auto i = 0zu; i < m_localNames.size() - numArgs; i++) {
-            emitConstant(i);
-            emitOp(runtime::Op::LoadCapture, m_previous->line());
-        }
-
-        while (!match(scanner::TokenType::CloseBrace)) {
-            if (check(scanner::TokenType::EndOfFile)) {
-                errorAtCurrent("Unterminated lambda");
-                return;
-            }
-
-            if (m_hadError) {
-                return;
-            }
-
-            declaration();
-        }
-
-        if (functionPtr->opList().empty() || functionPtr->opList().back().op != runtime::Op::Return) {
-            // if no return statement, make sure we pop locals and implicitly return none
-            emitConstant(m_localNames.size());
-            emitOp(runtime::Op::PopLocals, m_previous->line());
-            emitConstant(runtime::Value::none());
-            emitOp(runtime::Op::LoadConstant, m_previous->line());
-            emitOp(runtime::Op::Return, m_previous->line());
-        }
 
 #ifdef POISE_DEBUG
-        functionPtr->printOps();
+    functionPtr->printOps();
 #endif
 
-        m_localNames = std::move(oldLocals);
-        m_contextStack.pop_back();
+    emitConstant(std::move(function));
+    emitOp(runtime::Op::DeclareFunction, line);
 
-        m_vm->setCurrentFunction(prevFunction);
-        prevFunction->lamdaAdded();
-        
-        emitConstant(std::move(lambda));
-        emitOp(runtime::Op::LoadConstant, m_previous->line());
-        for (const auto index : captureIndexes) {
-            emitConstant(index);
-            emitOp(runtime::Op::CaptureLocal, m_previous->line());
-        }
+    m_localNames.clear();
+    m_contextStack.pop_back();
+}
+
+auto Compiler::varDeclaration(bool isFinal) -> void
+{
+    if (!checkContext(Context::Function)) {
+        errorAtPrevious("Variable declaration only allowed inside a function");
+        return;
     }
 
-    static auto getEscapeCharacter(char c) -> std::optional<char>
-    {
-        switch (c) {
-            case 't':
-                return '\t';
-            case 'n':
-                return '\n';
-            case 'r':
-                return '\r';
-            case '"':
-                return '"';
-            case '\\':
-                return '\\';
-            default:
-                return {};
-        }
+    RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected identifier");
+
+    auto varName = m_previous->string();
+    if (std::find_if(m_localNames.begin(), m_localNames.end(), [&varName](const LocalVariable& local) {
+        return local.name == varName;
+    }) != m_localNames.end()) {
+        errorAtPrevious("Local variable with the same name already declared");
+        return;
     }
 
-    auto Compiler::parseString() -> void
-    {
-        std::string result;
-        const auto tokenText = m_previous->text();
-        auto i = 1zu;
-        while (i < tokenText.length() - 1zu) {
-            if (tokenText[i] == '\\') {
-                i++;
+    m_localNames.push_back({std::move(varName), isFinal});
 
-                if (i == tokenText.length() - 1zu) {
-                    errorAtPrevious("Expected escape character but string terminated");
-                    return;
-                }
-
-                if (const auto escapeChar = getEscapeCharacter(tokenText[i])) {
-                    result.push_back(*escapeChar);
-                } else {
-                    errorAtPrevious(fmt::format("Unrecognised escape character '{}'", tokenText[i]));
-                    return;
-                }
-            } else {
-                result.push_back(tokenText[i]);
-            }
-
-            i++;
+    if (match(scanner::TokenType::Equal)) {
+        expression();
+    } else {
+        if (isFinal) {
+            errorAtCurrent("Expected assignment after 'final'");
+            return;
         }
 
-        emitConstant(std::move(result));
+        emitConstant(runtime::Value::none());
         emitOp(runtime::Op::LoadConstant, m_previous->line());
     }
 
-    auto Compiler::parseInt() -> void
-    {
-        i64 result;
-        const auto text = m_previous->text();
-        const auto [ptr, ec] = std::from_chars(text.data(), text.data() + text.length(), result);
+    emitOp(runtime::Op::DeclareLocal, m_previous->line());
 
-        if (ec == std::errc{}) {
-            emitConstant(result);
-            emitOp(runtime::Op::LoadConstant, m_previous->line());
-        } else if (ec == std::errc::invalid_argument) {
-            errorAtPrevious(fmt::format("Unable to parse integer '{}'", text));
-            return;
-        } else if (ec == std::errc::result_out_of_range) {
-            errorAtPrevious(fmt::format("Integer out of range '{}'", text));
-            return;
-        }
+    EXPECT_SEMICOLON();
+}
+
+auto Compiler::statement() -> void
+{
+    if (!checkContext(Context::Function)) {
+        errorAtCurrent("Statements only allowed within functions");
+        return;
     }
 
-    auto Compiler::parseFloat() -> void
-    {
-        const auto text = m_previous->string();
-
-        try {
-            const auto result = std::stod(text);
-            emitConstant(result);
-            emitOp(runtime::Op::LoadConstant, m_previous->line());
-        } catch (const std::invalid_argument &) {
-            errorAtPrevious(fmt::format("Unable to parse float '{}'", text));
-        } catch (const std::out_of_range &) {
-            errorAtPrevious(fmt::format("Float out of range '{}'", text));
-        }
-    }
-
-    auto Compiler::parseCallArgs() -> u8
-    {
-        u8 numArgs = 0;
-
-        while (true) {
-            if (match(scanner::TokenType::CloseParen)) {
-                break;
-            }
-
-            if (numArgs == std::numeric_limits<u8>::max()) {
-                errorAtCurrent("Maximum function parameters of 255 exceeded");
-                break;
-            }
-
-            expression();
-            numArgs++;
-
-            // trailing commas are allowed but all arguments must be comma separated
-            // so here, if the next token is not a comma or a close paren, it's invalid
-            if (!check(scanner::TokenType::CloseParen) && !check(scanner::TokenType::Comma)) {
-                errorAtCurrent("Expected ',' or '('");
-                break;
-            }
-
-            if (check(scanner::TokenType::Comma)) {
-                advance();
-            }
-        }
-
-        return numArgs;
-    }
-
-    auto Compiler::parseFunctionArgs() -> u8
-    {
-        u8 numArgs = 0;
-
-        while (true) {
-            if (match(scanner::TokenType::CloseParen)) {
-                break;
-            }
-
-            if (numArgs == std::numeric_limits<u8>::max()) {
-                errorAtCurrent("Maximum function parameters of 255 exceeded");
-                break;
-            }
-
-            auto isFinal = match(scanner::TokenType::Final);
-
-            if (!match(scanner::TokenType::Identifier)) {
-                errorAtCurrent("Expected identifier");
-                break;
-            }
-
-            auto argName = m_previous->string();
-            if (std::find_if(m_localNames.begin(), m_localNames.end(), [&argName] (const LocalVariable& local) {
-                return local.name == argName;
-            }) != m_localNames.end()) {
-                errorAtPrevious("Function argument with the same name already declared");
-                break;
-            }
-
-            m_localNames.push_back({std::move(argName), isFinal});
-            numArgs++;
-
-            // trailing commas are allowed but all arguments must be comma separated
-            // so here, if the next token is not a comma or a close paren, it's invalid
-            if (!check(scanner::TokenType::CloseParen) && !check(scanner::TokenType::Comma)) {
-                errorAtCurrent("Expected ',' or '('");
-                break;
-            }
-
-            if (check(scanner::TokenType::Comma)) {
-                advance();
-            }
-        }
-
-        return numArgs;
-    }
-
-    auto Compiler::errorAtCurrent(std::string_view message) -> void
-    {
-        error(*m_current, message);
-    }
-
-    auto Compiler::errorAtPrevious(std::string_view message) -> void
-    {
-        error(*m_previous, message);
-    }
-
-    auto Compiler::error(const scanner::Token &token, std::string_view message) -> void
-    {
-        m_hadError = true;
-
-        fmt::print(stderr, fmt::emphasis::bold | fmt::fg(fmt::color::red), "Compiler Error");
-
-        if (token.tokenType() == scanner::TokenType::EndOfFile) {
-            fmt::print(stderr, " at EOF: {}", message);
-        } else {
-            fmt::print(stderr, " at '{}': {}\n", token.text(), message);
-        }
-
-        fmt::print(stderr, "       --> {}:{}:{}\n", m_filePath.string(), token.line(), token.column());
-        fmt::print(stderr, "        |\n");
-
-        if (token.line() > 1zu) {
-            fmt::print(stderr, "{:>7} | {}\n", token.line() - 1zu, m_scanner.getCodeAtLine(token.line() - 1zu));
-        }
-
-        fmt::print(stderr, "{:>7} | {}\n", token.line(), m_scanner.getCodeAtLine(token.line()));
-        fmt::print(stderr, "        | ");
-        for (auto i = 1zu; i < token.column(); i++) {
-            fmt::print(stderr, " ");
-        }
-
-        for (auto i = 0zu; i < token.length(); i++) {
-            fmt::print(stderr, fmt::fg(fmt::color::red), "^");
-        }
-
-        if (token.line() < m_scanner.getNumLines()) {
-            fmt::print(stderr, "\n{:>7} | {}\n", token.line() + 1zu, m_scanner.getCodeAtLine(token.line() + 1zu));
-        }
-
-        fmt::print(stderr, "        |\n");
+    if (match(scanner::TokenType::PrintLn)) {
+        printLnStatement();
+    } else if (match(scanner::TokenType::Return)) {
+        returnStatement();
+    } else {
+        expressionStatement();
     }
 }
+
+auto Compiler::expressionStatement() -> void
+{
+    /*
+        calling `expression()` in any other context means the result of that expression is being consumed
+        but this function is called when you have a line that's just like
+
+        ```
+        5 + 5;
+        some_void_function();
+        ```
+
+        so emit an extra `Pop` instruction to remove that unused result
+    */
+    expression();
+    emitOp(runtime::Op::Pop, m_previous->line());
+    EXPECT_SEMICOLON();
+}
+
+auto Compiler::printLnStatement() -> void
+{
+    RETURN_IF_NO_MATCH(scanner::TokenType::OpenParen, "Expected '(' after 'println'");
+
+    expression();
+    emitOp(runtime::Op::PrintLn, m_previous->line());
+
+    RETURN_IF_NO_MATCH(scanner::TokenType::CloseParen, "Expected ')' after 'println'");
+    EXPECT_SEMICOLON();
+}
+
+auto Compiler::returnStatement() -> void
+{
+    if (match(scanner::TokenType::Semicolon)) {
+        // emit none value to return if no value is returned
+        emitConstant(runtime::Value::none());
+        emitOp(runtime::Op::LoadConstant, m_previous->line());
+    } else {
+        // else the return value should be any expression
+        expression();
+    }
+
+    // pop local variables
+    emitConstant(m_localNames.size());
+    emitOp(runtime::Op::PopLocals, m_previous->line());
+
+    // expression above is still on the stack
+    emitOp(runtime::Op::Return, m_previous->line());
+
+    EXPECT_SEMICOLON();
+}
+
+auto Compiler::expression() -> void
+{
+    // expressions can only start with a literal, unary op, or identifier
+    if (scanner::isValidStartOfExpression(m_current->tokenType())) {
+        logicOr();
+    } else {
+        errorAtCurrent("Expected expression");
+    }
+}
+
+auto Compiler::logicOr() -> void
+{
+    logicAnd();
+
+    std::optional<JumpIndexes> jumpIndexes;
+    if (check(scanner::TokenType::Or)) {
+        jumpIndexes = emitJump(true);
+    }
+
+    while (match(scanner::TokenType::Or)) {
+        logicAnd();
+        emitOp(runtime::Op::LogicOr, m_previous->line());
+    }
+
+    if (jumpIndexes) {
+        patchJump(*jumpIndexes);
+    }
+}
+
+auto Compiler::logicAnd() -> void
+{
+    bitwiseOr();
+
+    std::optional<JumpIndexes> jumpIndexes;
+    if (check(scanner::TokenType::And)) {
+        jumpIndexes = emitJump(false);
+    }
+
+    while (match(scanner::TokenType::And)) {
+        bitwiseOr();
+        emitOp(runtime::Op::LogicAnd, m_previous->line());
+    }
+
+    if (jumpIndexes) {
+        patchJump(*jumpIndexes);
+    }
+}
+
+auto Compiler::bitwiseOr() -> void
+{
+    bitwiseXor();
+
+    while (match(scanner::TokenType::Pipe)) {
+        bitwiseXor();
+        emitOp(runtime::Op::BitwiseOr, m_previous->line());
+    }
+}
+
+auto Compiler::bitwiseXor() -> void
+{
+    bitwiseAnd();
+
+    while (match(scanner::TokenType::Caret)) {
+        bitwiseAnd();
+        emitOp(runtime::Op::BitwiseXor, m_previous->line());
+    }
+}
+
+auto Compiler::bitwiseAnd() -> void
+{
+    equality();
+
+    while (match(scanner::TokenType::Ampersand)) {
+        equality();
+        emitOp(runtime::Op::BitwiseAnd, m_previous->line());
+    }
+}
+
+auto Compiler::equality() -> void
+{
+    comparison();
+
+    if (match(scanner::TokenType::EqualEqual)) {
+        comparison();
+        emitOp(runtime::Op::Equal, m_previous->line());
+    } else if (match(scanner::TokenType::NotEqual)) {
+        comparison();
+        emitOp(runtime::Op::NotEqual, m_previous->line());
+    }
+}
+
+auto Compiler::comparison() -> void
+{
+    shift();
+
+    if (match(scanner::TokenType::Less)) {
+        shift();
+        emitOp(runtime::Op::LessThan, m_previous->line());
+    } else if (match(scanner::TokenType::LessEqual)) {
+        shift();
+        emitOp(runtime::Op::LessEqual, m_previous->line());
+    } else if (match(scanner::TokenType::Greater)) {
+        shift();
+        emitOp(runtime::Op::GreaterThan, m_previous->line());
+    } else if (match(scanner::TokenType::GreaterEqual)) {
+        shift();
+        emitOp(runtime::Op::GreaterEqual, m_previous->line());
+    }
+}
+
+auto Compiler::shift() -> void
+{
+    term();
+
+    while (true) {
+        if (match(scanner::TokenType::ShiftLeft)) {
+            term();
+            emitOp(runtime::Op::LeftShift, m_previous->line());
+        } else if (match(scanner::TokenType::ShiftRight)) {
+            term();
+            emitOp(runtime::Op::RightShift, m_previous->line());
+        } else {
+            break;
+        }
+    }
+}
+
+auto Compiler::term() -> void
+{
+    factor();
+
+    while (true) {
+        if (match(scanner::TokenType::Plus)) {
+            factor();
+            emitOp(runtime::Op::Addition, m_previous->line());
+        } else if (match(scanner::TokenType::Minus)) {
+            factor();
+            emitOp(runtime::Op::Subtraction, m_previous->line());
+        } else {
+            break;
+        }
+    }
+}
+
+auto Compiler::factor() -> void
+{
+    unary();
+
+    while (true) {
+        if (match(scanner::TokenType::Star)) {
+            unary();
+            emitOp(runtime::Op::Multiply, m_previous->line());
+        } else if (match(scanner::TokenType::Slash)) {
+            unary();
+            emitOp(runtime::Op::Divide, m_previous->line());
+        } else if (match(scanner::TokenType::Modulus)) {
+            unary();
+            emitOp(runtime::Op::Modulus, m_previous->line());
+        } else {
+            break;
+        }
+    }
+}
+
+auto Compiler::unary() -> void
+{
+    if (match(scanner::TokenType::Minus)) {
+        const auto line = m_previous->line();
+        unary();
+        emitOp(runtime::Op::Negate, line);
+    } else if (match(scanner::TokenType::Tilde)) {
+        const auto line = m_previous->line();
+        unary();
+        emitOp(runtime::Op::BitwiseNot, line);
+    } else if (match(scanner::TokenType::Exclamation)) {
+        const auto line = m_previous->line();
+        unary();
+        emitOp(runtime::Op::LogicNot, line);
+    } else if (match(scanner::TokenType::Plus)) {
+        auto line = m_previous->line();
+        unary();
+        emitOp(runtime::Op::Plus, line);
+    } else {
+        call();
+    }
+}
+
+auto Compiler::call() -> void
+{
+    primary();
+
+    while (match(scanner::TokenType::OpenParen)) {
+        const auto numArgs = parseCallArgs();
+        emitConstant(numArgs);
+        emitOp(runtime::Op::Call, m_previous->line());
+    }
+}
+
+auto Compiler::primary() -> void
+{
+    if (match(scanner::TokenType::False)) {
+        emitConstant(false);
+        emitOp(runtime::Op::LoadConstant, m_previous->line());
+    } else if (match(scanner::TokenType::True)) {
+        emitConstant(true);
+        emitOp(runtime::Op::LoadConstant, m_previous->line());
+    } else if (match(scanner::TokenType::Float)) {
+        parseFloat();
+    } else if (match(scanner::TokenType::Int)) {
+        parseInt();
+    } else if (match(scanner::TokenType::None)) {
+        emitConstant(runtime::Value::none());
+        emitOp(runtime::Op::LoadConstant, m_previous->line());
+    } else if (match(scanner::TokenType::String)) {
+        parseString();
+    } else if (match(scanner::TokenType::OpenParen)) {
+        expression();
+        RETURN_IF_NO_MATCH(scanner::TokenType::CloseParen, "Expected ')'");
+    } else if (match(scanner::TokenType::Identifier)) {
+        identifier();
+    } else if (scanner::isTypeIdent(m_current->tokenType())) {
+        advance();
+        typeIdent();
+    } else if (match(scanner::TokenType::TypeOf)) {
+        typeOf();
+    } else if (match(scanner::TokenType::Pipe)) {
+        lambda();
+    } else {
+        errorAtCurrent("Invalid token at start of expression");
+    }
+}
+
+auto Compiler::identifier() -> void
+{
+    const auto identifier = m_previous->text();
+    const auto findLocal = std::find_if(m_localNames.begin(), m_localNames.end(),
+                                        [&identifier](const LocalVariable& local) {
+                                            return local.name == identifier;
+                                        });
+
+    if (findLocal == m_localNames.end()) {
+        emitConstant(identifier);
+        emitOp(runtime::Op::LoadFunction, m_previous->line());
+    } else {
+        const auto localIndex = std::distance(m_localNames.begin(), findLocal);
+        emitConstant(localIndex);
+        emitOp(runtime::Op::LoadLocal, m_previous->line());
+    }
+}
+
+auto Compiler::typeIdent() -> void
+{
+    const auto tokenType = m_previous->tokenType();
+
+    if (match(scanner::TokenType::OpenParen)) {
+        // constructing an instance of the type
+        const auto numArgs = parseCallArgs();
+
+        if (numArgs > 1) {
+            // TODO: this will be different for collections
+            errorAtPrevious(fmt::format("'{}' can only be constructed from a single argument but was given {}", tokenType, numArgs));
+            return;
+        }
+
+        emitConstant(static_cast<u8>(tokenType));
+        emitConstant(numArgs);
+        emitOp(runtime::Op::ConstructBuiltin, m_previous->line());
+    } else {
+        // just loading the type itself
+        emitConstant(static_cast<u8>(tokenType));
+        emitOp(runtime::Op::LoadType, m_previous->line());
+    }
+}
+
+auto Compiler::typeOf() -> void
+{
+    RETURN_IF_NO_MATCH(scanner::TokenType::OpenParen, "Expected '('");
+    expression();
+    emitOp(runtime::Op::TypeOf, m_previous->line());
+    RETURN_IF_NO_MATCH(scanner::TokenType::CloseParen, "Expected ')");
+}
+
+auto Compiler::lambda() -> void
+{
+    std::vector<usize> captureIndexes;
+    std::vector<LocalVariable> captures;
+
+    while (!match(scanner::TokenType::Pipe)) {
+        if (match(scanner::TokenType::Identifier)) {
+            if (captures.size() == std::numeric_limits<u8>::max()) {
+                errorAtCurrent("Maximum amount of captures exceeded");
+                return;
+            }
+
+            const auto text = m_previous->text();
+            const auto localIt = std::find_if(m_localNames.begin(), m_localNames.end(), [text](const LocalVariable& local) {
+                return local.name == text;
+            });
+
+            if (localIt == m_localNames.end()) {
+                errorAtPrevious(fmt::format("No local variable named '{}' to capture", text));
+            }
+
+            if (std::find_if(captures.begin(), captures.end(), [&text](const LocalVariable& local) {
+                return local.name == text;
+            }) != captures.end()) {
+                errorAtPrevious(fmt::format("Local variable '{}' has already been captured", text));
+                return;
+            }
+
+            const auto index = std::distance(m_localNames.begin(), localIt);
+            captures.push_back(*localIt);
+            captureIndexes.push_back(static_cast<usize>(index));
+
+            // trailing commas are allowed but all arguments must be comma separated
+            // so here, if the next token is not a comma or a pipe, it's invalid
+            if (!check(scanner::TokenType::Pipe) && !check(scanner::TokenType::Comma)) {
+                errorAtCurrent("Expected ',' or '|'");
+                break;
+            }
+
+            if (check(scanner::TokenType::Comma)) {
+                advance();
+            }
+        } else {
+            errorAtCurrent("Expected identifier for capture");
+        }
+    }
+
+    auto oldLocals = std::move(m_localNames);
+    m_localNames = std::move(captures);
+
+    u8 numArgs = 0;
+    if (match(scanner::TokenType::OpenParen)) {
+        numArgs = parseFunctionArgs();
+    }
+
+    RETURN_IF_NO_MATCH(scanner::TokenType::OpenBrace, "Expected '{");
+
+    const auto prevFunction = m_vm->getCurrentFunction();
+
+    m_contextStack.push_back(Context::Function);
+
+    auto lambdaName = fmt::format("{}_lambda{}", prevFunction->name(), prevFunction->numLambdas());
+    auto lambda = runtime::Value::createObject<objects::PoiseFunction>(std::move(lambdaName), numArgs);
+    auto functionPtr = lambda.object()->asFunction();
+
+    m_vm->setCurrentFunction(functionPtr);
+
+    for (auto i = 0zu; i < m_localNames.size() - numArgs; i++) {
+        emitConstant(i);
+        emitOp(runtime::Op::LoadCapture, m_previous->line());
+    }
+
+    while (!match(scanner::TokenType::CloseBrace)) {
+        if (check(scanner::TokenType::EndOfFile)) {
+            errorAtCurrent("Unterminated lambda");
+            return;
+        }
+
+        if (m_hadError) {
+            return;
+        }
+
+        declaration();
+    }
+
+    if (functionPtr->opList().empty() || functionPtr->opList().back().op != runtime::Op::Return) {
+        // if no return statement, make sure we pop locals and implicitly return none
+        emitConstant(m_localNames.size());
+        emitOp(runtime::Op::PopLocals, m_previous->line());
+        emitConstant(runtime::Value::none());
+        emitOp(runtime::Op::LoadConstant, m_previous->line());
+        emitOp(runtime::Op::Return, m_previous->line());
+    }
+
+#ifdef POISE_DEBUG
+    functionPtr->printOps();
+#endif
+
+    m_localNames = std::move(oldLocals);
+    m_contextStack.pop_back();
+
+    m_vm->setCurrentFunction(prevFunction);
+    prevFunction->lamdaAdded();
+
+    emitConstant(std::move(lambda));
+    emitOp(runtime::Op::LoadConstant, m_previous->line());
+    for (const auto index : captureIndexes) {
+        emitConstant(index);
+        emitOp(runtime::Op::CaptureLocal, m_previous->line());
+    }
+}
+
+static auto getEscapeCharacter(char c) -> std::optional<char>
+{
+    switch (c) {
+        case 't':
+            return '\t';
+        case 'n':
+            return '\n';
+        case 'r':
+            return '\r';
+        case '"':
+            return '"';
+        case '\\':
+            return '\\';
+        default:
+            return {};
+    }
+}
+
+auto Compiler::parseString() -> void
+{
+    std::string result;
+    const auto tokenText = m_previous->text();
+    auto i = 1zu;
+    while (i < tokenText.length() - 1zu) {
+        if (tokenText[i] == '\\') {
+            i++;
+
+            if (i == tokenText.length() - 1zu) {
+                errorAtPrevious("Expected escape character but string terminated");
+                return;
+            }
+
+            if (const auto escapeChar = getEscapeCharacter(tokenText[i])) {
+                result.push_back(*escapeChar);
+            } else {
+                errorAtPrevious(fmt::format("Unrecognised escape character '{}'", tokenText[i]));
+                return;
+            }
+        } else {
+            result.push_back(tokenText[i]);
+        }
+
+        i++;
+    }
+
+    emitConstant(std::move(result));
+    emitOp(runtime::Op::LoadConstant, m_previous->line());
+}
+
+auto Compiler::parseInt() -> void
+{
+    i64 result;
+    const auto text = m_previous->text();
+    const auto [ptr, ec] = std::from_chars(text.data(), text.data() + text.length(), result);
+
+    if (ec == std::errc{}) {
+        emitConstant(result);
+        emitOp(runtime::Op::LoadConstant, m_previous->line());
+    } else if (ec == std::errc::invalid_argument) {
+        errorAtPrevious(fmt::format("Unable to parse integer '{}'", text));
+        return;
+    } else if (ec == std::errc::result_out_of_range) {
+        errorAtPrevious(fmt::format("Integer out of range '{}'", text));
+        return;
+    }
+}
+
+auto Compiler::parseFloat() -> void
+{
+    const auto text = m_previous->string();
+
+    try {
+        const auto result = std::stod(text);
+        emitConstant(result);
+        emitOp(runtime::Op::LoadConstant, m_previous->line());
+    } catch (const std::invalid_argument&) {
+        errorAtPrevious(fmt::format("Unable to parse float '{}'", text));
+    } catch (const std::out_of_range&) {
+        errorAtPrevious(fmt::format("Float out of range '{}'", text));
+    }
+}
+
+auto Compiler::parseCallArgs() -> u8
+{
+    u8 numArgs = 0;
+
+    while (true) {
+        if (match(scanner::TokenType::CloseParen)) {
+            break;
+        }
+
+        if (numArgs == std::numeric_limits<u8>::max()) {
+            errorAtCurrent("Maximum function parameters of 255 exceeded");
+            break;
+        }
+
+        expression();
+        numArgs++;
+
+        // trailing commas are allowed but all arguments must be comma separated
+        // so here, if the next token is not a comma or a close paren, it's invalid
+        if (!check(scanner::TokenType::CloseParen) && !check(scanner::TokenType::Comma)) {
+            errorAtCurrent("Expected ',' or '('");
+            break;
+        }
+
+        if (check(scanner::TokenType::Comma)) {
+            advance();
+        }
+    }
+
+    return numArgs;
+}
+
+auto Compiler::parseFunctionArgs() -> u8
+{
+    u8 numArgs = 0;
+
+    while (true) {
+        if (match(scanner::TokenType::CloseParen)) {
+            break;
+        }
+
+        if (numArgs == std::numeric_limits<u8>::max()) {
+            errorAtCurrent("Maximum function parameters of 255 exceeded");
+            break;
+        }
+
+        auto isFinal = match(scanner::TokenType::Final);
+
+        if (!match(scanner::TokenType::Identifier)) {
+            errorAtCurrent("Expected identifier");
+            break;
+        }
+
+        auto argName = m_previous->string();
+        if (std::find_if(m_localNames.begin(), m_localNames.end(), [&argName](const LocalVariable& local) {
+            return local.name == argName;
+        }) != m_localNames.end()) {
+            errorAtPrevious("Function argument with the same name already declared");
+            break;
+        }
+
+        m_localNames.push_back({std::move(argName), isFinal});
+        numArgs++;
+
+        // trailing commas are allowed but all arguments must be comma separated
+        // so here, if the next token is not a comma or a close paren, it's invalid
+        if (!check(scanner::TokenType::CloseParen) && !check(scanner::TokenType::Comma)) {
+            errorAtCurrent("Expected ',' or '('");
+            break;
+        }
+
+        if (check(scanner::TokenType::Comma)) {
+            advance();
+        }
+    }
+
+    return numArgs;
+}
+
+auto Compiler::errorAtCurrent(std::string_view message) -> void
+{
+    error(*m_current, message);
+}
+
+auto Compiler::errorAtPrevious(std::string_view message) -> void
+{
+    error(*m_previous, message);
+}
+
+auto Compiler::error(const scanner::Token& token, std::string_view message) -> void
+{
+    m_hadError = true;
+
+    fmt::print(stderr, fmt::emphasis::bold | fmt::fg(fmt::color::red), "Compiler Error");
+
+    if (token.tokenType() == scanner::TokenType::EndOfFile) {
+        fmt::print(stderr, " at EOF: {}", message);
+    } else {
+        fmt::print(stderr, " at '{}': {}\n", token.text(), message);
+    }
+
+    fmt::print(stderr, "       --> {}:{}:{}\n", m_filePath.string(), token.line(), token.column());
+    fmt::print(stderr, "        |\n");
+
+    if (token.line() > 1zu) {
+        fmt::print(stderr, "{:>7} | {}\n", token.line() - 1zu, m_scanner.getCodeAtLine(token.line() - 1zu));
+    }
+
+    fmt::print(stderr, "{:>7} | {}\n", token.line(), m_scanner.getCodeAtLine(token.line()));
+    fmt::print(stderr, "        | ");
+    for (auto i = 1zu; i < token.column(); i++) {
+        fmt::print(stderr, " ");
+    }
+
+    for (auto i = 0zu; i < token.length(); i++) {
+        fmt::print(stderr, fmt::fg(fmt::color::red), "^");
+    }
+
+    if (token.line() < m_scanner.getNumLines()) {
+        fmt::print(stderr, "\n{:>7} | {}\n", token.line() + 1zu, m_scanner.getCodeAtLine(token.line() + 1zu));
+    }
+
+    fmt::print(stderr, "        |\n");
+}
+}   // namespace poise::compiler

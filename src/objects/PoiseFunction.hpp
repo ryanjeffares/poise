@@ -5,55 +5,55 @@
 #include <span>
 #include <vector>
 
-#include "../poise.hpp"
+#include "../Poise.hpp"
 
 #include "PoiseObject.hpp"
 #include "../runtime/Op.hpp"
 #include "../runtime/Value.hpp"
 
-namespace poise::objects
+namespace poise::objects {
+class PoiseFunction : public PoiseObject
 {
-    class PoiseFunction : public PoiseObject
-    {
-    public:
-        PoiseFunction(std::string name, u8 arity);
-        ~PoiseFunction() override = default;
+public:
+    PoiseFunction(std::string name, u8 arity);
+    ~PoiseFunction() override = default;
 
-        auto asFunction() -> PoiseFunction* override;
+    auto asFunction() -> PoiseFunction* override;
 
-        auto emitOp(runtime::Op op, usize line) -> void;
-        auto emitConstant(runtime::Value value) -> void;
-        auto setConstant(runtime::Value value, usize index) -> void;
+    auto emitOp(runtime::Op op, usize line) -> void;
+    auto emitConstant(runtime::Value value) -> void;
+    auto setConstant(runtime::Value value, usize index) -> void;
 
-        auto print() const -> void override;
-        auto printLn() const -> void override;
-        [[nodiscard]] auto toString() const -> std::string override;
-        [[nodiscard]] auto typeValue() const -> const runtime::Value& override;
-        [[nodiscard]] auto objectType() const -> ObjectType override;
+    auto print() const -> void override;
+    auto printLn() const -> void override;
+    [[nodiscard]] auto toString() const -> std::string override;
+    [[nodiscard]] auto typeValue() const -> const runtime::Value& override;
+    [[nodiscard]] auto objectType() const -> ObjectType override;
 
-        [[nodiscard]] auto opList() const -> std::span<const runtime::OpLine>;
-        [[nodiscard]] auto numOps() const -> usize;
-        [[nodiscard]] auto constantList() const -> std::span<const runtime::Value>;
-        [[nodiscard]] auto numConstants() const -> usize;
+    [[nodiscard]] auto opList() const -> std::span<const runtime::OpLine>;
+    [[nodiscard]] auto numOps() const -> usize;
+    [[nodiscard]] auto constantList() const -> std::span<const runtime::Value>;
+    [[nodiscard]] auto numConstants() const -> usize;
 
-        [[nodiscard]] auto name() const -> std::string_view;
-        [[nodiscard]] auto arity() const -> u8;
-        [[nodiscard]] auto numLambdas() const -> u32;
-        auto lamdaAdded() -> void;
-        auto addCapture(runtime::Value value) -> void;
-        auto getCapture(usize index) const -> const runtime::Value&;
+    [[nodiscard]] auto name() const -> std::string_view;
+    [[nodiscard]] auto arity() const -> u8;
 
-        auto printOps() const -> void;
+    [[nodiscard]] auto numLambdas() const -> u32;
+    auto lamdaAdded() -> void;
+    auto addCapture(runtime::Value value) -> void;
+    [[nodiscard]] auto getCapture(usize index) const -> const runtime::Value&;
 
-    private:
-        std::string m_name;
-        u8 m_arity;
-        u32 m_numLambdas{0};
+    auto printOps() const -> void;
 
-        std::vector<runtime::OpLine> m_ops;
-        std::vector<runtime::Value> m_constants;
-        std::vector<runtime::Value> m_captures;
-    };
-}
+private:
+    std::string m_name;
+    u8 m_arity;
+    u32 m_numLambdas{0};
 
-#endif
+    std::vector<runtime::OpLine> m_ops;
+    std::vector<runtime::Value> m_constants;
+    std::vector<runtime::Value> m_captures;
+};  // class PoiseFunction
+}   // namespace poise::objects
+
+#endif  // #ifndef POISE_FUNCTION_HPP
