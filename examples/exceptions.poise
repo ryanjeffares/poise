@@ -1,0 +1,12 @@
+func main() {
+    println(foo());
+}
+
+func foo() {
+    return bar();
+}
+
+func bar() {
+    println("Hello from bar!");
+    return 0;
+}

@@ -23,6 +23,9 @@ auto formatter<Op>::format(poise::runtime::Op op, fmt::format_context& context) 
         case Op::DeclareLocal:
             result = "DeclareLocal";
             break;
+        case Op::EnterTry:
+            result = "EnterTry";
+            break;
         case Op::LoadCapture:
             result = "LoadCapture";
             break;

@@ -16,6 +16,11 @@ auto PoiseObject::refCount() const -> usize
     return m_refCount;
 }
 
+auto PoiseObject::asException() -> PoiseException*
+{
+    return nullptr;
+}
+
 auto PoiseObject::asFunction() -> PoiseFunction*
 {
     return nullptr;

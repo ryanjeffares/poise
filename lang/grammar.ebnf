@@ -2,13 +2,15 @@ program = { declaration } EOF ;
 
 declaration = funcDecl | varDecl | statement ;
 
-funcDecl = "func", IDENTIFIER, "(", [ FUNCTION_ARGS ], ")", ":", [ { declaration } ], "end" ;
+funcDecl = "func", IDENTIFIER, "(", [ FUNCTION_ARGS ], ")", ":", [ { declaration - funcDecl } ], "end" ;
 varDecl = ("var" | "final") , IDENTIFIER, [ "=", expression ] ";" ;
 
-statement = assignmentStatement | expressionStatement | printlnStatement | returnStatement ;
+statement = assignmentStatement | expressionStatement | printlnStatement | returnStatement | tryCatchStatement ;
+
 expressionStatement = expression, [ "=", expression ], ";" ;
 printlnStatement = "println", "(", expression, ")" ;
 returnStatement = "return", [ expression ], ";" ;
+tryCatchStatement = "try", "{", [ { declaration - funcDecl } ], "}", "catch", [ IDENTIFIER ], "{", [ { declaration - funcDecl } ], "}" ;
 
 expression = logic_or ;
 logic_or = logic_and, [ { "or", logic_and } ] ;

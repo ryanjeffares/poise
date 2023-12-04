@@ -70,11 +70,6 @@ auto Compiler::compile() -> CompileResult
     return CompileResult::Success;
 }
 
-auto Compiler::checkContext(Context context) -> bool
-{
-    return std::find(m_contextStack.begin(), m_contextStack.end(), context) != m_contextStack.end();
-}
-
 auto Compiler::emitOp(runtime::Op op, usize line) -> void
 {
     m_vm->emitOp(op, line);
@@ -215,8 +210,8 @@ auto Compiler::funcDeclaration() -> void
 
 auto Compiler::varDeclaration(bool isFinal) -> void
 {
-    if (!checkContext(Context::Function)) {
-        errorAtPrevious("Variable declaration only allowed inside a function");
+    if (m_contextStack.back() == Context::TopLevel) {
+        errorAtPrevious("Variable declaration not allowed at top level");
         return;
     }
 
@@ -251,8 +246,8 @@ auto Compiler::varDeclaration(bool isFinal) -> void
 
 auto Compiler::statement() -> void
 {
-    if (!checkContext(Context::Function)) {
-        errorAtCurrent("Statements only allowed within functions");
+    if (m_contextStack.back() == Context::TopLevel) {
+        errorAtCurrent("Statements not allowed at top level");
         return;
     }
 
@@ -260,6 +255,8 @@ auto Compiler::statement() -> void
         printLnStatement();
     } else if (match(scanner::TokenType::Return)) {
         returnStatement();
+    } else if (match(scanner::TokenType::Try)) {
+        tryCatchStatement();
     } else {
         expressionStatement();
     }
@@ -327,6 +324,50 @@ auto Compiler::returnStatement() -> void
     emitOp(runtime::Op::Return, m_previous->line());
 
     EXPECT_SEMICOLON();
+}
+
+auto Compiler::tryCatchStatement() -> void
+{
+    if (m_contextStack.back() == Context::TopLevel) {
+        errorAtPrevious("'try' not allowed at top level");
+        return;
+    }
+
+    emitOp(runtime::Op::EnterTry, m_previous->line());
+    RETURN_IF_NO_MATCH(scanner::TokenType::OpenBrace, "Expected '{'");
+
+    while (!match(scanner::TokenType::CloseBrace)) {
+        if (check(scanner::TokenType::EndOfFile)) {
+            errorAtCurrent("Unterminated try block");
+            return;
+        }
+
+        if (m_hadError) {
+            return;
+        }
+
+        declaration();
+    }
+
+    RETURN_IF_NO_MATCH(scanner::TokenType::Catch, "Expected 'catch' after 'try' block");
+
+    if (match(scanner::TokenType::Identifier)) {
+        // create this as a local
+        // assign the caught exception to that local
+    }
+
+    while (!match(scanner::TokenType::CloseBrace)) {
+        if (check(scanner::TokenType::EndOfFile)) {
+            errorAtCurrent("Unterminated catch block");
+            return;
+        }
+
+        if (m_hadError) {
+            return;
+        }
+
+        declaration();
+    }
 }
 
 auto Compiler::expression(bool canAssign) -> void

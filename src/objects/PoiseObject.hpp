@@ -11,6 +11,7 @@ class Value;
 }
 
 namespace poise::objects {
+class PoiseException;
 class PoiseFunction;
 class PoiseType;
 
@@ -19,7 +20,7 @@ class PoiseObject
 public:
     enum class ObjectType
     {
-        Function, Type,
+        Exception, Function, Type,
     };
 
     PoiseObject() = default;
@@ -33,6 +34,7 @@ public:
     [[nodiscard]] auto decrementRefCount() -> usize;
     [[nodiscard]] auto refCount() const -> usize;
 
+    [[nodiscard]] virtual auto asException() -> PoiseException*;
     [[nodiscard]] virtual auto asFunction() -> PoiseFunction*;
     [[nodiscard]] virtual auto asType() -> PoiseType*;
 

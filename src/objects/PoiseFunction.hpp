@@ -18,17 +18,17 @@ public:
     PoiseFunction(std::string name, u8 arity);
     ~PoiseFunction() override = default;
 
-    auto asFunction() -> PoiseFunction* override;
-
-    auto emitOp(runtime::Op op, usize line) -> void;
-    auto emitConstant(runtime::Value value) -> void;
-    auto setConstant(runtime::Value value, usize index) -> void;
-
     auto print() const -> void override;
     auto printLn() const -> void override;
     [[nodiscard]] auto toString() const -> std::string override;
     [[nodiscard]] auto typeValue() const -> const runtime::Value& override;
     [[nodiscard]] auto objectType() const -> ObjectType override;
+
+    auto asFunction() -> PoiseFunction* override;
+
+    auto emitOp(runtime::Op op, usize line) -> void;
+    auto emitConstant(runtime::Value value) -> void;
+    auto setConstant(runtime::Value value, usize index) -> void;
 
     [[nodiscard]] auto opList() const -> std::span<const runtime::OpLine>;
     [[nodiscard]] auto numOps() const -> usize;

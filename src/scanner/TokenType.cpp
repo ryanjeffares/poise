@@ -27,6 +27,7 @@ auto isTypeIdent(TokenType tokenType) -> bool
            tokenType == TokenType::IntIdent ||
            tokenType == TokenType::NoneIdent ||
            tokenType == TokenType::StringIdent ||
+           tokenType == TokenType::ExceptionIdent ||
            tokenType == TokenType::FunctionIdent;
 }
 
@@ -69,9 +70,6 @@ auto formatter<TokenType>::format(TokenType tokenType, format_context& context) 
         case TokenType::FloatIdent:
             result = "FloatIdent";
             break;
-        case TokenType::FunctionIdent:
-            result = "FunctionIdent";
-            break;
         case TokenType::IntIdent:
             result = "IntIdent";
             break;
@@ -81,8 +79,17 @@ auto formatter<TokenType>::format(TokenType tokenType, format_context& context) 
         case TokenType::StringIdent:
             result = "StringIdent";
             break;
+        case TokenType::ExceptionIdent:
+            result = "ExceptionIdent";
+            break;
+        case TokenType::FunctionIdent:
+            result = "FunctionIdent";
+            break;
         case TokenType::And:
             result = "And";
+            break;
+        case TokenType::Catch:
+            result = "Catch";
             break;
         case TokenType::Final:
             result = "Final";
@@ -98,6 +105,9 @@ auto formatter<TokenType>::format(TokenType tokenType, format_context& context) 
             break;
         case TokenType::Return:
             result = "Return";
+            break;
+        case TokenType::Try:
+            result = "Try";
             break;
         case TokenType::TypeOf:
             result = "TypeOf";

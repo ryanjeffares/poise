@@ -17,6 +17,7 @@ enum class Op : u8
     ConstructBuiltin,
     DeclareFunction,
     DeclareLocal,
+    EnterTry,
     LoadCapture,
     LoadConstant,
     LoadFunction,

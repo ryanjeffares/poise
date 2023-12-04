@@ -30,15 +30,15 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * ~~Expressions with primitives~~
     * ~~Short-circuiting~~
 * ~~Variables~~
-* Functions 
+* ~~Functions~~
     * ~~Declaration~~
     * ~~Calling~~
     * ~~Returning~~
     * ~~Lambda~~
-* Assignment statements
-    * Potential big compiler refactor to scan all tokens into a vector before compiling, so we can look ahead
-    * Unless I can think of a better way, cos that's a bit messy
+* ~~Assignment statements~~
 * Error handling
+    * When we do constants, handle a constant value for construction Exceptions
+* Constants
 * If statements
 * While loops
 * Native functions

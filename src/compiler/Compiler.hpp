@@ -27,10 +27,9 @@ public:
 private:
     enum class Context
     {
-        TopLevel, Function,
+        Function, TopLevel, TryCatch,
     };
 
-    [[nodiscard]] auto checkContext(Context context) -> bool;
     auto emitOp(runtime::Op op, usize line) -> void;
     auto emitConstant(runtime::Value value) -> void;
 
@@ -54,6 +53,7 @@ private:
     auto expressionStatement() -> void;
     auto printLnStatement() -> void;
     auto returnStatement() -> void;
+    auto tryCatchStatement() -> void;
 
     auto expression(bool canAssign) -> void;
     auto logicOr(bool canAssign) -> void;

@@ -44,6 +44,7 @@ Scanner::Scanner(const std::filesystem::path& inFilePath)
         {"None", TokenType::NoneIdent},
         {"String", TokenType::StringIdent},
         {"Function", TokenType::FunctionIdent},
+        {"Exception", TokenType::ExceptionIdent},
     }
 {
     std::ifstream inFileStream{inFilePath};

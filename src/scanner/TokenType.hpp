@@ -14,15 +14,18 @@ enum class TokenType : u8
     IntIdent,
     NoneIdent,
     StringIdent,
+    ExceptionIdent,
     FunctionIdent,
 
     // keywords
     And,
+    Catch,
     Final,
     Func,
     Or,
     PrintLn,
     Return,
+    Try,
     TypeOf,
     Var,
 

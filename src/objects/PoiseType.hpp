@@ -12,7 +12,7 @@ namespace poise::types {
 enum class Type
 {
     // order matches primitive type tokens and Value::Type primitives
-    Bool, Float, Int, None, String, Function, Type,
+    Bool, Float, Int, None, String, Exception, Function, Type,
 };
 }   // namespace poise::types
 
@@ -48,19 +48,21 @@ private:
 namespace poise::types {
 inline const runtime::Value s_boolType = runtime::Value::createObject<objects::PoiseType>(types::Type::Bool, "Bool");
 inline const runtime::Value s_floatType = runtime::Value::createObject<objects::PoiseType>(types::Type::Float, "Float");
-inline const runtime::Value s_functionType = runtime::Value::createObject<objects::PoiseType>(types::Type::Function, "Function");
 inline const runtime::Value s_intType = runtime::Value::createObject<objects::PoiseType>(types::Type::Int, "Int");
 inline const runtime::Value s_noneType = runtime::Value::createObject<objects::PoiseType>(types::Type::None, "None");
 inline const runtime::Value s_stringType = runtime::Value::createObject<objects::PoiseType>(types::Type::String, "String");
+inline const runtime::Value s_exceptionType = runtime::Value::createObject<objects::PoiseType>(types::Type::Exception, "Exception");
+inline const runtime::Value s_functionType = runtime::Value::createObject<objects::PoiseType>(types::Type::Function, "Function");
 inline const runtime::Value s_typeType = runtime::Value::createObject<objects::PoiseType>(types::Type::Type, "Type");
 
 inline const std::unordered_map<types::Type, runtime::Value> s_typeLookup = {
     {types::Type::Bool,     s_boolType},
     {types::Type::Float,    s_floatType},
-    {types::Type::Function, s_functionType},
     {types::Type::Int,      s_intType},
     {types::Type::None,     s_noneType},
     {types::Type::String,   s_stringType},
+    {types::Type::Exception, s_exceptionType},
+    {types::Type::Function, s_functionType},
     {types::Type::Type,     s_typeType},
 };
 }   // namespace poise::types

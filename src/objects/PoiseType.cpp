@@ -1,4 +1,5 @@
 #include "PoiseType.hpp"
+#include "PoiseException.hpp"
 
 #include <fmt/core.h>
 #include <fmt/format.h>
@@ -78,26 +79,33 @@ auto PoiseType::construct(std::span<const runtime::Value> args) const -> runtime
         case types::Type::None:
             return args.empty() || args[0].type() == runtime::Value::Type::None
                    ? runtime::Value::none()
-                   : throw std::runtime_error(fmt::format("Cannot construct None from '{}'", args[0].type()));
+                   : throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("Cannot construct None from '{}'", args[0].type()));
         case types::Type::String:
             return args.empty() ? "" : args[0].toString();
+        case types::Type::Exception: {
+            if (args.empty()) {
+                throw PoiseException(PoiseException::ExceptionType::IncorrectArgCount, "'Function' constructor takes 1 argument but was given none");
+            }
+
+            return runtime::Value::createObject<PoiseException>(args[0].toString());
+        }
         case types::Type::Function: {
             if (args.empty()) {
-                throw std::runtime_error("'Function' constructor takes 1 argument but was given none");
+                throw PoiseException(PoiseException::ExceptionType::IncorrectArgCount, "'Function' constructor takes 1 argument but was given none");
             }
 
             if (const auto object = args[0].object()) {
                 if (const auto function = object->asFunction()) {
                     return args[0];
                 } else {
-                    throw std::runtime_error("'Function' can only be constructed from Function or Lambda");
+                    throw PoiseException(PoiseException::ExceptionType::InvalidType, "'Function' can only be constructed from Function or Lambda");
                 }
             } else {
-                throw std::runtime_error("'Function' can only be constructed from Function or Lambda");
+                throw PoiseException(PoiseException::ExceptionType::InvalidType, "'Function' can only be constructed from Function or Lambda");
             }
         }
         case types::Type::Type:
-            throw std::runtime_error("Cannot construct Type");
+            throw PoiseException(PoiseException::ExceptionType::InvalidType, "Cannot construct Type");
         default:
             POISE_UNREACHABLE();
             return runtime::Value::none();
