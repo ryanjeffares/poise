@@ -57,10 +57,10 @@ auto Compiler::compile() -> CompileResult
 
     if (m_mainFunction) {
         emitConstant("main");
-        emitOp(runtime::Op::LoadFunction, 0zu);
+        emitOp(runtime::Op::LoadFunction, 0_uz);
         emitConstant(0);
-        emitOp(runtime::Op::Call, 0zu);
-        emitOp(runtime::Op::Pop, 0zu);
+        emitOp(runtime::Op::Call, 0_uz);
+        emitOp(runtime::Op::Pop, 0_uz);
         emitOp(runtime::Op::Exit, m_scanner.getNumLines());
     } else {
         errorAtPrevious("No main function declared");
@@ -91,9 +91,9 @@ auto Compiler::emitJump(bool jumpCondition) -> JumpIndexes
     emitOp(jumpCondition ? runtime::Op::JumpIfTrue : runtime::Op::JumpIfFalse, m_previous->line());
 
     const auto jumpConstantIndex = function->numConstants();
-    emitConstant(0zu);
+    emitConstant(0_uz);
     const auto jumpOpIndex = function->numConstants();
-    emitConstant(0zu);
+    emitConstant(0_uz);
 
     return {jumpConstantIndex, jumpOpIndex};
 }
@@ -233,7 +233,7 @@ auto Compiler::varDeclaration(bool isFinal) -> void
     m_localNames.push_back({std::move(varName), isFinal});
 
     if (match(scanner::TokenType::Equal)) {
-        expression();
+        expression(false);
     } else {
         if (isFinal) {
             errorAtCurrent("Expected assignment after 'final'");
@@ -277,9 +277,23 @@ auto Compiler::expressionStatement() -> void
         ```
 
         so emit an extra `Pop` instruction to remove that unused result
+
+        OR an assignment
+
+        ```
+        var my_var = "hello";
+        my_var = "goodbye"; // here
+        ```
+
+        in that case, nothing to pop if the last emitted op was assign local
     */
-    expression();
-    emitOp(runtime::Op::Pop, m_previous->line());
+
+    expression(true);
+
+    if (m_vm->getCurrentFunction()->opList().back().op != runtime::Op::AssignLocal) {
+        emitOp(runtime::Op::Pop, m_previous->line());
+    }
+
     EXPECT_SEMICOLON();
 }
 
@@ -287,7 +301,7 @@ auto Compiler::printLnStatement() -> void
 {
     RETURN_IF_NO_MATCH(scanner::TokenType::OpenParen, "Expected '(' after 'println'");
 
-    expression();
+    expression(false);
     emitOp(runtime::Op::PrintLn, m_previous->line());
 
     RETURN_IF_NO_MATCH(scanner::TokenType::CloseParen, "Expected ')' after 'println'");
@@ -302,7 +316,7 @@ auto Compiler::returnStatement() -> void
         emitOp(runtime::Op::LoadConstant, m_previous->line());
     } else {
         // else the return value should be any expression
-        expression();
+        expression(false);
     }
 
     // pop local variables
@@ -315,19 +329,19 @@ auto Compiler::returnStatement() -> void
     EXPECT_SEMICOLON();
 }
 
-auto Compiler::expression() -> void
+auto Compiler::expression(bool canAssign) -> void
 {
     // expressions can only start with a literal, unary op, or identifier
     if (scanner::isValidStartOfExpression(m_current->tokenType())) {
-        logicOr();
+        logicOr(canAssign);
     } else {
         errorAtCurrent("Expected expression");
     }
 }
 
-auto Compiler::logicOr() -> void
+auto Compiler::logicOr(bool canAssign) -> void
 {
-    logicAnd();
+    logicAnd(canAssign);
 
     std::optional<JumpIndexes> jumpIndexes;
     if (check(scanner::TokenType::Or)) {
@@ -335,7 +349,7 @@ auto Compiler::logicOr() -> void
     }
 
     while (match(scanner::TokenType::Or)) {
-        logicAnd();
+        logicAnd(canAssign);
         emitOp(runtime::Op::LogicOr, m_previous->line());
     }
 
@@ -344,9 +358,9 @@ auto Compiler::logicOr() -> void
     }
 }
 
-auto Compiler::logicAnd() -> void
+auto Compiler::logicAnd(bool canAssign) -> void
 {
-    bitwiseOr();
+    bitwiseOr(canAssign);
 
     std::optional<JumpIndexes> jumpIndexes;
     if (check(scanner::TokenType::And)) {
@@ -354,7 +368,7 @@ auto Compiler::logicAnd() -> void
     }
 
     while (match(scanner::TokenType::And)) {
-        bitwiseOr();
+        bitwiseOr(canAssign);
         emitOp(runtime::Op::LogicAnd, m_previous->line());
     }
 
@@ -363,78 +377,78 @@ auto Compiler::logicAnd() -> void
     }
 }
 
-auto Compiler::bitwiseOr() -> void
+auto Compiler::bitwiseOr(bool canAssign) -> void
 {
-    bitwiseXor();
+    bitwiseXor(canAssign);
 
     while (match(scanner::TokenType::Pipe)) {
-        bitwiseXor();
+        bitwiseXor(canAssign);
         emitOp(runtime::Op::BitwiseOr, m_previous->line());
     }
 }
 
-auto Compiler::bitwiseXor() -> void
+auto Compiler::bitwiseXor(bool canAssign) -> void
 {
-    bitwiseAnd();
+    bitwiseAnd(canAssign);
 
     while (match(scanner::TokenType::Caret)) {
-        bitwiseAnd();
+        bitwiseAnd(canAssign);
         emitOp(runtime::Op::BitwiseXor, m_previous->line());
     }
 }
 
-auto Compiler::bitwiseAnd() -> void
+auto Compiler::bitwiseAnd(bool canAssign) -> void
 {
-    equality();
+    equality(canAssign);
 
     while (match(scanner::TokenType::Ampersand)) {
-        equality();
+        equality(canAssign);
         emitOp(runtime::Op::BitwiseAnd, m_previous->line());
     }
 }
 
-auto Compiler::equality() -> void
+auto Compiler::equality(bool canAssign) -> void
 {
-    comparison();
+    comparison(canAssign);
 
     if (match(scanner::TokenType::EqualEqual)) {
-        comparison();
+        comparison(canAssign);
         emitOp(runtime::Op::Equal, m_previous->line());
     } else if (match(scanner::TokenType::NotEqual)) {
-        comparison();
+        comparison(canAssign);
         emitOp(runtime::Op::NotEqual, m_previous->line());
     }
 }
 
-auto Compiler::comparison() -> void
+auto Compiler::comparison(bool canAssign) -> void
 {
-    shift();
+    shift(canAssign);
 
     if (match(scanner::TokenType::Less)) {
-        shift();
+        shift(canAssign);
         emitOp(runtime::Op::LessThan, m_previous->line());
     } else if (match(scanner::TokenType::LessEqual)) {
-        shift();
+        shift(canAssign);
         emitOp(runtime::Op::LessEqual, m_previous->line());
     } else if (match(scanner::TokenType::Greater)) {
-        shift();
+        shift(canAssign);
         emitOp(runtime::Op::GreaterThan, m_previous->line());
     } else if (match(scanner::TokenType::GreaterEqual)) {
-        shift();
+        shift(canAssign);
         emitOp(runtime::Op::GreaterEqual, m_previous->line());
     }
 }
 
-auto Compiler::shift() -> void
+auto Compiler::shift(bool canAssign) -> void
 {
-    term();
+    term(canAssign);
 
     while (true) {
         if (match(scanner::TokenType::ShiftLeft)) {
-            term();
+            term(canAssign);
             emitOp(runtime::Op::LeftShift, m_previous->line());
         } else if (match(scanner::TokenType::ShiftRight)) {
-            term();
+            term(canAssign);
             emitOp(runtime::Op::RightShift, m_previous->line());
         } else {
             break;
@@ -442,16 +456,16 @@ auto Compiler::shift() -> void
     }
 }
 
-auto Compiler::term() -> void
+auto Compiler::term(bool canAssign) -> void
 {
-    factor();
+    factor(canAssign);
 
     while (true) {
         if (match(scanner::TokenType::Plus)) {
-            factor();
+            factor(canAssign);
             emitOp(runtime::Op::Addition, m_previous->line());
         } else if (match(scanner::TokenType::Minus)) {
-            factor();
+            factor(canAssign);
             emitOp(runtime::Op::Subtraction, m_previous->line());
         } else {
             break;
@@ -459,19 +473,19 @@ auto Compiler::term() -> void
     }
 }
 
-auto Compiler::factor() -> void
+auto Compiler::factor(bool canAssign) -> void
 {
-    unary();
+    unary(canAssign);
 
     while (true) {
         if (match(scanner::TokenType::Star)) {
-            unary();
+            unary(canAssign);
             emitOp(runtime::Op::Multiply, m_previous->line());
         } else if (match(scanner::TokenType::Slash)) {
-            unary();
+            unary(canAssign);
             emitOp(runtime::Op::Divide, m_previous->line());
         } else if (match(scanner::TokenType::Modulus)) {
-            unary();
+            unary(canAssign);
             emitOp(runtime::Op::Modulus, m_previous->line());
         } else {
             break;
@@ -479,32 +493,32 @@ auto Compiler::factor() -> void
     }
 }
 
-auto Compiler::unary() -> void
+auto Compiler::unary(bool canAssign) -> void
 {
     if (match(scanner::TokenType::Minus)) {
         const auto line = m_previous->line();
-        unary();
+        unary(canAssign);
         emitOp(runtime::Op::Negate, line);
     } else if (match(scanner::TokenType::Tilde)) {
         const auto line = m_previous->line();
-        unary();
+        unary(canAssign);
         emitOp(runtime::Op::BitwiseNot, line);
     } else if (match(scanner::TokenType::Exclamation)) {
         const auto line = m_previous->line();
-        unary();
+        unary(canAssign);
         emitOp(runtime::Op::LogicNot, line);
     } else if (match(scanner::TokenType::Plus)) {
         auto line = m_previous->line();
-        unary();
+        unary(canAssign);
         emitOp(runtime::Op::Plus, line);
     } else {
-        call();
+        call(canAssign);
     }
 }
 
-auto Compiler::call() -> void
+auto Compiler::call(bool canAssign) -> void
 {
-    primary();
+    primary(canAssign);
 
     while (match(scanner::TokenType::OpenParen)) {
         const auto numArgs = parseCallArgs();
@@ -513,7 +527,7 @@ auto Compiler::call() -> void
     }
 }
 
-auto Compiler::primary() -> void
+auto Compiler::primary(bool canAssign) -> void
 {
     if (match(scanner::TokenType::False)) {
         emitConstant(false);
@@ -531,10 +545,10 @@ auto Compiler::primary() -> void
     } else if (match(scanner::TokenType::String)) {
         parseString();
     } else if (match(scanner::TokenType::OpenParen)) {
-        expression();
+        expression(false);
         RETURN_IF_NO_MATCH(scanner::TokenType::CloseParen, "Expected ')'");
     } else if (match(scanner::TokenType::Identifier)) {
-        identifier();
+        identifier(canAssign);
     } else if (scanner::isTypeIdent(m_current->tokenType())) {
         advance();
         typeIdent();
@@ -545,23 +559,46 @@ auto Compiler::primary() -> void
     } else {
         errorAtCurrent("Invalid token at start of expression");
     }
+
+    if (check(scanner::TokenType::Equal)) {
+        // any assignment should have been handled in the above functions
+        // if no assignment was allowed, no other tokens were consumed
+        errorAtCurrent("Assignment is not allowed here");
+    }
 }
 
-auto Compiler::identifier() -> void
+auto Compiler::identifier(bool canAssign) -> void
 {
     const auto identifier = m_previous->text();
     const auto findLocal = std::find_if(m_localNames.begin(), m_localNames.end(),
-                                        [&identifier](const LocalVariable& local) {
-                                            return local.name == identifier;
-                                        });
+        [&identifier](const LocalVariable& local) {
+            return local.name == identifier;
+        });
 
     if (findLocal == m_localNames.end()) {
         emitConstant(identifier);
         emitOp(runtime::Op::LoadFunction, m_previous->line());
     } else {
         const auto localIndex = std::distance(m_localNames.begin(), findLocal);
-        emitConstant(localIndex);
-        emitOp(runtime::Op::LoadLocal, m_previous->line());
+
+        if (match(scanner::TokenType::Equal)) {
+            if (!canAssign) {
+                errorAtPrevious("Assignment not allowed here");
+                return;
+            }
+
+            if (findLocal->isFinal) {
+                errorAtPrevious(fmt::format("'{}' is marked final", findLocal->name));
+                return;
+            }
+
+            expression(false);
+            emitConstant(localIndex);
+            emitOp(runtime::Op::AssignLocal, m_previous->line());
+        } else {
+            emitConstant(localIndex);
+            emitOp(runtime::Op::LoadLocal, m_previous->line());
+        }
     }
 }
 
@@ -592,7 +629,7 @@ auto Compiler::typeIdent() -> void
 auto Compiler::typeOf() -> void
 {
     RETURN_IF_NO_MATCH(scanner::TokenType::OpenParen, "Expected '('");
-    expression();
+    expression(false);
     emitOp(runtime::Op::TypeOf, m_previous->line());
     RETURN_IF_NO_MATCH(scanner::TokenType::CloseParen, "Expected ')");
 }
@@ -647,7 +684,7 @@ auto Compiler::lambda() -> void
     auto oldLocals = std::move(m_localNames);
     m_localNames = std::move(captures);
 
-    u8 numArgs = 0;
+    auto numArgs = 0_u8;
     if (match(scanner::TokenType::OpenParen)) {
         numArgs = parseFunctionArgs();
     }
@@ -664,7 +701,7 @@ auto Compiler::lambda() -> void
 
     m_vm->setCurrentFunction(functionPtr);
 
-    for (auto i = 0zu; i < m_localNames.size() - numArgs; i++) {
+    for (auto i = 0_uz; i < m_localNames.size() - numArgs; i++) {
         emitConstant(i);
         emitOp(runtime::Op::LoadCapture, m_previous->line());
     }
@@ -731,12 +768,12 @@ auto Compiler::parseString() -> void
 {
     std::string result;
     const auto tokenText = m_previous->text();
-    auto i = 1zu;
-    while (i < tokenText.length() - 1zu) {
+    auto i = 1_uz;
+    while (i < tokenText.length() - 1_uz) {
         if (tokenText[i] == '\\') {
             i++;
 
-            if (i == tokenText.length() - 1zu) {
+            if (i == tokenText.length() - 1_uz) {
                 errorAtPrevious("Expected escape character but string terminated");
                 return;
             }
@@ -760,7 +797,7 @@ auto Compiler::parseString() -> void
 
 auto Compiler::parseInt() -> void
 {
-    i64 result;
+    auto result{0_i64};
     const auto text = m_previous->text();
     const auto [ptr, ec] = std::from_chars(text.data(), text.data() + text.length(), result);
 
@@ -793,7 +830,7 @@ auto Compiler::parseFloat() -> void
 
 auto Compiler::parseCallArgs() -> u8
 {
-    u8 numArgs = 0;
+    auto numArgs = 0_u8;
 
     while (true) {
         if (match(scanner::TokenType::CloseParen)) {
@@ -805,7 +842,7 @@ auto Compiler::parseCallArgs() -> u8
             break;
         }
 
-        expression();
+        expression(false);
         numArgs++;
 
         // trailing commas are allowed but all arguments must be comma separated
@@ -825,7 +862,7 @@ auto Compiler::parseCallArgs() -> u8
 
 auto Compiler::parseFunctionArgs() -> u8
 {
-    u8 numArgs = 0;
+    auto numArgs = 0_u8;
 
     while (true) {
         if (match(scanner::TokenType::CloseParen)) {
@@ -895,22 +932,22 @@ auto Compiler::error(const scanner::Token& token, std::string_view message) -> v
     fmt::print(stderr, "       --> {}:{}:{}\n", m_filePath.string(), token.line(), token.column());
     fmt::print(stderr, "        |\n");
 
-    if (token.line() > 1zu) {
-        fmt::print(stderr, "{:>7} | {}\n", token.line() - 1zu, m_scanner.getCodeAtLine(token.line() - 1zu));
+    if (token.line() > 1_uz) {
+        fmt::print(stderr, "{:>7} | {}\n", token.line() - 1_uz, m_scanner.getCodeAtLine(token.line() - 1_uz));
     }
 
     fmt::print(stderr, "{:>7} | {}\n", token.line(), m_scanner.getCodeAtLine(token.line()));
     fmt::print(stderr, "        | ");
-    for (auto i = 1zu; i < token.column(); i++) {
+    for (auto i = 1_uz; i < token.column(); i++) {
         fmt::print(stderr, " ");
     }
 
-    for (auto i = 0zu; i < token.length(); i++) {
+    for (auto i = 0_uz; i < token.length(); i++) {
         fmt::print(stderr, fmt::fg(fmt::color::red), "^");
     }
 
     if (token.line() < m_scanner.getNumLines()) {
-        fmt::print(stderr, "\n{:>7} | {}\n", token.line() + 1zu, m_scanner.getCodeAtLine(token.line() + 1zu));
+        fmt::print(stderr, "\n{:>7} | {}\n", token.line() + 1_uz, m_scanner.getCodeAtLine(token.line() + 1_uz));
     }
 
     fmt::print(stderr, "        |\n");

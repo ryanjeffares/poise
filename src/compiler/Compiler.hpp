@@ -55,22 +55,22 @@ private:
     auto printLnStatement() -> void;
     auto returnStatement() -> void;
 
-    auto expression() -> void;
-    auto logicOr() -> void;
-    auto logicAnd() -> void;
-    auto bitwiseOr() -> void;
-    auto bitwiseXor() -> void;
-    auto bitwiseAnd() -> void;
-    auto equality() -> void;
-    auto comparison() -> void;
-    auto shift() -> void;
-    auto term() -> void;
-    auto factor() -> void;
-    auto unary() -> void;
-    auto call() -> void;
-    auto primary() -> void;
+    auto expression(bool canAssign) -> void;
+    auto logicOr(bool canAssign) -> void;
+    auto logicAnd(bool canAssign) -> void;
+    auto bitwiseOr(bool canAssign) -> void;
+    auto bitwiseXor(bool canAssign) -> void;
+    auto bitwiseAnd(bool canAssign) -> void;
+    auto equality(bool canAssign) -> void;
+    auto comparison(bool canAssign) -> void;
+    auto shift(bool canAssign) -> void;
+    auto term(bool canAssign) -> void;
+    auto factor(bool canAssign) -> void;
+    auto unary(bool canAssign) -> void;
+    auto call(bool canAssign) -> void;
+    auto primary(bool canAssign) -> void;
 
-    auto identifier() -> void;
+    auto identifier(bool canAssign) -> void;
     auto typeIdent() -> void;
     auto typeOf() -> void;
     auto lambda() -> void;

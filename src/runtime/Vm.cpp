@@ -62,9 +62,9 @@ auto Vm::run() -> RunResult
     std::vector<std::span<const OpLine>> opListStack{m_globalOps};
     std::vector<std::span<const Value>> constantListStack{m_globalConstants};
 
-    std::vector<usize> localIndexOffsetStack = {0zu};
-    std::vector<usize> opIndexStack = {0zu};
-    std::vector<usize> constantIndexStack = {0zu};
+    std::vector<usize> localIndexOffsetStack = {0_uz};
+    std::vector<usize> opIndexStack = {0_uz};
+    std::vector<usize> constantIndexStack = {0_uz};
 
     std::vector<objects::PoiseFunction*> callStack;
 
@@ -76,7 +76,7 @@ auto Vm::run() -> RunResult
     };
 
     auto popTwo = [&stack] -> std::tuple<Value, Value> {
-        POISE_ASSERT(stack.size() >= 2zu, "Stack is not big enough, there has been an error in codegen");
+        POISE_ASSERT(stack.size() >= 2_uz, "Stack is not big enough, there has been an error in codegen");
         auto value1 = std::move(stack.back());
         stack.pop_back();
         auto value2 = std::move(stack.back());
@@ -88,8 +88,8 @@ auto Vm::run() -> RunResult
         std::vector<Value> args;
         args.resize(numArgs);
 
-        for (auto i = 0zu; i < numArgs; i++) {
-            args[args.size() - 1zu - i] = pop();
+        for (auto i = 0_uz; i < numArgs; i++) {
+            args[args.size() - 1_uz - i] = pop();
         }
 
         return args;
@@ -104,6 +104,11 @@ auto Vm::run() -> RunResult
         const auto [op, line] = opList[opIndex++];
 
         switch (op) {
+            case Op::AssignLocal: {
+                const auto index = constantList[constantIndex++].value<usize>();
+                localVariables[index + localIndexOffsetStack.back()] = pop();
+                break;
+            }
             case Op::CaptureLocal: {
                 auto& lambda = stack.back();
                 const auto index = constantList[constantIndex++].value<usize>();
@@ -162,7 +167,7 @@ auto Vm::run() -> RunResult
             }
             case Op::PopLocals: {
                 const auto& numLocals = constantList[constantIndex++];
-                for (auto i = 0zu; i < numLocals.value<usize>(); i++) {
+                for (auto i = 0_uz; i < numLocals.value<usize>(); i++) {
                     localVariables.pop_back();
                 }
                 break;
@@ -306,8 +311,8 @@ auto Vm::run() -> RunResult
 
                         opListStack.push_back(function->opList());
                         constantListStack.push_back(function->constantList());
-                        opIndexStack.push_back(0zu);
-                        constantIndexStack.push_back(0zu);
+                        opIndexStack.push_back(0_uz);
+                        constantIndexStack.push_back(0_uz);
 
                         callStack.emplace_back(function);
                     } else if (auto type = object->asType()) {

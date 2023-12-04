@@ -38,7 +38,7 @@ Value& Value::operator=(const Value& other)
         if (type() == Type::String) {
             delete m_data.string;
         } else if (type() == Type::Object) {
-            if (object()->decrementRefCount() == 0zu) {
+            if (object()->decrementRefCount() == 0_uz) {
                 delete m_data.object;
             }
         }
@@ -64,7 +64,7 @@ Value& Value::operator=(Value&& other) noexcept
         if (type() == Type::String) {
             delete m_data.string;
         } else if (type() == Type::Object) {
-            if (object()->decrementRefCount() == 0zu) {
+            if (object()->decrementRefCount() == 0_uz) {
                 delete m_data.object;
             }
         }
@@ -85,7 +85,7 @@ Value::~Value()
     if (type() == Type::String) {
         delete m_data.string;
     } else if (type() == Type::Object) {
-        if (object()->decrementRefCount() == 0zu) {
+        if (object()->decrementRefCount() == 0_uz) {
             delete m_data.object;
         }
     }
@@ -401,7 +401,7 @@ auto Value::operator*(const Value& other) const -> Value
 
                     std::string res;
                     res.reserve(string().size() * other.value<usize>());
-                    for (auto i = 0zu; i < other.value<usize>(); i++) {
+                    for (auto i = 0_uz; i < other.value<usize>(); i++) {
                         res.append(string());
                     }
 

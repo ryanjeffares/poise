@@ -1,0 +1,9 @@
+func main() {
+    var my_var = "hello";
+    my_var = "goodbye";
+    println(my_var);
+
+    foo = 0;
+}
+
+func foo() {}

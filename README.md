@@ -17,7 +17,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * Think about imports
     * Could do simple file opening during compilation, but how do we resolve what has been imported during runtime?
         * I GUESS we could have some sort of map, file -> imported namespaces if we can keep track of what file the currently executing function is in during the runtime
-        * Yeah I think I like this
+        * Yeah, I think I like this
     * Or a Python style thing where a `namespace` is a type
 * Generally improve compiler errors and stop it from spitting out nonsense after one error, eg lambda capture errors
 
@@ -36,6 +36,8 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * ~~Returning~~
     * ~~Lambda~~
 * Assignment statements
+    * Potential big compiler refactor to scan all tokens into a vector before compiling, so we can look ahead
+    * Unless I can think of a better way, cos that's a bit messy
 * Error handling
 * If statements
 * While loops
@@ -72,7 +74,7 @@ int_value = t_int(5);
 * To allow the above, naming a type (`Int`, `Float`, `MyClass` (if MyClass is defined)) without a call (`()`) will load an instance of `PoiseType` made for each of these
 * For user defined classes, these will hold a `Value` which is the constructor function
 * For builtins, there will just be some bytecode
-* Cannot get type of a type, __for now__:
+* Cannot get the type of a type, __for now__:
 
 ```
 final t = typeof(Int);  // error - cannot take type of type

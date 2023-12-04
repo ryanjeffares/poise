@@ -5,8 +5,8 @@ declaration = funcDecl | varDecl | statement ;
 funcDecl = "func", IDENTIFIER, "(", [ FUNCTION_ARGS ], ")", ":", [ { declaration } ], "end" ;
 varDecl = ("var" | "final") , IDENTIFIER, [ "=", expression ] ";" ;
 
-statement = expressionStatement | printlnStatement | returnStatement ;
-expressionStatement = expression, ";" ;
+statement = assignmentStatement | expressionStatement | printlnStatement | returnStatement ;
+expressionStatement = expression, [ "=", expression ], ";" ;
 printlnStatement = "println", "(", expression, ")" ;
 returnStatement = "return", [ expression ], ";" ;
 

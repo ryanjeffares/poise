@@ -8,6 +8,9 @@ auto formatter<Op>::format(poise::runtime::Op op, fmt::format_context& context) 
     string_view result = "unknown";
 
     switch (op) {
+        case Op::AssignLocal:
+            result = "AssignLocal";
+            break;
         case Op::CaptureLocal:
             result = "CaptureLocal";
             break;

@@ -61,8 +61,8 @@ Scanner::Scanner(const std::filesystem::path& inFilePath)
 
 auto Scanner::getCodeAtLine(usize line) const -> std::string_view
 {
-    auto current = 1zu;
-    auto strIndex = 0zu;
+    auto current = 1_uz;
+    auto strIndex = 0_uz;
 
     while (current < line) {
         if (strIndex > m_code.length()) {
@@ -71,7 +71,7 @@ auto Scanner::getCodeAtLine(usize line) const -> std::string_view
 
         strIndex++;
 
-        if (m_code[strIndex - 1zu] == '\n') {
+        if (m_code[strIndex - 1_uz] == '\n') {
             current++;
         }
     }
@@ -82,7 +82,7 @@ auto Scanner::getCodeAtLine(usize line) const -> std::string_view
 
 auto Scanner::getNumLines() const -> usize
 {
-    auto count = 0zu;
+    auto count = 0_uz;
     for (const auto i : m_code) {
         if (i == '\n') {
             count++;
@@ -141,7 +141,7 @@ auto Scanner::skipWhitespace() -> void
                 break;
             case '\n':
                 m_line++;
-                m_column = 0zu;
+                m_column = 0_uz;
                 advance();
                 break;
             case '/': {
@@ -167,7 +167,7 @@ auto Scanner::advance() -> std::optional<char>
     } else {
         m_current++;
         m_column++;
-        return m_code[m_current - 1zu];
+        return m_code[m_current - 1_uz];
     }
 }
 
@@ -182,19 +182,19 @@ auto Scanner::peek() -> std::optional<char>
 
 auto Scanner::peekNext() -> std::optional<char>
 {
-    if (m_current >= m_code.length() - 1zu) {
+    if (m_current >= m_code.length() - 1_uz) {
         return {};
     } else {
-        return m_code[m_current + 1zu];
+        return m_code[m_current + 1_uz];
     }
 }
 
 auto Scanner::peekPrevious() -> std::optional<char>
 {
-    if (m_current == 0zu) {
+    if (m_current == 0_uz) {
         return {};
     } else {
-        return m_code[m_current - 1zu];
+        return m_code[m_current - 1_uz];
     }
 }
 
@@ -264,7 +264,7 @@ auto Scanner::string() -> Token
 
             if (*c == '\n') {
                 m_line++;
-                m_column = 0zu;
+                m_column = 0_uz;
             }
 
             advance();

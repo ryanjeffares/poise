@@ -41,7 +41,7 @@ private:
     std::string m_code;
 
     usize m_start{}, m_current{};
-    usize m_line{1zu}, m_column{0zu};
+    usize m_line{1_uz}, m_column{0_uz};
 
     std::unordered_map<char, TokenType> m_symbolLookup;
     std::unordered_map<std::string_view, TokenType> m_keywordLookup;
