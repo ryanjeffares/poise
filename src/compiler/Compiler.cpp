@@ -70,6 +70,11 @@ auto Compiler::compile() -> CompileResult
     return CompileResult::Success;
 }
 
+auto Compiler::scanner() const -> const scanner::Scanner*
+{
+    return &m_scanner;
+}
+
 auto Compiler::emitOp(runtime::Op op, usize line) -> void
 {
     m_vm->emitOp(op, line);
@@ -80,10 +85,21 @@ auto Compiler::emitConstant(runtime::Value value) -> void
     m_vm->emitConstant(std::move(value));
 }
 
-auto Compiler::emitJump(bool jumpCondition) -> JumpIndexes
+auto Compiler::emitJump(JumpType jumpType) -> JumpIndexes
 {
     const auto function = m_vm->getCurrentFunction();
-    emitOp(jumpCondition ? runtime::Op::JumpIfTrue : runtime::Op::JumpIfFalse, m_previous->line());
+
+    switch (jumpType) {
+        case JumpType::IfFalse:
+            emitOp(runtime::Op::JumpIfFalse, m_previous->line());
+            break;
+        case JumpType::IfTrue:
+            emitOp(runtime::Op::JumpIfTrue, m_previous->line());
+            break;
+        case JumpType::None:
+            emitOp(runtime::Op::Jump, m_previous->line());
+            break;
+    }
 
     const auto jumpConstantIndex = function->numConstants();
     emitConstant(0_uz);
@@ -165,7 +181,7 @@ auto Compiler::funcDeclaration() -> void
 
     auto prevFunction = m_vm->getCurrentFunction();
 
-    auto function = runtime::Value::createObject<objects::PoiseFunction>(std::move(functionName), numArgs);
+    auto function = runtime::Value::createObject<objects::PoiseFunction>(std::move(functionName), m_filePath.string(), numArgs);
     auto functionPtr = function.object()->asFunction();
     m_vm->setCurrentFunction(functionPtr);
 
@@ -256,7 +272,7 @@ auto Compiler::statement() -> void
     } else if (match(scanner::TokenType::Return)) {
         returnStatement();
     } else if (match(scanner::TokenType::Try)) {
-        tryCatchStatement();
+        tryStatement();
     } else {
         expressionStatement();
     }
@@ -326,14 +342,23 @@ auto Compiler::returnStatement() -> void
     EXPECT_SEMICOLON();
 }
 
-auto Compiler::tryCatchStatement() -> void
+auto Compiler::tryStatement() -> void
 {
     if (m_contextStack.back() == Context::TopLevel) {
         errorAtPrevious("'try' not allowed at top level");
         return;
     }
 
+    const auto numLocalsStart = m_localNames.size();
+
+    const auto function = m_vm->getCurrentFunction();
+    const auto jumpConstantIndex = function->numConstants();
+    emitConstant(0_uz);
+    const auto jumpOpIndex = function->numConstants();
+    emitConstant(0_uz);
+
     emitOp(runtime::Op::EnterTry, m_previous->line());
+
     RETURN_IF_NO_MATCH(scanner::TokenType::OpenBrace, "Expected '{'");
 
     while (!match(scanner::TokenType::CloseBrace)) {
@@ -349,12 +374,43 @@ auto Compiler::tryCatchStatement() -> void
         declaration();
     }
 
+    const auto numConstants = function->numConstants();
+    const auto numOps = function->numOps();
+    function->setConstant(numConstants, jumpConstantIndex);
+    function->setConstant(numOps, jumpOpIndex);
+
+    emitConstant(m_localNames.size() - numLocalsStart);
+    emitOp(runtime::Op::PopLocals, m_previous->line());
+
+    m_localNames.resize(numLocalsStart);
+
     RETURN_IF_NO_MATCH(scanner::TokenType::Catch, "Expected 'catch' after 'try' block");
+    catchStatement();
+}
+
+auto Compiler::catchStatement() -> void
+{
+    const auto numLocalsStart = m_localNames.size();
 
     if (match(scanner::TokenType::Identifier)) {
         // create this as a local
         // assign the caught exception to that local
+        const auto text = m_previous->text();
+
+        if (std::find_if(m_localNames.begin(), m_localNames.end(), [&text] (const LocalVariable& local) {
+            return local.name == text;
+        }) != m_localNames.end()) {
+            errorAtPrevious("Local variable with the same name already declared");
+            return;
+        }
+
+        m_localNames.push_back({m_previous->string(), false});
+        emitOp(runtime::Op::DeclareLocal, m_previous->line());
+    } else {
+        emitOp(runtime::Op::Pop, m_previous->line());
     }
+
+    RETURN_IF_NO_MATCH(scanner::TokenType::OpenBrace, "Expected '{'");
 
     while (!match(scanner::TokenType::CloseBrace)) {
         if (check(scanner::TokenType::EndOfFile)) {
@@ -368,6 +424,10 @@ auto Compiler::tryCatchStatement() -> void
 
         declaration();
     }
+
+    emitConstant(m_localNames.size() - numLocalsStart);
+    emitOp(runtime::Op::PopLocals, m_previous->line());
+    m_localNames.resize(numLocalsStart);
 }
 
 auto Compiler::expression(bool canAssign) -> void
@@ -386,7 +446,7 @@ auto Compiler::logicOr(bool canAssign) -> void
 
     std::optional<JumpIndexes> jumpIndexes;
     if (check(scanner::TokenType::Or)) {
-        jumpIndexes = emitJump(true);
+        jumpIndexes = emitJump(JumpType::IfTrue);
     }
 
     while (match(scanner::TokenType::Or)) {
@@ -405,7 +465,7 @@ auto Compiler::logicAnd(bool canAssign) -> void
 
     std::optional<JumpIndexes> jumpIndexes;
     if (check(scanner::TokenType::And)) {
-        jumpIndexes = emitJump(false);
+        jumpIndexes = emitJump(JumpType::IfFalse);
     }
 
     while (match(scanner::TokenType::And)) {
@@ -737,7 +797,7 @@ auto Compiler::lambda() -> void
     m_contextStack.push_back(Context::Function);
 
     auto lambdaName = fmt::format("{}_lambda{}", prevFunction->name(), prevFunction->numLambdas());
-    auto lambda = runtime::Value::createObject<objects::PoiseFunction>(std::move(lambdaName), numArgs);
+    auto lambda = runtime::Value::createObject<objects::PoiseFunction>(std::move(lambdaName), m_filePath.string(), numArgs);
     auto functionPtr = lambda.object()->asFunction();
 
     m_vm->setCurrentFunction(functionPtr);

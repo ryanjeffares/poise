@@ -38,6 +38,11 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * ~~Assignment statements~~
 * Error handling
     * When we do constants, handle a constant value for construction Exceptions
+    * Print only the first few call stack entries on error
+    * Ok, let's think about this:
+        * We need 2 'stacks' in the VM:
+            * One for the callstack - this needs to know the callee, then op/constant index info etc. of the call site
+            * One for the VM state for unwinding after a caught exception - this needs to know the size of the callstack after a try block was entered, and the op/constant index of the catch block to jump to
 * Constants
 * If statements
 * While loops

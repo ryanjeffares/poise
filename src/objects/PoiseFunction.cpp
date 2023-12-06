@@ -5,8 +5,9 @@
 #include <fmt/format.h>
 
 namespace poise::objects {
-PoiseFunction::PoiseFunction(std::string name, u8 arity)
+PoiseFunction::PoiseFunction(std::string name, std::string filePath, u8 arity)
     : m_name{std::move(name)}
+    , m_filePath{std::move(filePath)}
     , m_arity{arity}
 {
 
@@ -80,6 +81,11 @@ auto PoiseFunction::numConstants() const -> usize
 auto PoiseFunction::name() const -> std::string_view
 {
     return m_name;
+}
+
+auto PoiseFunction::filePath() const -> std::string_view
+{
+    return m_filePath;
 }
 
 auto PoiseFunction::arity() const -> u8

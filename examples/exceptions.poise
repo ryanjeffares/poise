@@ -1,5 +1,11 @@
 func main() {
-    println(foo());
+    final foo = "main";
+    try {
+
+        println(foo());
+    } catch error {
+        println(error);
+    }
 }
 
 func foo() {
@@ -7,6 +13,17 @@ func foo() {
 }
 
 func bar() {
-    println("Hello from bar!");
-    return 0;
+    return baz();
+}
+
+func baz() {
+    return faz();
+}
+
+func faz() {
+    return boo();
+}
+
+func boo() {
+    return "Hello" / 2;
 }

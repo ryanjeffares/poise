@@ -23,6 +23,7 @@ public:
     Compiler(runtime::Vm* vm, std::filesystem::path inFilePath);
 
     [[nodiscard]] auto compile() -> CompileResult;
+    [[nodiscard]] auto scanner() const -> const scanner::Scanner*;
 
 private:
     enum class Context
@@ -38,7 +39,12 @@ private:
         usize constantIndex, opIndex;
     };
 
-    auto emitJump(bool jumpCondition) -> JumpIndexes;
+    enum class JumpType
+    {
+        IfFalse, IfTrue, None
+    };
+
+    auto emitJump(JumpType jumpType) -> JumpIndexes;
     auto patchJump(JumpIndexes jumpIndexes) -> void;
 
     auto advance() -> void;
@@ -53,7 +59,8 @@ private:
     auto expressionStatement() -> void;
     auto printLnStatement() -> void;
     auto returnStatement() -> void;
-    auto tryCatchStatement() -> void;
+    auto tryStatement() -> void;
+    auto catchStatement() -> void;
 
     auto expression(bool canAssign) -> void;
     auto logicOr(bool canAssign) -> void;

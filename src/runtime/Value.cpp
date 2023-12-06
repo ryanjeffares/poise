@@ -118,7 +118,7 @@ auto Value::string() const -> const std::string&
 
 auto Value::object() const -> objects::PoiseObject*
 {
-    return m_data.object;
+    return m_type == Type::Object ? m_data.object : nullptr;
 }
 
 auto Value::print() const -> void

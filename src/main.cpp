@@ -28,7 +28,7 @@ int main(int argc, const char* argv[])
         std::exit(1);
     }
 
-    poise::runtime::Vm vm;
+    poise::runtime::Vm vm{inFilePath.string()};
     poise::compiler::Compiler compiler{&vm, std::move(inFilePath)};
 
     {
@@ -48,7 +48,7 @@ int main(int argc, const char* argv[])
 
     {
         const auto start = std::chrono::steady_clock::now();
-        const auto res = static_cast<int>(vm.run());
+        const auto res = static_cast<int>(vm.run(compiler.scanner()));
         const auto end = std::chrono::steady_clock::now();
 
         if (verbose) {

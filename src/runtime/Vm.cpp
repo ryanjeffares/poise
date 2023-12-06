@@ -5,8 +5,16 @@
 #include <fmt/color.h>
 #include <fmt/core.h>
 
+#include <ranges>
+#include <stack>
+
 namespace poise::runtime {
 using objects::PoiseException;
+
+Vm::Vm(std::string mainFilePath) : m_mainFilePath{std::move(mainFilePath)}
+{
+
+}
 
 auto Vm::setCurrentFunction(objects::PoiseFunction* function) -> void
 {
@@ -36,19 +44,23 @@ auto Vm::emitConstant(Value value) -> void
     }
 }
 
-auto Vm::run() -> RunResult
+auto Vm::run(const scanner::Scanner* const scanner) -> RunResult
 {
 #ifdef POISE_DEBUG
-#define PRINT_STACK()                           \
-        do {                                    \
-            fmt::print("STACK:\n");             \
-            for (const auto& value : stack) {   \
-                fmt::print("\t{}\n", value);    \
-            }                                   \
-        }                                       \
+#define PRINT_MEMORY()                                  \
+        do {                                            \
+            fmt::print("STACK:\n");                     \
+            for (const auto& value : stack) {           \
+                fmt::print("\t{}\n", value);            \
+            }                                           \
+            fmt::print("LOCALS:\n");                    \
+            for (const auto& local : localVariables) {  \
+                fmt::print("\t{}\n", local);            \
+            }                                           \
+        }                                               \
         while (false)
 #else
-#define PRINT_STACK()
+#define PRINT_MEMORY()
 #endif
 
     std::vector<Value> stack;
@@ -57,35 +69,33 @@ auto Vm::run() -> RunResult
 
     struct CallStackEntry
     {
-        std::span<const OpLine> opList;
-        std::span<const Value> constantList;
-
         usize localIndexOffset;
         usize opIndex;
         usize constantIndex;
 
-        usize line;
+        usize callSiteLine;
 
-        objects::PoiseFunction* function;
+        objects::PoiseFunction* callerFunction;
+        objects::PoiseFunction* calleeFunction;
     };
 
     std::vector<CallStackEntry> callStack{{
-        .opList = m_globalOps,
-        .constantList = m_globalConstants,
         .localIndexOffset = 0_uz,
         .opIndex = 0_uz,
         .constantIndex = 0_uz,
-        .line = 0_uz,
-        .function = nullptr,
+        .callSiteLine = 0_uz,
+        .callerFunction = nullptr,
+        .calleeFunction = nullptr,
     }};
 
-    struct VmState
+    struct TryBlockState    // TODO: better name
     {
-        usize stackSize{}, numLocals{};
+        usize callStackSize;
+        usize constantIndexToJumpTo;
+        usize opIndexToJumpTo;
     };
 
-    // used to restore the state of the call stack after an exception is caught
-    std::vector<usize> callStackSizeStack;
+    std::stack<TryBlockState> tryBlockStateStack;
 
     auto pop = [&stack] -> Value {
         POISE_ASSERT(!stack.empty(), "Stack is empty, there has been an error in codegen");
@@ -117,14 +127,14 @@ auto Vm::run() -> RunResult
     while (true) {
         auto& callStackTop = callStack.back();
 
-        const auto opList = callStackTop.opList;
-        const auto constantList = callStackTop.constantList;
         const auto localIndexOffset = callStackTop.localIndexOffset;
-
         auto& opIndex = callStackTop.opIndex;
         auto& constantIndex = callStackTop.constantIndex;
 
-        auto currentFunction = callStackTop.function;
+        const auto currentFunction = callStackTop.calleeFunction;
+
+        const auto opList = currentFunction ? currentFunction->opList() : m_globalOps;
+        const auto constantList = currentFunction ? currentFunction->constantList() : m_globalConstants;
 
         const auto [op, line] = opList[opIndex++];
 
@@ -160,7 +170,14 @@ auto Vm::run() -> RunResult
                     break;
                 }
                 case Op::EnterTry: {
-                    callStackSizeStack.push_back(callStack.size());
+                    const auto constantIndexToJumpTo = constantList[constantIndex++].value<usize>();
+                    const auto opIndexToJumpTo = constantList[constantIndex++].value<usize>();
+
+                    tryBlockStateStack.push({
+                        .callStackSize = callStack.size(),
+                        .constantIndexToJumpTo = constantIndexToJumpTo,
+                        .opIndexToJumpTo = opIndexToJumpTo,
+                    });
                     break;
                 }
                 case Op::LoadCapture: {
@@ -196,10 +213,8 @@ auto Vm::run() -> RunResult
                     break;
                 }
                 case Op::PopLocals: {
-                    const auto& numLocals = constantList[constantIndex++];
-                    for (auto i = 0_uz; i < numLocals.value<usize>(); i++) {
-                        localVariables.pop_back();
-                    }
+                    const auto numLocalsToPop = constantList[constantIndex++].value<usize>();
+                    localVariables.resize(localVariables.size() - numLocalsToPop);
                     break;
                 }
                 case Op::Pop: {
@@ -331,19 +346,18 @@ auto Vm::run() -> RunResult
                     const auto value = pop();
 
                     if (auto object = value.object()) {
-                        if (auto function = object->asFunction()) {
-                            if (function->arity() != numArgs) {
-                                throw PoiseException(PoiseException::ExceptionType::IncorrectArgCount, fmt::format("Function '{}' takes {} args but was given {}", function->name(), function->arity(), numArgs));
+                        if (auto calleeFunction = object->asFunction()) {
+                            if (calleeFunction->arity() != numArgs) {
+                                throw PoiseException(PoiseException::ExceptionType::IncorrectArgCount, fmt::format("Function '{}' takes {} args but was given {}", calleeFunction->name(), calleeFunction->arity(), numArgs));
                             }
 
                             callStack.push_back({
-                                .opList = function->opList(),
-                                .constantList = function->constantList(),
                                 .localIndexOffset = localVariables.size(),
                                 .opIndex = 0_uz,
                                 .constantIndex = 0_uz,
-                                .line = line,
-                                .function = function,
+                                .callSiteLine = line,
+                                .callerFunction = currentFunction,
+                                .calleeFunction = calleeFunction,
                             });
 
                             localVariables.insert(localVariables.end(), std::make_move_iterator(args.begin()), std::make_move_iterator(args.end()));
@@ -353,13 +367,14 @@ auto Vm::run() -> RunResult
                             throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("{} is not callable", value));
                         }
                     } else {
-                        throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("{} is not callable", value));
+                        throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("{} is not callable", value.type()));
                     }
 
                     break;
                 }
                 case Op::Exit: {
                     POISE_ASSERT(stack.empty(), "Stack not empty after runtime, there has been an error in codegen");
+                    POISE_ASSERT(localVariables.empty(), "Locals have not been popped, there has been an error in codegen");
                     return RunResult::Success;
                 }
                 case Op::Jump: {
@@ -396,28 +411,42 @@ auto Vm::run() -> RunResult
                     break;
                 }
                 case Op::Return: {
-                    PRINT_STACK();
+                    PRINT_MEMORY();
                     callStack.pop_back();
                     break;
                 }
             }
-        } catch (const objects::PoiseException& exception) {
-            auto inTryBlock = !callStackSizeStack.empty();
+        } catch (const PoiseException& exception) {
+            const auto inTryBlock = !tryBlockStateStack.empty();
 
-            if (!inTryBlock) {
+            if (inTryBlock) {
+                const auto [callStackSize, constantIndexToJumpTo, opIndexToJumpTo] = tryBlockStateStack.top();
+
+                callStack.resize(callStackSize);
+                callStack.back().constantIndex = constantIndexToJumpTo;
+                callStack.back().opIndex = opIndexToJumpTo;
+
+                tryBlockStateStack.pop();
+
+                stack.push_back(Value::createObject<PoiseException>(exception.exceptionType(), std::string{exception.message()}));
+            } else {
                 fmt::print(stderr, fmt::emphasis::bold | fmt::fg(fmt::color::red), "Runtime Error: ");
                 fmt::print(stderr, "{}\n", exception.toString());
-                fmt::print(stderr, "This is an exception thrown by the runtime as a result of a problem in your poise code that has not been caught.\n");
+
+                fmt::print(stderr, "  At {}:{} in function '{}'\n", currentFunction->filePath(), line, currentFunction->name());
+                fmt::print(stderr, "    {}\n", scanner->getCodeAtLine(line));
+
+                for (const auto& entry : callStack | std::views::reverse) {
+                    if (const auto caller = entry.callerFunction) {
+                        fmt::print(stderr, "  At {}:{} in function '{}'\n", caller->filePath(), entry.callSiteLine, caller->name());
+                        fmt::print(stderr, "    {}\n", scanner->getCodeAtLine(entry.callSiteLine));
+                    }
+                }
+
+                fmt::print(stderr, "\nThis is an exception thrown by the runtime as a result of a problem in your poise code that has not been caught.\n");
                 fmt::print(stderr, "Consider reviewing your code or catching this exception with a `try/catch` statement.\n");
                 return RunResult::RuntimeError;
             }
-
-            // handle
-            const auto callStackSizeNeeded = callStackSizeStack.back();
-            callStackSizeStack.pop_back();
-            inTryBlock = !callStackSizeStack.empty();
-
-            callStack.resize(callStackSizeNeeded);
         } catch (const std::exception& exception) {
             fmt::print(stderr, fmt::emphasis::bold | fmt::fg(fmt::color::red), "PANIC: ");
             fmt::print(stderr, "{}\n", exception.what());
@@ -425,6 +454,6 @@ auto Vm::run() -> RunResult
             return RunResult::RuntimeError;
         }
     }
-#undef PRINT_STACK
+#undef PRINT_MEMORY
 }
 }   // namespace poise::runtime

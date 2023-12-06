@@ -28,6 +28,7 @@ Scanner::Scanner(const std::filesystem::path& inFilePath)
     }
     , m_keywordLookup{
         {"and", TokenType::And},
+        {"catch", TokenType::Catch},
         {"final", TokenType::Final},
         {"func", TokenType::Func},
         {"false", TokenType::False},
@@ -35,6 +36,7 @@ Scanner::Scanner(const std::filesystem::path& inFilePath)
         {"or", TokenType::Or},
         {"println", TokenType::PrintLn},
         {"return", TokenType::Return},
+        {"try", TokenType::Try},
         {"typeof", TokenType::TypeOf},
         {"true", TokenType::True},
         {"var", TokenType::Var},
