@@ -26,6 +26,9 @@ auto formatter<Op>::format(poise::runtime::Op op, fmt::format_context& context) 
         case Op::EnterTry:
             result = "EnterTry";
             break;
+        case Op::ExitTry:
+            result = "ExitTry";
+            break;
         case Op::LoadCapture:
             result = "LoadCapture";
             break;

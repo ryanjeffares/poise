@@ -203,7 +203,7 @@ auto Scanner::peekPrevious() -> std::optional<char>
 
 auto Scanner::multiCharSymbol(const std::unordered_map<char, TokenType>& pairs, TokenType defaultType) -> Token
 {
-    for (const auto [c, t] : pairs) {
+    for (const auto& [c, t] : pairs) {
         if (peek().value_or(char{}) == c) {
             advance();
             return makeToken(t);

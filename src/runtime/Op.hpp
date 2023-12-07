@@ -18,6 +18,7 @@ enum class Op : u8
     DeclareFunction,
     DeclareLocal,
     EnterTry,
+    ExitTry,    // gracefully!
     LoadCapture,
     LoadConstant,
     LoadFunction,

@@ -374,6 +374,16 @@ auto Compiler::tryStatement() -> void
         declaration();
     }
 
+    // no exception thrown - PopLocals, ExitTry, Jump (to after the catch)
+    // exception thrown - PopLocals
+
+    // these instructions are in the case of no exception thrown - need to pop locals, exit the try, and jump to after the catch block
+    emitConstant(m_localNames.size() - numLocalsStart);
+    emitOp(runtime::Op::PopLocals, m_previous->line());
+    emitOp(runtime::Op::ExitTry, m_previous->line());
+    const auto jumpIndexes = emitJump(JumpType::None);
+
+    // this patching is in the case of an exception being thrown - need to pop locals, and then continue into the catch block
     const auto numConstants = function->numConstants();
     const auto numOps = function->numOps();
     function->setConstant(numConstants, jumpConstantIndex);
@@ -386,6 +396,8 @@ auto Compiler::tryStatement() -> void
 
     RETURN_IF_NO_MATCH(scanner::TokenType::Catch, "Expected 'catch' after 'try' block");
     catchStatement();
+
+    patchJump(jumpIndexes);
 }
 
 auto Compiler::catchStatement() -> void

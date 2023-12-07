@@ -46,23 +46,6 @@ auto Vm::emitConstant(Value value) -> void
 
 auto Vm::run(const scanner::Scanner* const scanner) -> RunResult
 {
-#ifdef POISE_DEBUG
-#define PRINT_MEMORY()                                  \
-        do {                                            \
-            fmt::print("STACK:\n");                     \
-            for (const auto& value : stack) {           \
-                fmt::print("\t{}\n", value);            \
-            }                                           \
-            fmt::print("LOCALS:\n");                    \
-            for (const auto& local : localVariables) {  \
-                fmt::print("\t{}\n", local);            \
-            }                                           \
-        }                                               \
-        while (false)
-#else
-#define PRINT_MEMORY()
-#endif
-
     std::vector<Value> stack;
     std::vector<Value> localVariables;
     std::vector<Value> availableFunctions;
@@ -124,6 +107,20 @@ auto Vm::run(const scanner::Scanner* const scanner) -> RunResult
         return args;
     };
 
+    auto printMemory = [&stack, &localVariables] -> void {
+        // I'm assuming this gets yeeted in release...
+#ifdef POISE_DEBUG
+        fmt::print("STACK:\n");
+        for (const auto& value : stack) {
+            fmt::print("\t{}\n", value);
+        }
+        fmt::print("LOCALS:\n");
+        for (const auto& local : localVariables) {
+            fmt::print("\t{}\n", local);
+        }
+#endif
+    };
+
     while (true) {
         auto& callStackTop = callStack.back();
 
@@ -180,6 +177,10 @@ auto Vm::run(const scanner::Scanner* const scanner) -> RunResult
                     });
                     break;
                 }
+                case Op::ExitTry: {
+                    tryBlockStateStack.pop();
+                    break;
+                }
                 case Op::LoadCapture: {
                     const auto index = constantList[constantIndex++].value<usize>();
                     const auto& capture = currentFunction->getCapture(index);
@@ -214,7 +215,9 @@ auto Vm::run(const scanner::Scanner* const scanner) -> RunResult
                 }
                 case Op::PopLocals: {
                     const auto numLocalsToPop = constantList[constantIndex++].value<usize>();
-                    localVariables.resize(localVariables.size() - numLocalsToPop);
+                    for (auto i = 0_uz; i < numLocalsToPop; i++) {
+                        localVariables.pop_back();
+                    }
                     break;
                 }
                 case Op::Pop: {
@@ -378,8 +381,10 @@ auto Vm::run(const scanner::Scanner* const scanner) -> RunResult
                     return RunResult::Success;
                 }
                 case Op::Jump: {
-                    const auto& jumpIndex = constantList[constantIndex++];
-                    opIndex = jumpIndex.value<usize>();
+                    const auto& jumpConstantIndex = constantList[constantIndex++];
+                    const auto& jumpOpIndex = constantList[constantIndex++];
+                    callStackTop.constantIndex = jumpConstantIndex.value<usize>();
+                    callStackTop.opIndex = jumpOpIndex.value<usize>();
                     break;
                 }
                 case Op::JumpIfFalse: {
@@ -390,8 +395,8 @@ auto Vm::run(const scanner::Scanner* const scanner) -> RunResult
                     const auto& jumpOpIndex = constantList[constantIndex++];
 
                     if (!value.toBool()) {
-                        constantIndex = jumpConstantIndex.value<usize>();
-                        opIndex = jumpOpIndex.value<usize>();
+                        callStackTop.constantIndex = jumpConstantIndex.value<usize>();
+                        callStackTop.opIndex = jumpOpIndex.value<usize>();
                     }
 
                     break;
@@ -404,14 +409,14 @@ auto Vm::run(const scanner::Scanner* const scanner) -> RunResult
                     const auto& jumpOpIndex = constantList[constantIndex++];
 
                     if (value.toBool()) {
-                        constantIndex = jumpConstantIndex.value<usize>();
-                        opIndex = jumpOpIndex.value<usize>();
+                        callStackTop.constantIndex = jumpConstantIndex.value<usize>();
+                        callStackTop.opIndex = jumpOpIndex.value<usize>();
                     }
 
                     break;
                 }
                 case Op::Return: {
-                    PRINT_MEMORY();
+                    printMemory();
                     callStack.pop_back();
                     break;
                 }
@@ -447,12 +452,12 @@ auto Vm::run(const scanner::Scanner* const scanner) -> RunResult
                 fmt::print(stderr, "Consider reviewing your code or catching this exception with a `try/catch` statement.\n");
                 return RunResult::RuntimeError;
             }
-        } catch (const std::exception& exception) {
+        }/* catch (const std::exception& exception) {
             fmt::print(stderr, fmt::emphasis::bold | fmt::fg(fmt::color::red), "PANIC: ");
             fmt::print(stderr, "{}\n", exception.what());
             fmt::print(stderr, "This is an error that cannot be recovered from or caught, and is likely a bug in the interpreter.\n");
             return RunResult::RuntimeError;
-        }
+        }*/
     }
 #undef PRINT_MEMORY
 }
