@@ -64,6 +64,7 @@ private:
     auto tryStatement() -> void;
     auto catchStatement() -> void;
     auto ifStatement() -> void;
+    auto whileStatement() -> void;
 
     auto expression(bool canAssign) -> void;
     auto logicOr(bool canAssign) -> void;

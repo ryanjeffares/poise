@@ -42,6 +42,7 @@ Scanner::Scanner(const std::filesystem::path& inFilePath)
         {"try", TokenType::Try},
         {"typeof", TokenType::TypeOf},
         {"var", TokenType::Var},
+        {"while", TokenType::While},
         {"Bool", TokenType::BoolIdent},
         {"Float", TokenType::FloatIdent},
         {"Int", TokenType::IntIdent},

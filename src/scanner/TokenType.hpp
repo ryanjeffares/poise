@@ -30,6 +30,7 @@ enum class TokenType : u8
     Try,
     TypeOf,
     Var,
+    While,
 
     // symbols
     Ampersand,

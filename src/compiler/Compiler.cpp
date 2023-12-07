@@ -281,6 +281,8 @@ auto Compiler::statement() -> void
         tryStatement();
     } else if (match(scanner::TokenType::If)) {
         ifStatement();
+    } else if (match(scanner::TokenType::While)) {
+        whileStatement();
     } else {
         expressionStatement();
     }
@@ -485,6 +487,43 @@ auto Compiler::ifStatement() -> void
         // no `else` block so no additional jumping, just patch up the false jump
         patchJump(falseJumpIndexes);
     }
+}
+
+auto Compiler::whileStatement() -> void
+{
+    if (m_contextStack.back() == Context::TopLevel) {
+        errorAtPrevious("'while' not allowed at top level");
+        return;
+    }
+
+    const auto function = m_vm->getCurrentFunction();
+    // need to jump here at the end of each iteration
+    const auto constantIndex = function->numConstants();
+    const auto opIndex = function->numOps();
+
+    expression(false);
+    // jump to after the loop when the condition is false
+    const auto jumpIndexes = emitJump(JumpType::IfFalse, true);
+
+    RETURN_IF_NO_MATCH(scanner::TokenType::OpenBrace, "Expected '{'");
+
+    const auto numLocalsStart = m_localNames.size();
+
+    if (!block("while loop")) {
+        return;
+    }
+
+    // pop locals at the end of each iteration
+    emitConstant(m_localNames.size() - numLocalsStart);
+    emitOp(runtime::Op::PopLocals, m_previous->line());
+
+    // jump back to re-evaluate the condition
+    emitConstant(constantIndex);
+    emitConstant(opIndex);
+    emitOp(runtime::Op::Jump, m_previous->line());
+
+    // patch in the jump for failing the condition
+    patchJump(jumpIndexes);
 }
 
 auto Compiler::expression(bool canAssign) -> void

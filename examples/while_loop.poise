@@ -1,0 +1,23 @@
+func main() {
+    var i = 2;
+    while i < 128 {
+        println(i);
+        i = i * 2;
+    }
+
+    var c = 0;
+    while c < 5 {
+        while i >= 0 {
+            println(i);
+            i = i - 1;
+        }
+
+        i = 128;
+        c = c + 1;
+    }
+
+    // while true {
+    while false {
+        println("Hello");
+    }
+}

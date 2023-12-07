@@ -121,6 +121,9 @@ auto formatter<TokenType>::format(TokenType tokenType, format_context& context) 
         case TokenType::Var:
             result = "Var";
             break;
+        case TokenType::While:
+            result = "While";
+            break;
         case TokenType::Ampersand:
             result = "Ampersand";
             break;

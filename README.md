@@ -39,7 +39,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * ~~Error handling~~
     * When we do constants, handle a constant value for construction Exceptions
     * Print only the first few call stack entries on error
-* If statements
+* ~~If statements~~
 * While loops
 * Native functions
 * Imports + Namespaces
@@ -51,8 +51,9 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
             * Pair
         * Sets
         * Ranges
-    * Option and Result types
+    * Option and Result types?
 * For loops
+* Break statements
 * Classes
 * GC
 * Constants
