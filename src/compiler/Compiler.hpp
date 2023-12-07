@@ -12,7 +12,7 @@
 #include <string>
 
 namespace poise::compiler {
-enum CompileResult
+enum class CompileResult
 {
     Success, CompileError, FileError, ParseError,
 };

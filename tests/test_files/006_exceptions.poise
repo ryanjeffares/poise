@@ -1,0 +1,35 @@
+func main() {
+    try {
+        println(foo());
+        try {
+        } catch error1 {
+            try {
+                println(foo());
+            } catch error2 {
+                println(foo());
+            }
+        }
+    } catch error {
+        println(error);
+    }
+}
+
+func foo() {
+    return bar();
+}
+
+func bar() {
+    return baz();
+}
+
+func baz() {
+    return faz();
+}
+
+func faz() {
+    return boo();
+}
+
+func boo() {
+    return "Hello" / 2;
+}

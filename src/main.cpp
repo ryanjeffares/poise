@@ -37,6 +37,12 @@ int main(int argc, const char* argv[])
         const auto end = std::chrono::steady_clock::now();
 
         if (compileResult != poise::compiler::CompileResult::Success) {
+            if (compileResult == poise::compiler::CompileResult::FileError) {
+                fmt::print(stderr, "Invalid file\n");
+            } else if (compileResult == poise::compiler::CompileResult::ParseError) {
+                fmt::print(stderr, "Invalid file content\n");
+            }
+
             return static_cast<int>(compileResult);
         }
 
