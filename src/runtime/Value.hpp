@@ -136,8 +136,7 @@ public:
     [[nodiscard]] auto type() const -> Type;
     [[nodiscard]] auto typeValue() const -> const Value&;
 
-    auto print() const -> void;
-    auto printLn() const -> void;
+    auto print(bool err, bool newLine) const -> void;
 
     [[nodiscard]] auto toBool() const -> bool;
     [[nodiscard]] auto toFloat() const -> f64;

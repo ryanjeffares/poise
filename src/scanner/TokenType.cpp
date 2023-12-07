@@ -94,6 +94,12 @@ auto formatter<TokenType>::format(TokenType tokenType, format_context& context) 
         case TokenType::Else:
             result = "Else";
             break;
+        case TokenType::EPrint:
+            result = "EPrint";
+            break;
+        case TokenType::EPrintLn:
+            result = "EPrintLn";
+            break;
         case TokenType::Final:
             result = "Final";
             break;
@@ -105,6 +111,9 @@ auto formatter<TokenType>::format(TokenType tokenType, format_context& context) 
             break;
         case TokenType::Or:
             result = "Or";
+            break;
+        case TokenType::Print:
+            result = "Print";
             break;
         case TokenType::PrintLn:
             result = "PrintLn";

@@ -40,7 +40,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * When we do constants, handle a constant value for construction Exceptions
     * Print only the first few call stack entries on error
 * ~~If statements~~
-* While loops
+* ~~While loops~~
 * Native functions
 * Imports + Namespaces
 * Builtin objects

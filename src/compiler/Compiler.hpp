@@ -59,7 +59,7 @@ private:
 
     auto statement() -> void;
     auto expressionStatement() -> void;
-    auto printLnStatement() -> void;
+    auto printStatement(bool err, bool newLine) -> void;
     auto returnStatement() -> void;
     auto tryStatement() -> void;
     auto catchStatement() -> void;

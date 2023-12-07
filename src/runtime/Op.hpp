@@ -31,7 +31,7 @@ enum class Op : u8
     TypeOf,
 
     // statements
-    PrintLn,
+    Print,
 
     // expressions
     LogicOr,

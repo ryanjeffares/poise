@@ -273,8 +273,11 @@ auto Compiler::statement() -> void
         return;
     }
 
-    if (match(scanner::TokenType::PrintLn)) {
-        printLnStatement();
+    if (match(scanner::TokenType::Print) || match(scanner::TokenType::PrintLn)
+        || match(scanner::TokenType::EPrint) || match(scanner::TokenType::EPrintLn)) {
+        const auto err = m_previous->tokenType() == scanner::TokenType::EPrint || m_previous->tokenType() == scanner::TokenType::EPrintLn;
+        const auto newLine = m_previous->tokenType() == scanner::TokenType::PrintLn || m_previous->tokenType() == scanner::TokenType::EPrintLn;
+        printStatement(err, newLine);
     } else if (match(scanner::TokenType::Return)) {
         returnStatement();
     } else if (match(scanner::TokenType::Try)) {
@@ -320,12 +323,14 @@ auto Compiler::expressionStatement() -> void
     EXPECT_SEMICOLON();
 }
 
-auto Compiler::printLnStatement() -> void
+auto Compiler::printStatement(bool err, bool newLine) -> void
 {
     RETURN_IF_NO_MATCH(scanner::TokenType::OpenParen, "Expected '(' after 'println'");
 
     expression(false);
-    emitOp(runtime::Op::PrintLn, m_previous->line());
+    emitConstant(err);
+    emitConstant(newLine);
+    emitOp(runtime::Op::Print, m_previous->line());
 
     RETURN_IF_NO_MATCH(scanner::TokenType::CloseParen, "Expected ')' after 'println'");
     EXPECT_SEMICOLON();

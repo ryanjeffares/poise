@@ -230,9 +230,11 @@ auto Vm::run(const scanner::Scanner* const scanner) -> RunResult
                     stack.emplace_back(pop().typeValue());
                     break;
                 }
-                case Op::PrintLn: {
+                case Op::Print: {
                     const auto value = pop();
-                    value.printLn();
+                    const auto err = constantList[constantIndex++].value<bool>();
+                    const auto newLine = constantList[constantIndex++].value<bool>();
+                    value.print(err, newLine);
                     break;
                 }
                 case Op::LogicOr: {

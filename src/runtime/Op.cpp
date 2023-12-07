@@ -53,8 +53,8 @@ auto formatter<Op>::format(poise::runtime::Op op, fmt::format_context& context) 
         case Op::TypeOf:
             result = "TypeOf";
             break;
-        case Op::PrintLn:
-            result = "PrintLn";
+        case Op::Print:
+            result = "Print";
             break;
         case Op::LogicOr:
             result = "LogicOr";

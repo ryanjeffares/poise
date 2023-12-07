@@ -121,14 +121,13 @@ auto Value::object() const -> objects::PoiseObject*
     return m_type == Type::Object ? m_data.object : nullptr;
 }
 
-auto Value::print() const -> void
+auto Value::print(bool err, bool newLine) const -> void
 {
-    fmt::print("{}", toString());
-}
-
-auto Value::printLn() const -> void
-{
-    fmt::print("{}\n", toString());
+    if (newLine) {
+        fmt::print(err ? stderr : stdout, "{}\n", toString());
+    } else {
+        fmt::print(err ? stderr : stdout, "{}", toString());
+    }
 }
 
 auto Value::toBool() const -> bool
