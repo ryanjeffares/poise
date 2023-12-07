@@ -85,7 +85,12 @@ auto Compiler::emitConstant(runtime::Value value) -> void
     m_vm->emitConstant(std::move(value));
 }
 
-auto Compiler::emitJump(JumpType jumpType) -> JumpIndexes
+auto Compiler::emitJump() -> JumpIndexes
+{
+    return emitJump(JumpType::None, false);
+}
+
+auto Compiler::emitJump(JumpType jumpType, bool emitPop) -> JumpIndexes
 {
     const auto function = m_vm->getCurrentFunction();
 
@@ -101,12 +106,17 @@ auto Compiler::emitJump(JumpType jumpType) -> JumpIndexes
             break;
     }
 
+    if (emitPop && jumpType != JumpType::None) {
+        // this will get hit if we don't jump
+        emitOp(runtime::Op::Pop, m_previous->line());
+    }
+
     const auto jumpConstantIndex = function->numConstants();
     emitConstant(0_uz);
     const auto jumpOpIndex = function->numConstants();
     emitConstant(0_uz);
 
-    return {jumpConstantIndex, jumpOpIndex};
+    return {jumpConstantIndex, jumpOpIndex, emitPop && jumpType != JumpType::None};
 }
 
 auto Compiler::patchJump(JumpIndexes jumpIndexes) -> void
@@ -117,6 +127,11 @@ auto Compiler::patchJump(JumpIndexes jumpIndexes) -> void
     const auto numConstants = function->numConstants();
     function->setConstant(numOps, jumpIndexes.opIndex);
     function->setConstant(numConstants, jumpIndexes.constantIndex);
+
+    if (jumpIndexes.emitPop) {
+        // gets hit if we did jump originally
+        emitOp(runtime::Op::Pop, m_previous->line());
+    }
 }
 
 auto Compiler::advance() -> void
@@ -185,17 +200,8 @@ auto Compiler::funcDeclaration() -> void
     auto functionPtr = function.object()->asFunction();
     m_vm->setCurrentFunction(functionPtr);
 
-    while (!match(scanner::TokenType::CloseBrace)) {
-        if (check(scanner::TokenType::EndOfFile)) {
-            errorAtCurrent("Unterminated function");
-            return;
-        }
-
-        if (m_hadError) {
-            return;
-        }
-
-        declaration();
+    if (!block("function")) {
+        return;
     }
 
     if (functionPtr->opList().empty() || functionPtr->opList().back().op != runtime::Op::Return) {
@@ -273,6 +279,8 @@ auto Compiler::statement() -> void
         returnStatement();
     } else if (match(scanner::TokenType::Try)) {
         tryStatement();
+    } else if (match(scanner::TokenType::If)) {
+        ifStatement();
     } else {
         expressionStatement();
     }
@@ -361,17 +369,8 @@ auto Compiler::tryStatement() -> void
 
     RETURN_IF_NO_MATCH(scanner::TokenType::OpenBrace, "Expected '{'");
 
-    while (!match(scanner::TokenType::CloseBrace)) {
-        if (check(scanner::TokenType::EndOfFile)) {
-            errorAtCurrent("Unterminated try block");
-            return;
-        }
-
-        if (m_hadError) {
-            return;
-        }
-
-        declaration();
+    if (!block("try block")) {
+        return;
     }
 
     // no exception thrown - PopLocals, ExitTry, Jump (to after the catch)
@@ -381,7 +380,7 @@ auto Compiler::tryStatement() -> void
     emitConstant(m_localNames.size() - numLocalsStart);
     emitOp(runtime::Op::PopLocals, m_previous->line());
     emitOp(runtime::Op::ExitTry, m_previous->line());
-    const auto jumpIndexes = emitJump(JumpType::None);
+    const auto jumpIndexes = emitJump();
 
     // this patching is in the case of an exception being thrown - need to pop locals, and then continue into the catch block
     const auto numConstants = function->numConstants();
@@ -424,22 +423,68 @@ auto Compiler::catchStatement() -> void
 
     RETURN_IF_NO_MATCH(scanner::TokenType::OpenBrace, "Expected '{'");
 
-    while (!match(scanner::TokenType::CloseBrace)) {
-        if (check(scanner::TokenType::EndOfFile)) {
-            errorAtCurrent("Unterminated catch block");
-            return;
-        }
-
-        if (m_hadError) {
-            return;
-        }
-
-        declaration();
+    if (!block("catch block")) {
+        return;
     }
 
     emitConstant(m_localNames.size() - numLocalsStart);
     emitOp(runtime::Op::PopLocals, m_previous->line());
     m_localNames.resize(numLocalsStart);
+}
+
+auto Compiler::ifStatement() -> void
+{
+    if (m_contextStack.back() == Context::TopLevel) {
+        errorAtPrevious("'if' not allowed at top level");
+        return;
+    }
+
+    expression(false);
+    RETURN_IF_NO_MATCH(scanner::TokenType::OpenBrace, "Expected '{'");
+
+    const auto numLocalsStart = m_localNames.size();
+
+    // jump if the condition fails, otherwise continue on and pop the condition result
+    const auto falseJumpIndexes = emitJump(JumpType::IfFalse, true);
+
+    if (!block("if statement")) {
+        return;
+    }
+
+    emitConstant(m_localNames.size() - numLocalsStart);
+    emitOp(runtime::Op::PopLocals, m_previous->line());
+    m_localNames.resize(numLocalsStart);
+
+    if (match(scanner::TokenType::Else)) {
+        // if we are here, the condition passed, and we executed the `if` block
+        // so get ready to jump past the `else` block(s)
+        const auto trueJumpIndexes = emitJump();
+        // and patch up the jump if the condition failed
+        patchJump(falseJumpIndexes);
+
+        if (match(scanner::TokenType::OpenBrace)) {
+            const auto elseNumLocalsStart = m_localNames.size();
+
+            if (!block("else block")) {
+                return;
+            }
+
+            emitConstant(m_localNames.size() - elseNumLocalsStart);
+            emitOp(runtime::Op::PopLocals, m_previous->line());
+            m_localNames.resize(elseNumLocalsStart);
+        } else if (match(scanner::TokenType::If)) {
+            ifStatement();
+        } else {
+            errorAtPrevious("Expected '{' or 'if'");
+            return;
+        }
+
+        // patch up the jump for skipping the `else` block(s)
+        patchJump(trueJumpIndexes);
+    } else {
+        // no `else` block so no additional jumping, just patch up the false jump
+        patchJump(falseJumpIndexes);
+    }
 }
 
 auto Compiler::expression(bool canAssign) -> void
@@ -458,7 +503,7 @@ auto Compiler::logicOr(bool canAssign) -> void
 
     std::optional<JumpIndexes> jumpIndexes;
     if (check(scanner::TokenType::Or)) {
-        jumpIndexes = emitJump(JumpType::IfTrue);
+        jumpIndexes = emitJump(JumpType::IfTrue, false);
     }
 
     while (match(scanner::TokenType::Or)) {
@@ -477,7 +522,7 @@ auto Compiler::logicAnd(bool canAssign) -> void
 
     std::optional<JumpIndexes> jumpIndexes;
     if (check(scanner::TokenType::And)) {
-        jumpIndexes = emitJump(JumpType::IfFalse);
+        jumpIndexes = emitJump(JumpType::IfFalse, false);
     }
 
     while (match(scanner::TokenType::And)) {
@@ -819,17 +864,8 @@ auto Compiler::lambda() -> void
         emitOp(runtime::Op::LoadCapture, m_previous->line());
     }
 
-    while (!match(scanner::TokenType::CloseBrace)) {
-        if (check(scanner::TokenType::EndOfFile)) {
-            errorAtCurrent("Unterminated lambda");
-            return;
-        }
-
-        if (m_hadError) {
-            return;
-        }
-
-        declaration();
+    if (!block("lambda")) {
+        return;
     }
 
     if (functionPtr->opList().empty() || functionPtr->opList().back().op != runtime::Op::Return) {
@@ -1018,6 +1054,24 @@ auto Compiler::parseFunctionArgs() -> u8
     }
 
     return numArgs;
+}
+
+auto Compiler::block(std::string_view scopeType) -> bool
+{
+    while (!match(scanner::TokenType::CloseBrace)) {
+        if (check(scanner::TokenType::EndOfFile)) {
+            errorAtCurrent(fmt::format("Unterminated {}", scopeType));
+            return false;
+        }
+
+        if (m_hadError) {
+            return false;
+        }
+
+        declaration();
+    }
+
+    return true;
 }
 
 auto Compiler::errorAtCurrent(std::string_view message) -> void

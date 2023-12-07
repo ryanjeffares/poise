@@ -20,8 +20,10 @@ enum class TokenType : u8
     // keywords
     And,
     Catch,
+    Else,
     Final,
     Func,
+    If,
     Or,
     PrintLn,
     Return,

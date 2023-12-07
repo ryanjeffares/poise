@@ -36,14 +36,9 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * ~~Returning~~
     * ~~Lambda~~
 * ~~Assignment statements~~
-* Error handling
+* ~~Error handling~~
     * When we do constants, handle a constant value for construction Exceptions
     * Print only the first few call stack entries on error
-    * Ok, let's think about this:
-        * We need 2 'stacks' in the VM:
-            * One for the callstack - this needs to know the callee, then op/constant index info etc. of the call site
-            * One for the VM state for unwinding after a caught exception - this needs to know the size of the callstack after a try block was entered, and the op/constant index of the catch block to jump to
-* Constants
 * If statements
 * While loops
 * Native functions
@@ -60,6 +55,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * For loops
 * Classes
 * GC
+* Constants
 * Type hints
 * CL arg parsing
 
@@ -79,10 +75,10 @@ int_value = t_int(5);
 * To allow the above, naming a type (`Int`, `Float`, `MyClass` (if MyClass is defined)) without a call (`()`) will load an instance of `PoiseType` made for each of these
 * For user defined classes, these will hold a `Value` which is the constructor function
 * For builtins, there will just be some bytecode
-* Cannot get the type of a type, __for now__:
+* Cannot get the type of a type, _for now_:
 
 ```
 final t = typeof(Int);  // error - cannot take type of type
 ```
 
-* This is **ALL DONE** now, just need to consider user defined classes and collections when we add them (and __maybe__ constructing Types themselves...)
+* This is **ALL DONE** now, just need to consider user defined classes and collections when we add them (and _maybe_ constructing Types themselves...)

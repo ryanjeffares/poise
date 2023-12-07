@@ -91,11 +91,17 @@ auto formatter<TokenType>::format(TokenType tokenType, format_context& context) 
         case TokenType::Catch:
             result = "Catch";
             break;
+        case TokenType::Else:
+            result = "Else";
+            break;
         case TokenType::Final:
             result = "Final";
             break;
         case TokenType::Func:
             result = "Func";
+            break;
+        case TokenType::If:
+            result = "If";
             break;
         case TokenType::Or:
             result = "Or";

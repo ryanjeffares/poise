@@ -4,6 +4,8 @@
 #include <fmt/core.h>
 #include <fmt/format.h>
 
+#include <ranges>
+
 namespace poise::objects {
 PoiseFunction::PoiseFunction(std::string name, std::string filePath, u8 arity)
     : m_name{std::move(name)}
@@ -118,13 +120,13 @@ auto PoiseFunction::printOps() const -> void
     printLn();
 
     fmt::print("Ops:\n");
-    for (const auto [op, _] : m_ops) {
-        fmt::print("\t{}\n", op);
+    for (auto i = 0_uz; i < m_ops.size(); i++) {
+        fmt::print("\t{}: {} at line {}\n", i, m_ops[i].op, m_ops[i].line);
     }
 
     fmt::print("Constants:\n");
-    for (const auto& constant : m_constants) {
-        fmt::print("\t{}\n", constant);
+    for (auto i = 0_uz; i < m_constants.size(); i++) {
+        fmt::print("\t{}: {}\n", i, m_constants[i]);
     }
 }
 }   // namespace poise::objects

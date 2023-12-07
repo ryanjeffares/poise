@@ -37,6 +37,7 @@ private:
     struct JumpIndexes
     {
         usize constantIndex, opIndex;
+        bool emitPop;
     };
 
     enum class JumpType
@@ -44,7 +45,8 @@ private:
         IfFalse, IfTrue, None
     };
 
-    auto emitJump(JumpType jumpType) -> JumpIndexes;
+    auto emitJump() -> JumpIndexes;
+    auto emitJump(JumpType jumpType, bool emitPop) -> JumpIndexes;
     auto patchJump(JumpIndexes jumpIndexes) -> void;
 
     auto advance() -> void;
@@ -61,6 +63,7 @@ private:
     auto returnStatement() -> void;
     auto tryStatement() -> void;
     auto catchStatement() -> void;
+    auto ifStatement() -> void;
 
     auto expression(bool canAssign) -> void;
     auto logicOr(bool canAssign) -> void;
@@ -87,6 +90,7 @@ private:
 
     [[nodiscard]] auto parseCallArgs() -> u8;
     [[nodiscard]] auto parseFunctionArgs() -> u8;
+    [[nodiscard]] auto block(std::string_view scopeType) -> bool;
 
     auto errorAtCurrent(std::string_view message) -> void;
     auto errorAtPrevious(std::string_view message) -> void;

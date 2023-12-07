@@ -107,9 +107,9 @@ auto Vm::run(const scanner::Scanner* const scanner) -> RunResult
         return args;
     };
 
+#ifdef POISE_DEBUG
     auto printMemory = [&stack, &localVariables] -> void {
         // I'm assuming this gets yeeted in release...
-#ifdef POISE_DEBUG
         fmt::print("STACK:\n");
         for (const auto& value : stack) {
             fmt::print("\t{}\n", value);
@@ -118,8 +118,10 @@ auto Vm::run(const scanner::Scanner* const scanner) -> RunResult
         for (const auto& local : localVariables) {
             fmt::print("\t{}\n", local);
         }
-#endif
     };
+#else
+    auto printMemory = []{};
+#endif
 
     while (true) {
         auto& callStackTop = callStack.back();
