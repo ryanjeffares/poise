@@ -41,7 +41,8 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * Print only the first few call stack entries on error
 * ~~If statements~~
 * ~~While loops~~
-* Native functions
+* ~~Native functions~~
+    * These are done, just need to actually implement everything else
 * Imports + Namespaces
 * Builtin objects
     * Iterable collections
@@ -55,6 +56,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * For loops
 * Break statements
 * Classes
+* Dot function calls/member access
 * GC
 * Constants
 * Type hints

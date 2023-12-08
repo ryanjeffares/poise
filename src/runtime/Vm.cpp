@@ -13,7 +13,7 @@ using objects::PoiseException;
 
 Vm::Vm(std::string mainFilePath) : m_mainFilePath{std::move(mainFilePath)}
 {
-
+    registerNatives();
 }
 
 auto Vm::setCurrentFunction(objects::PoiseFunction* function) -> void
@@ -24,6 +24,17 @@ auto Vm::setCurrentFunction(objects::PoiseFunction* function) -> void
 auto Vm::getCurrentFunction() const -> objects::PoiseFunction*
 {
     return m_currentFunction;
+}
+
+auto Vm::getNativeFunctionHash(std::string_view functionName) const -> std::optional<NativeNameHash>
+{
+    const auto hash = m_nativeNameHasher(functionName);
+    return m_nativeFunctionLookup.contains(hash) ? std::optional{hash} : std::nullopt;
+}
+
+auto Vm::nativeFunctionArity(NativeNameHash hash) const -> u8
+{
+    return m_nativeFunctionLookup.at(hash).arity();
 }
 
 auto Vm::emitOp(Op op, usize line) -> void
@@ -377,6 +388,14 @@ auto Vm::run(const scanner::Scanner* const scanner) -> RunResult
                         throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("{} is not callable", value.type()));
                     }
 
+                    break;
+                }
+                case Op::CallNative: {
+                    const auto hash = constantList[constantIndex++].value<NativeNameHash>();
+                    const auto function = m_nativeFunctionLookup.at(hash);
+                    const auto arity = function.arity();
+                    auto args = popCallArgs(arity); // number of call args is checked at compile time
+                    stack.emplace_back(function(args));
                     break;
                 }
                 case Op::Exit: {

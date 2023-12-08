@@ -125,6 +125,9 @@ auto formatter<Op>::format(poise::runtime::Op op, fmt::format_context& context) 
         case Op::Call:
             result = "Call";
             break;
+        case Op::CallNative:
+            result = "CallNative";
+            break;
         case Op::Jump:
             result = "Jump";
             break;

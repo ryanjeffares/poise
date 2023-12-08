@@ -59,6 +59,7 @@ enum class Op : u8
 
     // jumping/control flow
     Call,
+    CallNative,
     Exit,
     Jump,
     JumpIfFalse,

@@ -1,0 +1,12 @@
+func main() {
+    println(__NATIVE_INT_POW(2, 2));
+    println(__NATIVE_INT_POW(4, 4));
+    println(__NATIVE_INT_POW(6, 11));
+    println(__NATIVE_INT_POW(2, 64));
+
+
+    println(__NATIVE_INT_ABS(-2));
+    // println(__NATIVE_INT_ABS(-2, 0));
+    // println(__NATIVE_INT_ABS("-2"));
+    println(__NATIVE_INT_ABS(__NATIVE_INT_POW(2, 32)));
+}

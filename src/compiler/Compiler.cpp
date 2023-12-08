@@ -778,8 +778,26 @@ auto Compiler::identifier(bool canAssign) -> void
         });
 
     if (findLocal == m_localNames.end()) {
-        emitConstant(identifier);
-        emitOp(runtime::Op::LoadFunction, m_previous->line());
+        if (const auto hash = m_vm->getNativeFunctionHash(identifier)) {
+            // I THINK we can just parse call args here...
+            if (!match(scanner::TokenType::OpenParen)) {
+                errorAtCurrent("Expected call for native function");
+                return;
+            }
+
+            const auto numArgs = parseCallArgs();
+            const auto arity = m_vm->nativeFunctionArity(*hash);
+            if (numArgs != arity) {
+                errorAtPrevious(fmt::format("Expected {} arguments to native function {} but got {}", arity, identifier, numArgs));
+                return;
+            }
+
+            emitConstant(*hash);
+            emitOp(runtime::Op::CallNative, m_previous->line());
+        } else {
+            emitConstant(identifier);
+            emitOp(runtime::Op::LoadFunction, m_previous->line());
+        }
     } else {
         const auto localIndex = std::distance(m_localNames.begin(), findLocal);
 
@@ -1025,11 +1043,7 @@ auto Compiler::parseCallArgs() -> u8
 {
     auto numArgs = 0_u8;
 
-    while (true) {
-        if (match(scanner::TokenType::CloseParen)) {
-            break;
-        }
-
+    while (!match(scanner::TokenType::CloseParen)) {
         if (numArgs == std::numeric_limits<u8>::max()) {
             errorAtCurrent("Maximum function parameters of 255 exceeded");
             break;
@@ -1041,7 +1055,7 @@ auto Compiler::parseCallArgs() -> u8
         // trailing commas are allowed but all arguments must be comma separated
         // so here, if the next token is not a comma or a close paren, it's invalid
         if (!check(scanner::TokenType::CloseParen) && !check(scanner::TokenType::Comma)) {
-            errorAtCurrent("Expected ',' or '('");
+            errorAtCurrent("Expected ',' or ')'");
             break;
         }
 
@@ -1057,11 +1071,7 @@ auto Compiler::parseFunctionArgs() -> u8
 {
     auto numArgs = 0_u8;
 
-    while (true) {
-        if (match(scanner::TokenType::CloseParen)) {
-            break;
-        }
-
+    while (!match(scanner::TokenType::CloseParen)) {
         if (numArgs == std::numeric_limits<u8>::max()) {
             errorAtCurrent("Maximum function parameters of 255 exceeded");
             break;
@@ -1088,7 +1098,7 @@ auto Compiler::parseFunctionArgs() -> u8
         // trailing commas are allowed but all arguments must be comma separated
         // so here, if the next token is not a comma or a close paren, it's invalid
         if (!check(scanner::TokenType::CloseParen) && !check(scanner::TokenType::Comma)) {
-            errorAtCurrent("Expected ',' or '('");
+            errorAtCurrent("Expected ',' or ')'");
             break;
         }
 
