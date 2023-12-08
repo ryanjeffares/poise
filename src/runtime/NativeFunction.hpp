@@ -19,7 +19,7 @@ public:
 
     NativeFunction(u8 arity, Func function);
 
-    [[nodiscard]] auto arity() const -> u8;
+    [[nodiscard]] auto arity() const noexcept -> u8;
     [[nodiscard]] auto operator()(std::span<Value> args) const -> Value;
 
 private:

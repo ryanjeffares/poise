@@ -1,7 +1,7 @@
 #include "TokenType.hpp"
 
 namespace poise::scanner {
-auto isLiteral(TokenType tokenType) -> bool
+auto isLiteral(TokenType tokenType) noexcept -> bool
 {
     return tokenType == TokenType::False ||
            tokenType == TokenType::Float ||
@@ -12,7 +12,7 @@ auto isLiteral(TokenType tokenType) -> bool
            tokenType == TokenType::True;
 }
 
-auto isUnaryOp(TokenType tokenType) -> bool
+auto isUnaryOp(TokenType tokenType) noexcept -> bool
 {
     return tokenType == TokenType::Exclamation ||
            tokenType == TokenType::Tilde ||
@@ -20,7 +20,7 @@ auto isUnaryOp(TokenType tokenType) -> bool
            tokenType == TokenType::Plus;
 }
 
-auto isTypeIdent(TokenType tokenType) -> bool
+auto isTypeIdent(TokenType tokenType) noexcept -> bool
 {
     return tokenType == TokenType::BoolIdent ||
            tokenType == TokenType::FloatIdent ||
@@ -31,7 +31,7 @@ auto isTypeIdent(TokenType tokenType) -> bool
            tokenType == TokenType::FunctionIdent;
 }
 
-auto isPrimitiveTypeIdent(TokenType tokenType) -> bool
+auto isPrimitiveTypeIdent(TokenType tokenType) noexcept -> bool
 {
     return tokenType == TokenType::BoolIdent ||
            tokenType == TokenType::FloatIdent ||
@@ -40,12 +40,12 @@ auto isPrimitiveTypeIdent(TokenType tokenType) -> bool
            tokenType == TokenType::StringIdent;
 }
 
-auto isBuiltinFunction(TokenType tokenType) -> bool
+auto isBuiltinFunction(TokenType tokenType) noexcept -> bool
 {
     return tokenType == TokenType::TypeOf;
 }
 
-auto isValidStartOfExpression(TokenType tokenType) -> bool
+auto isValidStartOfExpression(TokenType tokenType) noexcept -> bool
 {
     return isLiteral(tokenType) ||
            isUnaryOp(tokenType) ||

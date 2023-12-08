@@ -1,32 +1,32 @@
 #include "PoiseObject.hpp"
 
 namespace poise::objects {
-auto PoiseObject::incrementRefCount() -> usize
+auto PoiseObject::incrementRefCount() noexcept -> usize
 {
     return ++m_refCount;
 }
 
-auto PoiseObject::decrementRefCount() -> usize
+auto PoiseObject::decrementRefCount() noexcept -> usize
 {
     return --m_refCount;
 }
 
-auto PoiseObject::refCount() const -> usize
+auto PoiseObject::refCount() const noexcept -> usize
 {
     return m_refCount;
 }
 
-auto PoiseObject::asException() -> PoiseException*
+auto PoiseObject::asException() noexcept -> PoiseException*
 {
     return nullptr;
 }
 
-auto PoiseObject::asFunction() -> PoiseFunction*
+auto PoiseObject::asFunction() noexcept -> PoiseFunction*
 {
     return nullptr;
 }
 
-auto PoiseObject::asType() -> PoiseType*
+auto PoiseObject::asType() noexcept -> PoiseType*
 {
     return nullptr;
 }

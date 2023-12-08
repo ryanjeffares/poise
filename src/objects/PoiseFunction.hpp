@@ -20,29 +20,29 @@ public:
 
     auto print() const -> void override;
     auto printLn() const -> void override;
-    [[nodiscard]] auto toString() const -> std::string override;
-    [[nodiscard]] auto typeValue() const -> const runtime::Value& override;
-    [[nodiscard]] auto objectType() const -> ObjectType override;
+    [[nodiscard]] auto toString() const noexcept -> std::string override;
+    [[nodiscard]] auto typeValue() const noexcept -> const runtime::Value& override;
+    [[nodiscard]] auto objectType() const noexcept -> ObjectType override;
 
-    auto asFunction() -> PoiseFunction* override;
+    auto asFunction() noexcept -> PoiseFunction* override;
 
-    auto emitOp(runtime::Op op, usize line) -> void;
-    auto emitConstant(runtime::Value value) -> void;
-    auto setConstant(runtime::Value value, usize index) -> void;
+    auto emitOp(runtime::Op op, usize line) noexcept -> void;
+    auto emitConstant(runtime::Value value) noexcept -> void;
+    auto setConstant(runtime::Value value, usize index) noexcept -> void;
 
-    [[nodiscard]] auto opList() const -> std::span<const runtime::OpLine>;
-    [[nodiscard]] auto numOps() const -> usize;
-    [[nodiscard]] auto constantList() const -> std::span<const runtime::Value>;
-    [[nodiscard]] auto numConstants() const -> usize;
+    [[nodiscard]] auto opList() const noexcept -> std::span<const runtime::OpLine>;
+    [[nodiscard]] auto numOps() const noexcept -> usize;
+    [[nodiscard]] auto constantList() const noexcept -> std::span<const runtime::Value>;
+    [[nodiscard]] auto numConstants() const noexcept -> usize;
 
-    [[nodiscard]] auto name() const -> std::string_view;
-    [[nodiscard]] auto filePath() const -> std::string_view;
-    [[nodiscard]] auto arity() const -> u8;
+    [[nodiscard]] auto name() const noexcept -> std::string_view;
+    [[nodiscard]] auto filePath() const noexcept -> std::string_view;
+    [[nodiscard]] auto arity() const noexcept -> u8;
 
-    [[nodiscard]] auto numLambdas() const -> u32;
-    auto lamdaAdded() -> void;
-    auto addCapture(runtime::Value value) -> void;
-    [[nodiscard]] auto getCapture(usize index) const -> const runtime::Value&;
+    auto lamdaAdded() noexcept -> void;
+    [[nodiscard]] auto numLambdas() const noexcept -> u32;
+    auto addCapture(runtime::Value value) noexcept -> void;
+    [[nodiscard]] auto getCapture(usize index) const noexcept -> const runtime::Value&;
 
     auto printOps() const -> void;
 

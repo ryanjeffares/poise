@@ -25,16 +25,16 @@ public:
 
     auto print() const -> void override;
     auto printLn() const -> void override;
-    [[nodiscard]] auto toString() const -> std::string override;
-    [[nodiscard]] auto typeValue() const -> const runtime::Value& override;
-    [[nodiscard]] auto objectType() const -> ObjectType override;
+    [[nodiscard]] auto toString() const noexcept -> std::string override;
+    [[nodiscard]] auto typeValue() const noexcept -> const runtime::Value& override;
+    [[nodiscard]] auto objectType() const noexcept -> ObjectType override;
 
-    [[nodiscard]] auto asType() -> PoiseType* override;
+    [[nodiscard]] auto asType() noexcept -> PoiseType* override;
 
-    [[nodiscard]] auto type() const -> types::Type;
-    [[nodiscard]] auto typeName() const -> std::string_view;
-    [[nodiscard]] auto isPrimitiveType() const -> bool;
-    [[nodiscard]] auto hasConstructor() const -> bool;
+    [[nodiscard]] auto type() const noexcept -> types::Type;
+    [[nodiscard]] auto typeName() const noexcept -> std::string_view;
+    [[nodiscard]] auto isPrimitiveType() const noexcept -> bool;
+    [[nodiscard]] auto hasConstructor() const noexcept -> bool;
 
     [[nodiscard]] auto construct(std::span<const runtime::Value>) const -> runtime::Value;
 

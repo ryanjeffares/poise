@@ -17,12 +17,12 @@
 namespace poise::runtime {
 using objects::PoiseException;
 
-auto Vm::registerNatives() -> void
+auto Vm::registerNatives() noexcept -> void
 {
     registerIntNatives();
 }   // Vm::registerNatives()
 
-auto Vm::registerIntNatives() -> void
+auto Vm::registerIntNatives() noexcept -> void
 {
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_INT_POW"), NativeFunction{2, [] (std::span<Value> args) -> Value {
         THROW_IF_WRONG_TYPE(Value::Type::Int, 0);

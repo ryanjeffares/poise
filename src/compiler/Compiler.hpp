@@ -23,7 +23,7 @@ public:
     Compiler(runtime::Vm* vm, std::filesystem::path inFilePath);
 
     [[nodiscard]] auto compile() -> CompileResult;
-    [[nodiscard]] auto scanner() const -> const scanner::Scanner*;
+    [[nodiscard]] auto scanner() const noexcept -> const scanner::Scanner*;
 
 private:
     enum class Context
@@ -31,8 +31,8 @@ private:
         Function, TopLevel, TryCatch,
     };
 
-    auto emitOp(runtime::Op op, usize line) -> void;
-    auto emitConstant(runtime::Value value) -> void;
+    auto emitOp(runtime::Op op, usize line) noexcept -> void;
+    auto emitConstant(runtime::Value value) noexcept -> void;
 
     struct JumpIndexes
     {
@@ -45,9 +45,9 @@ private:
         IfFalse, IfTrue, None
     };
 
-    auto emitJump() -> JumpIndexes;
-    auto emitJump(JumpType jumpType, bool emitPop) -> JumpIndexes;
-    auto patchJump(JumpIndexes jumpIndexes) -> void;
+    auto emitJump() noexcept -> JumpIndexes;
+    auto emitJump(JumpType jumpType, bool emitPop) noexcept -> JumpIndexes;
+    auto patchJump(JumpIndexes jumpIndexes) noexcept -> void;
 
     auto advance() -> void;
     [[nodiscard]] auto match(scanner::TokenType expected) -> bool;

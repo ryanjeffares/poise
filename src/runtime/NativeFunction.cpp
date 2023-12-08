@@ -12,7 +12,7 @@ NativeFunction::NativeFunction(u8 arity, Func function)
 
 }
 
-auto NativeFunction::arity() const -> u8
+auto NativeFunction::arity() const noexcept -> u8
 {
     return m_arity;
 }

@@ -3,7 +3,7 @@
 #include <fmt/core.h>
 
 namespace poise::scanner {
-Token::Token(TokenType tokenType, usize line, usize column, std::string_view text)
+Token::Token(TokenType tokenType, usize line, usize column, std::string_view text) noexcept
     : m_tokenType{tokenType}
     , m_line{line}
     , m_column{column}
@@ -12,32 +12,32 @@ Token::Token(TokenType tokenType, usize line, usize column, std::string_view tex
 
 }
 
-auto Token::length() const -> usize
+auto Token::length() const noexcept -> usize
 {
     return m_text.length();
 }
 
-auto Token::text() const -> std::string_view
+auto Token::text() const noexcept -> std::string_view
 {
     return m_text;
 }
 
-auto Token::string() const -> std::string
+auto Token::string() const noexcept -> std::string
 {
     return std::string{text()};
 }
 
-auto Token::tokenType() const -> TokenType
+auto Token::tokenType() const noexcept -> TokenType
 {
     return m_tokenType;
 }
 
-auto Token::line() const -> usize
+auto Token::line() const noexcept -> usize
 {
     return m_line;
 }
 
-auto Token::column() const -> usize
+auto Token::column() const noexcept -> usize
 {
     return m_column;
 }

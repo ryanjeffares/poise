@@ -23,37 +23,37 @@ auto PoiseType::printLn() const -> void
     fmt::print("{}\n", toString());
 }
 
-auto PoiseType::toString() const -> std::string
+auto PoiseType::toString() const noexcept -> std::string
 {
     return fmt::format("<type instance '{}' at {}>", m_typeName, fmt::ptr(this));
 }
 
-auto PoiseType::typeValue() const -> const runtime::Value&
+auto PoiseType::typeValue() const noexcept -> const runtime::Value&
 {
     return types::s_typeType;
 }
 
-auto PoiseType::objectType() const -> ObjectType
+auto PoiseType::objectType() const noexcept -> ObjectType
 {
     return ObjectType::Type;
 }
 
-auto PoiseType::asType() -> PoiseType*
+auto PoiseType::asType() noexcept -> PoiseType*
 {
     return this;
 }
 
-auto PoiseType::type() const -> types::Type
+auto PoiseType::type() const noexcept -> types::Type
 {
     return m_type;
 }
 
-auto PoiseType::typeName() const -> std::string_view
+auto PoiseType::typeName() const noexcept -> std::string_view
 {
     return m_typeName;
 }
 
-auto PoiseType::isPrimitiveType() const -> bool
+auto PoiseType::isPrimitiveType() const noexcept -> bool
 {
     return type() == types::Type::Bool ||
            type() == types::Type::Float ||
@@ -62,7 +62,7 @@ auto PoiseType::isPrimitiveType() const -> bool
            type() == types::Type::String;
 }
 
-auto PoiseType::hasConstructor() const -> bool
+auto PoiseType::hasConstructor() const noexcept -> bool
 {
     return m_constructorFunction.type() != runtime::Value::Type::None;
 }

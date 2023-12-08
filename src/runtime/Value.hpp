@@ -131,17 +131,17 @@ public:
         }
     }
 
-    [[nodiscard]] auto string() const -> const std::string&;
-    [[nodiscard]] auto object() const -> objects::PoiseObject*;
-    [[nodiscard]] auto type() const -> Type;
+    [[nodiscard]] auto string() const noexcept -> const std::string&;
+    [[nodiscard]] auto object() const noexcept -> objects::PoiseObject*;
+    [[nodiscard]] auto type() const noexcept -> Type;
     [[nodiscard]] auto typeValue() const -> const Value&;
 
     auto print(bool err, bool newLine) const -> void;
 
-    [[nodiscard]] auto toBool() const -> bool;
+    [[nodiscard]] auto toBool() const noexcept -> bool;
     [[nodiscard]] auto toFloat() const -> f64;
     [[nodiscard]] auto toInt() const -> i64;
-    [[nodiscard]] auto toString() const -> std::string;
+    [[nodiscard]] auto toString() const noexcept -> std::string;
 
     [[nodiscard]] auto operator|(const Value& other) const -> Value;
     [[nodiscard]] auto operator^(const Value& other) const -> Value;
@@ -154,19 +154,19 @@ public:
     [[nodiscard]] auto operator*(const Value& other) const -> Value;
     [[nodiscard]] auto operator%(const Value& other) const -> Value;
 
-    [[nodiscard]] auto operator!() const -> Value;
+    [[nodiscard]] auto operator!() const noexcept -> Value;
     [[nodiscard]] auto operator~() const -> Value;
     [[nodiscard]] auto operator-() const -> Value;
     [[nodiscard]] auto operator+() const -> Value;
 
-    [[nodiscard]] auto operator==(const Value& other) const -> bool;
-    [[nodiscard]] auto operator!=(const Value& other) const -> bool;
+    [[nodiscard]] auto operator==(const Value& other) const noexcept -> bool;
+    [[nodiscard]] auto operator!=(const Value& other) const noexcept -> bool;
     [[nodiscard]] auto operator<(const Value& other) const -> bool;
     [[nodiscard]] auto operator<=(const Value& other) const -> bool;
     [[nodiscard]] auto operator>(const Value& other) const -> bool;
     [[nodiscard]] auto operator>=(const Value& other) const -> bool;
-    [[nodiscard]] auto operator||(const Value& other) const -> bool;
-    [[nodiscard]] auto operator&&(const Value& other) const -> bool;
+    [[nodiscard]] auto operator||(const Value& other) const noexcept -> bool;
+    [[nodiscard]] auto operator&&(const Value& other) const noexcept -> bool;
 
 private:
     union

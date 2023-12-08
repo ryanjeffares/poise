@@ -89,7 +89,7 @@ auto Scanner::getCodeAtLine(usize line) const -> std::string_view
     return std::string_view{m_code.data() + strIndex, pos - strIndex};
 }
 
-auto Scanner::getNumLines() const -> usize
+auto Scanner::getNumLines() const noexcept  -> usize
 {
     auto count = 0_uz;
     for (const auto i : m_code) {
@@ -101,7 +101,7 @@ auto Scanner::getNumLines() const -> usize
     return count;
 }
 
-auto Scanner::scanToken() -> Token
+auto Scanner::scanToken() noexcept -> Token
 {
     skipWhitespace();
     m_start = m_current;
@@ -139,7 +139,7 @@ auto Scanner::scanToken() -> Token
     return {TokenType::EndOfFile, m_line, m_column, ""};
 }
 
-auto Scanner::skipWhitespace() -> void
+auto Scanner::skipWhitespace() noexcept -> void
 {
     while (const auto c = peek()) {
         switch (*c) {
@@ -169,7 +169,7 @@ auto Scanner::skipWhitespace() -> void
     }
 }
 
-auto Scanner::advance() -> std::optional<char>
+auto Scanner::advance() noexcept -> std::optional<char>
 {
     if (m_current >= m_code.length()) {
         return {};
@@ -180,7 +180,7 @@ auto Scanner::advance() -> std::optional<char>
     }
 }
 
-auto Scanner::peek() -> std::optional<char>
+auto Scanner::peek() noexcept -> std::optional<char>
 {
     if (m_current >= m_code.length()) {
         return {};
@@ -189,7 +189,7 @@ auto Scanner::peek() -> std::optional<char>
     }
 }
 
-auto Scanner::peekNext() -> std::optional<char>
+auto Scanner::peekNext() noexcept -> std::optional<char>
 {
     if (m_current >= m_code.length() - 1_uz) {
         return {};
@@ -198,7 +198,7 @@ auto Scanner::peekNext() -> std::optional<char>
     }
 }
 
-auto Scanner::peekPrevious() -> std::optional<char>
+auto Scanner::peekPrevious() noexcept -> std::optional<char>
 {
     if (m_current == 0_uz) {
         return {};
@@ -207,7 +207,7 @@ auto Scanner::peekPrevious() -> std::optional<char>
     }
 }
 
-auto Scanner::multiCharSymbol(const std::unordered_map<char, TokenType>& pairs, TokenType defaultType) -> Token
+auto Scanner::multiCharSymbol(const std::unordered_map<char, TokenType>& pairs, TokenType defaultType) noexcept -> Token
 {
     for (const auto& [c, t] : pairs) {
         if (peek().value_or(char{}) == c) {
@@ -219,7 +219,7 @@ auto Scanner::multiCharSymbol(const std::unordered_map<char, TokenType>& pairs, 
     return makeToken(defaultType);
 }
 
-auto Scanner::identifier() -> Token
+auto Scanner::identifier() noexcept -> Token
 {
     while (const auto c = peek()) {
         if (std::isalnum(*c) || *c == '_') {
@@ -237,7 +237,7 @@ auto Scanner::identifier() -> Token
     return makeToken(TokenType::Identifier);
 }
 
-auto Scanner::number() -> Token
+auto Scanner::number() noexcept -> Token
 {
     while (const auto c = peek()) {
         if (std::isdigit(*c)) {
@@ -263,7 +263,7 @@ auto Scanner::number() -> Token
     return makeToken(TokenType::Int);
 }
 
-auto Scanner::string() -> Token
+auto Scanner::string() noexcept -> Token
 {
     while (true) {
         if (const auto c = peek()) {
@@ -286,7 +286,7 @@ auto Scanner::string() -> Token
     return makeToken(TokenType::String);
 }
 
-auto Scanner::makeToken(TokenType tokenType) -> Token
+auto Scanner::makeToken(TokenType tokenType) noexcept -> Token
 {
     auto length = m_current - m_start;
     return {tokenType, m_line, m_column - length, std::string_view{m_code.data() + m_start, length}};

@@ -11,14 +11,14 @@ namespace poise::scanner {
 class Token
 {
 public:
-    Token(TokenType tokenType, usize line, usize column, std::string_view text);
+    Token(TokenType tokenType, usize line, usize column, std::string_view text) noexcept;
 
-    [[nodiscard]] auto length() const -> usize;
-    [[nodiscard]] auto text() const -> std::string_view;
-    [[nodiscard]] auto string() const -> std::string;
-    [[nodiscard]] auto tokenType() const -> TokenType;
-    [[nodiscard]] auto line() const -> usize;
-    [[nodiscard]] auto column() const -> usize;
+    [[nodiscard]] auto length() const noexcept -> usize;
+    [[nodiscard]] auto text() const noexcept -> std::string_view;
+    [[nodiscard]] auto string() const noexcept -> std::string;
+    [[nodiscard]] auto tokenType() const noexcept -> TokenType;
+    [[nodiscard]] auto line() const noexcept -> usize;
+    [[nodiscard]] auto column() const noexcept -> usize;
     auto print() const -> void;
 
 private:

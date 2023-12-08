@@ -26,16 +26,16 @@ public:
 
     auto print() const -> void override;
     auto printLn() const -> void override;
-    [[nodiscard]] auto toString() const -> std::string override;
-    [[nodiscard]] auto typeValue() const -> const runtime::Value& override;
-    [[nodiscard]] auto objectType() const -> ObjectType override;
+    [[nodiscard]] auto toString() const noexcept -> std::string override;
+    [[nodiscard]] auto typeValue() const noexcept -> const runtime::Value& override;
+    [[nodiscard]] auto objectType() const noexcept -> ObjectType override;
 
-    [[nodiscard]] auto asException() -> PoiseException* override;
+    [[nodiscard]] auto asException() noexcept -> PoiseException* override;
 
     [[nodiscard]] auto what() const noexcept -> const char* override;
 
-    [[nodiscard]] auto exceptionType() const -> ExceptionType;
-    [[nodiscard]] auto message() const -> std::string_view;
+    [[nodiscard]] auto exceptionType() const noexcept -> ExceptionType;
+    [[nodiscard]] auto message() const noexcept -> std::string_view;
 
 private:
     ExceptionType m_exceptionType;

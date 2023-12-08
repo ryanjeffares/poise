@@ -29,20 +29,20 @@ public:
 
     Vm(std::string mainFilePath);
 
-    auto setCurrentFunction(objects::PoiseFunction* function) -> void;
-    [[nodiscard]] auto getCurrentFunction() const -> objects::PoiseFunction*;
+    auto setCurrentFunction(objects::PoiseFunction* function) noexcept -> void;
+    [[nodiscard]] auto getCurrentFunction() const noexcept -> objects::PoiseFunction*;
 
-    [[nodiscard]] auto getNativeFunctionHash(std::string_view functionName) const -> std::optional<NativeNameHash>;
-    [[nodiscard]] auto nativeFunctionArity(NativeNameHash hash) const -> u8;
+    [[nodiscard]] auto getNativeFunctionHash(std::string_view functionName) const noexcept -> std::optional<NativeNameHash>;
+    [[nodiscard]] auto nativeFunctionArity(NativeNameHash hash) const noexcept -> u8;
 
-    auto emitOp(Op op, usize line) -> void;
-    auto emitConstant(Value value) -> void;
+    auto emitOp(Op op, usize line) noexcept -> void;
+    auto emitConstant(Value value) noexcept -> void;
 
-    [[nodiscard]] auto run(const scanner::Scanner* const scanner) -> RunResult;
+    [[nodiscard]] auto run(const scanner::Scanner* const scanner) noexcept -> RunResult;
 
 private:
-    auto registerNatives() -> void;
-    auto registerIntNatives() -> void;
+    auto registerNatives() noexcept -> void;
+    auto registerIntNatives() noexcept -> void;
 
     std::string m_mainFilePath;
 

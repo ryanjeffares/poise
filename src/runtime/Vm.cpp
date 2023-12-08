@@ -16,28 +16,28 @@ Vm::Vm(std::string mainFilePath) : m_mainFilePath{std::move(mainFilePath)}
     registerNatives();
 }
 
-auto Vm::setCurrentFunction(objects::PoiseFunction* function) -> void
+auto Vm::setCurrentFunction(objects::PoiseFunction* function) noexcept -> void
 {
     m_currentFunction = function;
 }
 
-auto Vm::getCurrentFunction() const -> objects::PoiseFunction*
+auto Vm::getCurrentFunction() const noexcept -> objects::PoiseFunction*
 {
     return m_currentFunction;
 }
 
-auto Vm::getNativeFunctionHash(std::string_view functionName) const -> std::optional<NativeNameHash>
+auto Vm::getNativeFunctionHash(std::string_view functionName) const noexcept -> std::optional<NativeNameHash>
 {
     const auto hash = m_nativeNameHasher(functionName);
     return m_nativeFunctionLookup.contains(hash) ? std::optional{hash} : std::nullopt;
 }
 
-auto Vm::nativeFunctionArity(NativeNameHash hash) const -> u8
+auto Vm::nativeFunctionArity(NativeNameHash hash) const noexcept -> u8
 {
     return m_nativeFunctionLookup.at(hash).arity();
 }
 
-auto Vm::emitOp(Op op, usize line) -> void
+auto Vm::emitOp(Op op, usize line) noexcept -> void
 {
     if (m_currentFunction == nullptr) {
         m_globalOps.push_back({op, line});
@@ -46,7 +46,7 @@ auto Vm::emitOp(Op op, usize line) -> void
     }
 }
 
-auto Vm::emitConstant(Value value) -> void
+auto Vm::emitConstant(Value value) noexcept -> void
 {
     if (m_currentFunction == nullptr) {
         m_globalConstants.emplace_back(std::move(value));
@@ -55,7 +55,7 @@ auto Vm::emitConstant(Value value) -> void
     }
 }
 
-auto Vm::run(const scanner::Scanner* const scanner) -> RunResult
+auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
 {
     std::vector<Value> stack;
     std::vector<Value> localVariables;

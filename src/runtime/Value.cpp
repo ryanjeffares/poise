@@ -97,7 +97,17 @@ auto Value::none() -> Value
     return std::nullptr_t{};
 }
 
-auto Value::type() const -> Type
+auto Value::string() const noexcept -> const std::string&
+{
+    return *m_data.string;
+}
+
+auto Value::object() const noexcept -> objects::PoiseObject*
+{
+    return type() == Type::Object ? m_data.object : nullptr;
+}
+
+auto Value::type() const noexcept -> Type
 {
     return m_type;
 }
@@ -111,16 +121,6 @@ auto Value::typeValue() const -> const Value&
     }
 }
 
-auto Value::string() const -> const std::string&
-{
-    return *m_data.string;
-}
-
-auto Value::object() const -> objects::PoiseObject*
-{
-    return m_type == Type::Object ? m_data.object : nullptr;
-}
-
 auto Value::print(bool err, bool newLine) const -> void
 {
     if (newLine) {
@@ -130,7 +130,7 @@ auto Value::print(bool err, bool newLine) const -> void
     }
 }
 
-auto Value::toBool() const -> bool
+auto Value::toBool() const noexcept -> bool
 {
     switch (type()) {
         case Type::Bool:
@@ -145,9 +145,10 @@ auto Value::toBool() const -> bool
             return true;
         case Type::String:
             return !string().empty();
+        default:
+            POISE_UNREACHABLE();
+            return false;
     }
-
-    return false;
 }
 
 auto Value::toFloat() const -> f64
@@ -182,7 +183,7 @@ auto Value::toInt() const -> i64
     }
 }
 
-auto Value::toString() const -> std::string
+auto Value::toString() const noexcept -> std::string
 {
     switch (type()) {
         case Type::Bool:
@@ -433,7 +434,7 @@ auto Value::operator%(const Value& other) const -> Value
     }
 }
 
-auto Value::operator!() const -> Value
+auto Value::operator!() const noexcept -> Value
 {
     return !toBool();
 }
@@ -472,7 +473,7 @@ auto Value::operator+() const -> Value
     }
 }
 
-auto Value::operator==(const Value& other) const -> bool
+auto Value::operator==(const Value& other) const noexcept -> bool
 {
     switch (type()) {
         case Type::Bool: {
@@ -528,7 +529,7 @@ auto Value::operator==(const Value& other) const -> bool
     }
 }
 
-auto Value::operator!=(const Value& other) const -> bool
+auto Value::operator!=(const Value& other) const noexcept -> bool
 {
     return !(*this == other);
 }
@@ -607,12 +608,12 @@ auto Value::operator>=(const Value& other) const -> bool
     return !(*this < other);
 }
 
-auto Value::operator||(const Value& other) const -> bool
+auto Value::operator||(const Value& other) const noexcept -> bool
 {
     return toBool() || other.toBool();
 }
 
-auto Value::operator&&(const Value& other) const -> bool
+auto Value::operator&&(const Value& other) const noexcept -> bool
 {
     return toBool() && other.toBool();
 }

@@ -76,12 +76,12 @@ enum class TokenType : u8
     Error,
 };
 
-[[nodiscard]] auto isLiteral(TokenType tokenType) -> bool;
-[[nodiscard]] auto isUnaryOp(TokenType tokenType) -> bool;
-[[nodiscard]] auto isTypeIdent(TokenType tokenType) -> bool;
-[[nodiscard]] auto isPrimitiveTypeIdent(TokenType tokenType) -> bool;
-[[nodiscard]] auto isBuiltinFunction(TokenType tokenType) -> bool;
-[[nodiscard]] auto isValidStartOfExpression(TokenType tokenType) -> bool;
+[[nodiscard]] auto isLiteral(TokenType tokenType) noexcept -> bool;
+[[nodiscard]] auto isUnaryOp(TokenType tokenType) noexcept -> bool;
+[[nodiscard]] auto isTypeIdent(TokenType tokenType) noexcept -> bool;
+[[nodiscard]] auto isPrimitiveTypeIdent(TokenType tokenType) noexcept -> bool;
+[[nodiscard]] auto isBuiltinFunction(TokenType tokenType) noexcept -> bool;
+[[nodiscard]] auto isValidStartOfExpression(TokenType tokenType) noexcept -> bool;
 }   // namespace poise::scanner
 
 namespace fmt {

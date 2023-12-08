@@ -19,23 +19,23 @@ public:
     explicit Scanner(const std::filesystem::path& inFilePath);
 
     [[nodiscard]] auto getCodeAtLine(usize line) const -> std::string_view;
-    [[nodiscard]] auto getNumLines() const -> usize;
-    [[nodiscard]] auto scanToken() -> Token;
+    [[nodiscard]] auto getNumLines() const noexcept -> usize;
+    [[nodiscard]] auto scanToken() noexcept -> Token;
 
 private:
-    auto skipWhitespace() -> void;
-    auto advance() -> std::optional<char>;
+    auto skipWhitespace() noexcept -> void;
+    auto advance() noexcept -> std::optional<char>;
 
-    [[nodiscard]] auto peek() -> std::optional<char>;
-    [[nodiscard]] auto peekNext() -> std::optional<char>;
-    [[nodiscard]] auto peekPrevious() -> std::optional<char>;
+    [[nodiscard]] auto peek() noexcept -> std::optional<char>;
+    [[nodiscard]] auto peekNext() noexcept -> std::optional<char>;
+    [[nodiscard]] auto peekPrevious() noexcept -> std::optional<char>;
 
-    [[nodiscard]] auto multiCharSymbol(const std::unordered_map<char, TokenType>& pairs, TokenType defaultType) -> Token;
-    [[nodiscard]] auto identifier() -> Token;
-    [[nodiscard]] auto number() -> Token;
-    [[nodiscard]] auto string() -> Token;
+    [[nodiscard]] auto multiCharSymbol(const std::unordered_map<char, TokenType>& pairs, TokenType defaultType) noexcept -> Token;
+    [[nodiscard]] auto identifier() noexcept -> Token;
+    [[nodiscard]] auto number() noexcept -> Token;
+    [[nodiscard]] auto string() noexcept -> Token;
 
-    [[nodiscard]] auto makeToken(TokenType tokenType) -> Token;
+    [[nodiscard]] auto makeToken(TokenType tokenType) noexcept -> Token;
 
 private:
     std::string m_code;

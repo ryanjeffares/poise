@@ -70,27 +70,27 @@ auto Compiler::compile() -> CompileResult
     return CompileResult::Success;
 }
 
-auto Compiler::scanner() const -> const scanner::Scanner*
+auto Compiler::scanner() const noexcept -> const scanner::Scanner*
 {
     return &m_scanner;
 }
 
-auto Compiler::emitOp(runtime::Op op, usize line) -> void
+auto Compiler::emitOp(runtime::Op op, usize line) noexcept -> void
 {
     m_vm->emitOp(op, line);
 }
 
-auto Compiler::emitConstant(runtime::Value value) -> void
+auto Compiler::emitConstant(runtime::Value value) noexcept -> void
 {
     m_vm->emitConstant(std::move(value));
 }
 
-auto Compiler::emitJump() -> JumpIndexes
+auto Compiler::emitJump() noexcept -> JumpIndexes
 {
     return emitJump(JumpType::None, false);
 }
 
-auto Compiler::emitJump(JumpType jumpType, bool emitPop) -> JumpIndexes
+auto Compiler::emitJump(JumpType jumpType, bool emitPop) noexcept -> JumpIndexes
 {
     const auto function = m_vm->getCurrentFunction();
 
@@ -119,7 +119,7 @@ auto Compiler::emitJump(JumpType jumpType, bool emitPop) -> JumpIndexes
     return {jumpConstantIndex, jumpOpIndex, emitPop && jumpType != JumpType::None};
 }
 
-auto Compiler::patchJump(JumpIndexes jumpIndexes) -> void
+auto Compiler::patchJump(JumpIndexes jumpIndexes) noexcept -> void
 {
     const auto function = m_vm->getCurrentFunction();
 

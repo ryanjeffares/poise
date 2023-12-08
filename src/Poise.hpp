@@ -27,62 +27,62 @@ using isize = std::ptrdiff_t;
 using f32 = float;
 using f64 = double;
 
-inline auto operator ""_i8(unsigned long long int value) -> i8
+inline auto operator ""_i8(unsigned long long int value) noexcept -> i8
 {
     return static_cast<i8>(value);
 }
 
-inline auto operator ""_i16(unsigned long long int value) -> i16
+inline auto operator ""_i16(unsigned long long int value) noexcept -> i16
 {
     return static_cast<i16>(value);
 }
 
-inline auto operator ""_i32(unsigned long long int value) -> i32
+inline auto operator ""_i32(unsigned long long int value) noexcept -> i32
 {
     return static_cast<i32>(value);
 }
 
-inline auto operator ""_i64(unsigned long long int value) -> i64
+inline auto operator ""_i64(unsigned long long int value) noexcept -> i64
 {
     return static_cast<i64>(value);
 }
 
-inline auto operator ""_u8(unsigned long long int value) -> u8
+inline auto operator ""_u8(unsigned long long int value) noexcept -> u8
 {
     return static_cast<u8>(value);
 }
 
-inline auto operator ""_u16(unsigned long long int value) -> u16
+inline auto operator ""_u16(unsigned long long int value) noexcept -> u16
 {
     return static_cast<u16>(value);
 }
 
-inline auto operator ""_u32(unsigned long long int value) -> u32
+inline auto operator ""_u32(unsigned long long int value) noexcept -> u32
 {
     return static_cast<u32>(value);
 }
 
-inline auto operator ""_u64(unsigned long long int value) -> u64
+inline auto operator ""_u64(unsigned long long int value) noexcept -> u64
 {
     return static_cast<u64>(value);
 }
 
-inline auto operator ""_uz(unsigned long long int value) -> usize
+inline auto operator ""_uz(unsigned long long int value) noexcept -> usize
 {
     return static_cast<usize>(value);
 }
 
-inline auto operator ""_iz(unsigned long long int value) -> isize
+inline auto operator ""_iz(unsigned long long int value) noexcept -> isize
 {
     return static_cast<isize>(value);
 }
 
-inline auto operator ""_f32(long double value) -> f32
+inline auto operator ""_f32(long double value) noexcept -> f32
 {
     return static_cast<f32>(value);
 }
 
-inline auto operator ""_f64(long double value) -> f64
+inline auto operator ""_f64(long double value) noexcept -> f64
 {
     return static_cast<f64>(value);
 }

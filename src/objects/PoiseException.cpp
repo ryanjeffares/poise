@@ -30,22 +30,22 @@ auto PoiseException::printLn() const -> void
     fmt::print("{}\n", toString());
 }
 
-auto PoiseException::toString() const -> std::string
+auto PoiseException::toString() const noexcept -> std::string
 {
     return fmt::format("{}: {}", exceptionType(), message());
 }
 
-auto PoiseException::typeValue() const -> const runtime::Value&
+auto PoiseException::typeValue() const noexcept -> const runtime::Value&
 {
     return types::s_exceptionType;
 }
 
-auto PoiseException::objectType() const -> ObjectType
+auto PoiseException::objectType() const noexcept -> ObjectType
 {
     return ObjectType::Exception;
 }
 
-auto PoiseException::asException() -> PoiseException*
+auto PoiseException::asException() noexcept -> PoiseException*
 {
     return this;
 }
@@ -55,12 +55,12 @@ auto PoiseException::what() const noexcept -> const char*
     return m_message.c_str();
 }
 
-auto PoiseException::exceptionType() const -> ExceptionType
+auto PoiseException::exceptionType() const noexcept -> ExceptionType
 {
     return m_exceptionType;
 }
 
-auto PoiseException::message() const -> std::string_view
+auto PoiseException::message() const noexcept -> std::string_view
 {
     return m_message;
 }
