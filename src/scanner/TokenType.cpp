@@ -109,6 +109,9 @@ auto formatter<TokenType>::format(TokenType tokenType, format_context& context) 
         case TokenType::If:
             result = "If";
             break;
+        case TokenType::Import:
+            result = "Import";
+            break;
         case TokenType::Or:
             result = "Or";
             break;
@@ -144,6 +147,9 @@ auto formatter<TokenType>::format(TokenType tokenType, format_context& context) 
             break;
         case TokenType::CloseParen:
             result = "CloseParen";
+            break;
+        case TokenType::ColonColon:
+            result = "ColonColon";
             break;
         case TokenType::Comma:
             result = "Comma";

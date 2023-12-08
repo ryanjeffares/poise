@@ -93,8 +93,8 @@ TEST_CASE("Check some basic reference counting")
         function.object()->asFunction()->addCapture(exception);
         const auto functionCopy = function;
         const auto exceptionCopy = exception;
-        functionCopy.printLn();
-        exceptionCopy.printLn();
+        functionCopy.print(false, true);
+        exceptionCopy.print(false, true);
     }
 
     REQUIRE((function.object()->refCount() == 1_uz && exception.object()->refCount() == 2_uz));

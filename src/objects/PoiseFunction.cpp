@@ -7,7 +7,7 @@
 #include <ranges>
 
 namespace poise::objects {
-PoiseFunction::PoiseFunction(std::string name, std::string filePath, u8 arity)
+PoiseFunction::PoiseFunction(std::string name, std::filesystem::path filePath, u8 arity)
     : m_name{std::move(name)}
     , m_filePath{std::move(filePath)}
     , m_arity{arity}
@@ -85,7 +85,7 @@ auto PoiseFunction::name() const noexcept -> std::string_view
     return m_name;
 }
 
-auto PoiseFunction::filePath() const noexcept -> std::string_view
+auto PoiseFunction::filePath() const noexcept -> const std::filesystem::path&
 {
     return m_filePath;
 }

@@ -2,11 +2,11 @@ if exists('b:current_syntax')
   finish
 endif
 
-syn keyword poiseBuiltinFunctions println typeof skipwhite
+syn keyword poiseBuiltinFunctions println print eprintln eprint typeof skipwhite
 syn keyword poiseBooleans true false skipwhite
 syn keyword poiseConditionals and or skipwhite
-syn keyword poiseKeywords return func var final skipwhite
-syn keyword poiseType Int Float Bool String None Function skipwhite
+syn keyword poiseKeywords return func var final import export skipwhite
+syn keyword poiseType Int Float Bool String None Function Exception skipwhite
 
 syn keyword poiseTodo TODO FIXME NOTE NOTES XXX contained
 syn match poiseComment "//.*$" contains=poiseTodo

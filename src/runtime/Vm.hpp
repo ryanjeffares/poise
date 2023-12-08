@@ -27,6 +27,9 @@ public:
     using NativeNameHash = usize;
     using NativeFunctionMap = std::unordered_map<NativeNameHash, NativeFunction>;
 
+    using NamespaceHash = usize;
+    using NamespaceFunctionLookup = std::unordered_map<NamespaceHash, std::vector<std::string>>;
+
     Vm(std::string mainFilePath);
 
     auto setCurrentFunction(objects::PoiseFunction* function) noexcept -> void;
@@ -53,6 +56,9 @@ private:
 
     std::hash<std::string_view> m_nativeNameHasher;
     NativeFunctionMap m_nativeFunctionLookup;
+
+    std::hash<std::filesystem::path> m_namespaceHasher;
+    NamespaceFunctionLookup m_namespaceFunctionLookup;
 };  // class Vm
 }   // namespace poise::runtime
 

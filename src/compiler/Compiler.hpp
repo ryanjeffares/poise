@@ -9,6 +9,7 @@
 
 #include <filesystem>
 #include <optional>
+#include <memory>
 #include <string>
 
 namespace poise::compiler {
@@ -20,7 +21,7 @@ enum class CompileResult
 class Compiler
 {
 public:
-    Compiler(runtime::Vm* vm, std::filesystem::path inFilePath);
+    Compiler(bool mainFile, runtime::Vm* vm, std::filesystem::path inFilePath);
 
     [[nodiscard]] auto compile() -> CompileResult;
     [[nodiscard]] auto scanner() const noexcept -> const scanner::Scanner*;
@@ -53,7 +54,9 @@ private:
     [[nodiscard]] auto match(scanner::TokenType expected) -> bool;
     [[nodiscard]] auto check(scanner::TokenType expected) -> bool;
 
+    // this returns a CompileResult so that we can propagate up the correct error from imported files
     auto declaration() -> void;
+    auto importDeclaration() -> void;
     auto funcDeclaration() -> void;
     auto varDeclaration(bool isFinal) -> void;
 
@@ -91,14 +94,20 @@ private:
 
     [[nodiscard]] auto parseCallArgs() -> u8;
     [[nodiscard]] auto parseFunctionArgs() -> u8;
-    [[nodiscard]] auto block(std::string_view scopeType) -> bool;
+    [[nodiscard]] auto parseNamespace() -> std::optional<std::filesystem::path>;
+    [[nodiscard]] auto parseBlock(std::string_view scopeType) -> bool;
 
     auto errorAtCurrent(std::string_view message) -> void;
     auto errorAtPrevious(std::string_view message) -> void;
     auto error(const scanner::Token& token, std::string_view message) -> void;
 
 private:
+    bool m_mainFile{};
     bool m_hadError{};
+    bool m_passedImports{};
+
+    std::vector<std::filesystem::path> m_importedFiles;
+    std::unique_ptr<Compiler> m_importCompiler;
 
     scanner::Scanner m_scanner;
     std::filesystem::path m_filePath;

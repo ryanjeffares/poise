@@ -1,0 +1,7 @@
+import std::int;
+
+func main() {
+    println(sqrt(81));
+    println(abs(-2));
+    println(pow(2, 8));
+}

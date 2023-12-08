@@ -20,6 +20,9 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
         * Yeah, I think I like this
     * Or a Python style thing where a `namespace` is a type
 * Generally improve compiler errors and stop it from spitting out nonsense after one error, eg lambda capture errors
+* Use hashes instead of strings in runtime
+    * Function names, namespace lookups, etc
+    * And maybe also in the compiler when we need to optimise that
 
 ## Roadmap
 * ~~Pop unused expression/return results~~
@@ -43,7 +46,10 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * ~~While loops~~
 * ~~Native functions~~
     * These are done, just need to actually implement everything else
-* Imports + Namespaces
+    * Disallow calling a native function outside std files
+* Imports + Namespaces 
+    * A 'namespace' corresponds to a file and its relative path to the main file being run
+    * In the runtime, we need some type of map to know what namespaces are imported to the file of the current function
 * Builtin objects
     * Iterable collections
         * Lists
@@ -61,6 +67,8 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * Constants
 * Type hints
 * CL arg parsing
+* Standard Library
+    * Precompile as bytecode files
 
 ### Types as First Class Objects
 * So, a variable can hold an instance of a `PoiseType` which describes some type

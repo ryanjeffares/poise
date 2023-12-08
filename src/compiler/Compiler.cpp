@@ -12,13 +12,14 @@
             errorAtCurrent(message);                    \
             return;                                     \
         }                                               \
-    } while (false)                                     \
+    } while (false)
 
 #define EXPECT_SEMICOLON() RETURN_IF_NO_MATCH(scanner::TokenType::Semicolon, "Expected ';'")
 
 namespace poise::compiler {
-Compiler::Compiler(runtime::Vm* vm, std::filesystem::path inFilePath)
-    : m_scanner{inFilePath}
+Compiler::Compiler(bool mainFile, runtime::Vm* vm, std::filesystem::path inFilePath)
+    : m_mainFile{mainFile}
+    , m_scanner{inFilePath}
     , m_filePath{std::move(inFilePath)}
     , m_vm{vm}
 {
@@ -55,16 +56,18 @@ auto Compiler::compile() -> CompileResult
         return CompileResult::CompileError;
     }
 
-    if (m_mainFunction) {
-        emitConstant("main");
-        emitOp(runtime::Op::LoadFunction, 0_uz);
-        emitConstant(0);
-        emitOp(runtime::Op::Call, 0_uz);
-        emitOp(runtime::Op::Pop, 0_uz);
-        emitOp(runtime::Op::Exit, m_scanner.getNumLines());
-    } else {
-        errorAtPrevious("No main function declared");
-        return CompileResult::CompileError;
+    if (m_mainFile) {
+        if (m_mainFunction) {
+            emitConstant("main");
+            emitOp(runtime::Op::LoadFunction, 0_uz);
+            emitConstant(0);
+            emitOp(runtime::Op::Call, 0_uz);
+            emitOp(runtime::Op::Pop, 0_uz);
+            emitOp(runtime::Op::Exit, m_scanner.getNumLines());
+        } else {
+            errorAtPrevious("No main function declared");
+            return CompileResult::CompileError;
+        }
     }
 
     return CompileResult::Success;
@@ -165,7 +168,9 @@ auto Compiler::check(scanner::TokenType expected) -> bool
 
 auto Compiler::declaration() -> void
 {
-    if (match(scanner::TokenType::Func)) {
+    if (match(scanner::TokenType::Import)) {
+        importDeclaration();
+    } else if (match(scanner::TokenType::Func)) {
         funcDeclaration();
     } else if (match(scanner::TokenType::Var)) {
         varDeclaration(false);
@@ -173,6 +178,40 @@ auto Compiler::declaration() -> void
         varDeclaration(true);
     } else {
         statement();
+    }
+}
+
+auto Compiler::importDeclaration() -> void
+{
+    if (m_contextStack.back() != Context::TopLevel) {
+        errorAtPrevious("Import only allowed at top level");
+        return;
+    }
+
+    if (m_passedImports) {
+        errorAtPrevious("Imports must only appear before any other top level declarations");
+        return;
+    }
+
+    RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected namespace");
+
+    auto importFilePath = parseNamespace();
+    if (!importFilePath) {
+        return;
+    }
+
+    if (!std::filesystem::exists(*importFilePath)) {
+        errorAtPrevious(fmt::format("Cannot open file {}", importFilePath->string()));
+        return;
+    }
+
+    m_importCompiler = std::make_unique<Compiler>(false, m_vm, std::move(*importFilePath));
+    const auto res = m_importCompiler->compile();
+    m_importCompiler.reset();
+    if (res != CompileResult::Success) {
+        // set the error flag here, so we stop compiling
+        // but no need to report - the import compiler already did this
+        m_hadError = true;
     }
 }
 
@@ -189,6 +228,11 @@ auto Compiler::funcDeclaration() -> void
     auto functionName = m_previous->string();
     auto line = m_previous->line();
 
+    if (functionName.starts_with("__")) {
+        errorAtPrevious("Function names may not start with '__' as this is reserved for the standard library");
+        return;
+    }
+
     RETURN_IF_NO_MATCH(scanner::TokenType::OpenParen, "Expected '(' after function name");
     const auto numArgs = parseFunctionArgs();
 
@@ -200,7 +244,7 @@ auto Compiler::funcDeclaration() -> void
     auto functionPtr = function.object()->asFunction();
     m_vm->setCurrentFunction(functionPtr);
 
-    if (!block("function")) {
+    if (!parseBlock("function")) {
         return;
     }
 
@@ -228,6 +272,8 @@ auto Compiler::funcDeclaration() -> void
 
     m_localNames.clear();
     m_contextStack.pop_back();
+
+    m_passedImports = true;
 }
 
 auto Compiler::varDeclaration(bool isFinal) -> void
@@ -240,6 +286,11 @@ auto Compiler::varDeclaration(bool isFinal) -> void
     RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected identifier");
 
     auto varName = m_previous->string();
+    if (varName.starts_with("__")) {
+        errorAtPrevious("Variable names may not start with '__' as this is reserved for the standard library");
+        return;
+    }
+
     if (std::find_if(m_localNames.begin(), m_localNames.end(), [&varName](const LocalVariable& local) {
         return local.name == varName;
     }) != m_localNames.end()) {
@@ -376,7 +427,7 @@ auto Compiler::tryStatement() -> void
 
     RETURN_IF_NO_MATCH(scanner::TokenType::OpenBrace, "Expected '{'");
 
-    if (!block("try block")) {
+    if (!parseBlock("try block")) {
         return;
     }
 
@@ -430,7 +481,7 @@ auto Compiler::catchStatement() -> void
 
     RETURN_IF_NO_MATCH(scanner::TokenType::OpenBrace, "Expected '{'");
 
-    if (!block("catch block")) {
+    if (!parseBlock("catch block")) {
         return;
     }
 
@@ -454,7 +505,7 @@ auto Compiler::ifStatement() -> void
     // jump if the condition fails, otherwise continue on and pop the condition result
     const auto falseJumpIndexes = emitJump(JumpType::IfFalse, true);
 
-    if (!block("if statement")) {
+    if (!parseBlock("if statement")) {
         return;
     }
 
@@ -472,7 +523,7 @@ auto Compiler::ifStatement() -> void
         if (match(scanner::TokenType::OpenBrace)) {
             const auto elseNumLocalsStart = m_localNames.size();
 
-            if (!block("else block")) {
+            if (!parseBlock("else block")) {
                 return;
             }
 
@@ -514,7 +565,7 @@ auto Compiler::whileStatement() -> void
 
     const auto numLocalsStart = m_localNames.size();
 
-    if (!block("while loop")) {
+    if (!parseBlock("while loop")) {
         return;
     }
 
@@ -778,25 +829,44 @@ auto Compiler::identifier(bool canAssign) -> void
         });
 
     if (findLocal == m_localNames.end()) {
-        if (const auto hash = m_vm->getNativeFunctionHash(identifier)) {
-            // I THINK we can just parse call args here...
-            if (!match(scanner::TokenType::OpenParen)) {
-                errorAtCurrent("Expected call for native function");
-                return;
-            }
+        if (identifier.starts_with("__")) {
+            // trying to call a native function
+            // TODO: restrict this to standard library files
+            if (const auto hash = m_vm->getNativeFunctionHash(identifier)) {
+                // I THINK we can just parse call args here...
+                if (!match(scanner::TokenType::OpenParen)) {
+                    errorAtCurrent("Expected call for native function");
+                    return;
+                }
 
-            const auto numArgs = parseCallArgs();
-            const auto arity = m_vm->nativeFunctionArity(*hash);
-            if (numArgs != arity) {
-                errorAtPrevious(fmt::format("Expected {} arguments to native function {} but got {}", arity, identifier, numArgs));
-                return;
-            }
+                const auto numArgs = parseCallArgs();
+                const auto arity = m_vm->nativeFunctionArity(*hash);
+                if (numArgs != arity) {
+                    errorAtPrevious(fmt::format("Expected {} arguments to native function {} but got {}", arity, identifier, numArgs));
+                    return;
+                }
 
-            emitConstant(*hash);
-            emitOp(runtime::Op::CallNative, m_previous->line());
+                emitConstant(*hash);
+                emitOp(runtime::Op::CallNative, m_previous->line());
+            }
         } else {
-            emitConstant(identifier);
-            emitOp(runtime::Op::LoadFunction, m_previous->line());
+            if (check(scanner::TokenType::ColonColon)) {
+                // qualifying with a namespace
+                // parse the namespace, and verify it has been imported
+                auto namespaceFilePath = parseNamespace();
+                if (std::find(m_importedFiles.begin(), m_importedFiles.end(), namespaceFilePath) == m_importedFiles.end()) {
+                    errorAtPrevious(fmt::format("{} has not been imported", namespaceFilePath->string()));
+                    return;
+                }
+
+
+            } else {
+                // not a local, native call or a namespace qualification
+                // so trying to call/load a function in the same namespace
+                // resolve this at runtime
+                emitConstant(identifier);
+                emitOp(runtime::Op::LoadFunction, m_previous->line());
+            }
         }
     } else {
         const auto localIndex = std::distance(m_localNames.begin(), findLocal);
@@ -916,7 +986,7 @@ auto Compiler::lambda() -> void
     m_contextStack.push_back(Context::Function);
 
     auto lambdaName = fmt::format("{}_lambda{}", prevFunction->name(), prevFunction->numLambdas());
-    auto lambda = runtime::Value::createObject<objects::PoiseFunction>(std::move(lambdaName), m_filePath.string(), numArgs);
+    auto lambda = runtime::Value::createObject<objects::PoiseFunction>(std::move(lambdaName), m_filePath, numArgs);
     auto functionPtr = lambda.object()->asFunction();
 
     m_vm->setCurrentFunction(functionPtr);
@@ -926,7 +996,7 @@ auto Compiler::lambda() -> void
         emitOp(runtime::Op::LoadCapture, m_previous->line());
     }
 
-    if (!block("lambda")) {
+    if (!parseBlock("lambda")) {
         return;
     }
 
@@ -1110,7 +1180,43 @@ auto Compiler::parseFunctionArgs() -> u8
     return numArgs;
 }
 
-auto Compiler::block(std::string_view scopeType) -> bool
+auto Compiler::parseNamespace() -> std::optional<std::filesystem::path>
+{
+    std::filesystem::path namespaceFilePath;
+    if (m_previous->text() == "std") {
+        if (auto stdPath = getStdPath()) {
+            namespaceFilePath.swap(*stdPath);
+        } else {
+            errorAtPrevious("The environment variable `POISE_STD_PATH` has not been set, cannot open std file");
+            return {};
+        }
+    } else {
+        namespaceFilePath = m_filePath.parent_path() / m_previous->text();
+    }
+
+    if (match(scanner::TokenType::Semicolon)) {
+        namespaceFilePath += ".poise";
+    } else {
+        while (match(scanner::TokenType::ColonColon)) {
+            if (!match(scanner::TokenType::Identifier)) {
+                errorAtCurrent("Expected namespace");
+                return {};
+            }
+
+            auto text = m_previous->string();
+            if (match(scanner::TokenType::Semicolon)) {
+                namespaceFilePath /= text + ".poise";
+                break;
+            } else {
+                namespaceFilePath /= m_previous->text();
+            }
+        }
+    }
+
+    return namespaceFilePath;
+}
+
+auto Compiler::parseBlock(std::string_view scopeType) -> bool
 {
     while (!match(scanner::TokenType::CloseBrace)) {
         if (check(scanner::TokenType::EndOfFile)) {

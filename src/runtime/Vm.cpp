@@ -461,12 +461,12 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                 fmt::print(stderr, fmt::emphasis::bold | fmt::fg(fmt::color::red), "Runtime Error: ");
                 fmt::print(stderr, "{}\n", exception.toString());
 
-                fmt::print(stderr, "  At {}:{} in function '{}'\n", currentFunction->filePath(), line, currentFunction->name());
+                fmt::print(stderr, "  At {}:{} in function '{}'\n", currentFunction->filePath().string(), line, currentFunction->name());
                 fmt::print(stderr, "    {}\n", scanner->getCodeAtLine(line));
 
                 for (const auto& entry : callStack | std::views::reverse) {
                     if (const auto caller = entry.callerFunction) {
-                        fmt::print(stderr, "  At {}:{} in function '{}'\n", caller->filePath(), entry.callSiteLine, caller->name());
+                        fmt::print(stderr, "  At {}:{} in function '{}'\n", caller->filePath().string(), entry.callSiteLine, caller->name());
                         fmt::print(stderr, "    {}\n", scanner->getCodeAtLine(entry.callSiteLine));
                     }
                 }
@@ -475,12 +475,12 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                 fmt::print(stderr, "Consider reviewing your code or catching this exception with a `try/catch` statement.\n");
                 return RunResult::RuntimeError;
             }
-        }/* catch (const std::exception& exception) {
+        } catch (const std::exception& exception) {
             fmt::print(stderr, fmt::emphasis::bold | fmt::fg(fmt::color::red), "PANIC: ");
             fmt::print(stderr, "{}\n", exception.what());
             fmt::print(stderr, "This is an error that cannot be recovered from or caught, and is likely a bug in the interpreter.\n");
             return RunResult::RuntimeError;
-        }*/
+        }
     }
 #undef PRINT_MEMORY
 }
