@@ -30,6 +30,7 @@ public:
     using NamespaceHash = usize;
     using NamespaceNameMap = std::unordered_map<NamespaceHash, std::string>;
     using NamespaceFunctionLookup = std::unordered_map<NamespaceHash, std::vector<Value>>;
+    using NamespacesImportedToNamespaceLookup = std::unordered_map<NamespaceHash, std::vector<NamespaceHash>>;
 
     Vm(std::string mainFilePath);
 
@@ -39,11 +40,12 @@ public:
     [[nodiscard]] auto nativeFunctionHash(std::string_view functionName) const noexcept -> std::optional<NativeNameHash>;
     [[nodiscard]] auto nativeFunctionArity(NativeNameHash hash) const noexcept -> u8;
 
-    auto addNamespace(const std::filesystem::path& namespacePath, std::string namespaceName) noexcept -> void;
+    auto addNamespace(const std::filesystem::path& namespacePath, std::string namespaceName, std::optional<NamespaceHash> parent) noexcept -> void;
     [[nodiscard]] auto hasNamespace(NamespaceHash namespaceHash) const noexcept -> bool;
     [[nodiscard]] auto namespaceHash(const std::filesystem::path& namespaceHash) const noexcept -> NamespaceHash;
     auto addFunctionToNamespace(NamespaceHash namespaceHash, Value function) noexcept -> void;
     [[nodiscard]] auto namespaceFunction(NamespaceHash namespaceHash, std::string_view functionName) const noexcept -> objects::PoiseFunction*;
+    [[nodiscard]] auto namespaceHasImportedNamespace(NamespaceHash parent, NamespaceHash imported) const noexcept -> bool;
 
     auto emitOp(Op op, usize line) noexcept -> void;
     auto emitConstant(Value value) noexcept -> void;
@@ -67,6 +69,7 @@ private:
     std::hash<std::filesystem::path> m_namespaceHasher;
     NamespaceNameMap m_namespaceNameMap;
     NamespaceFunctionLookup m_namespaceFunctionLookup;
+    NamespacesImportedToNamespaceLookup m_namespacesImportedToNamespaceLookup;
 };  // class Vm
 }   // namespace poise::runtime
 

@@ -49,7 +49,6 @@ public:
 private:
     std::string m_name;
     std::filesystem::path m_filePath;
-    usize m_filePathHash;
     u8 m_arity;
 
     u32 m_numLambdas{0};

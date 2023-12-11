@@ -33,7 +33,7 @@ auto Compiler::compile() -> CompileResult
     }
 
     if (m_mainFile) {
-        m_vm->addNamespace(m_filePath, "entry");
+        m_vm->addNamespace(m_filePath, "entry", std::nullopt);
     }
 
     m_contextStack.push_back(Context::TopLevel);
@@ -212,7 +212,7 @@ auto Compiler::importDeclaration() -> void
         return;
     }
 
-    m_vm->addNamespace(path, name);
+    m_vm->addNamespace(path, name, m_vm->namespaceHash(m_filePath));
 
     m_importCompiler = std::make_unique<Compiler>(false, m_vm, path);
     const auto res = m_importCompiler->compile();
@@ -886,7 +886,7 @@ auto Compiler::identifier(bool canAssign) -> void
                 auto verifyNamespaceAndFunction =
                     [this] (std::string_view functionName, std::string_view namespaceText, usize namespaceHash) -> bool {
                         // load the function
-                        if (!m_vm->hasNamespace(namespaceHash)) {
+                        if (!m_vm->namespaceHasImportedNamespace(m_vm->namespaceHash(m_filePath), namespaceHash) || !m_vm->hasNamespace(namespaceHash)) {
                             errorAtPrevious(fmt::format("Namespace '{}' not imported", namespaceText));
                             return false;
                         }

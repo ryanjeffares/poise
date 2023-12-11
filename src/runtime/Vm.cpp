@@ -37,11 +37,22 @@ auto Vm::nativeFunctionArity(NativeNameHash hash) const noexcept -> u8
     return m_nativeFunctionLookup.at(hash).arity();
 }
 
-auto Vm::addNamespace(const std::filesystem::path& namespacePath, std::string namespaceName) noexcept -> void
+auto Vm::addNamespace(const std::filesystem::path& namespacePath, std::string namespaceName, std::optional<NamespaceHash> parent) noexcept -> void
 {
-    const auto hash = m_namespaceHasher(namespacePath);
+    const auto hash = namespaceHash(namespacePath);
     m_namespaceFunctionLookup.try_emplace(hash, std::vector<Value>{});
     m_namespaceNameMap[hash] = std::move(namespaceName);
+
+    // hacky....
+    if (!parent) {
+        // main file compiler's constructor, needs to just be present in the map
+        m_namespacesImportedToNamespaceLookup.emplace(hash, std::vector<NamespaceHash>{});
+    } else {
+        // actual import declaration
+        // parent file knows its import, imported file becomes present in the map
+        m_namespacesImportedToNamespaceLookup[*parent].push_back(hash);
+        m_namespacesImportedToNamespaceLookup.emplace(hash, std::vector<NamespaceHash>());
+    }
 }
 
 auto Vm::hasNamespace(NamespaceHash namespaceHash) const noexcept -> bool
@@ -56,13 +67,13 @@ auto Vm::namespaceHash(const std::filesystem::path& namespacePath) const noexcep
 
 auto Vm::addFunctionToNamespace(NamespaceHash namespaceHash, Value function) noexcept -> void
 {
-    POISE_ASSERT(m_namespaceFunctionLookup.contains(namespaceHash), fmt::format("Namespace for {} not found", namespacePath.string()));
+    POISE_ASSERT(m_namespaceFunctionLookup.contains(namespaceHash), "Namespace not found");
     m_namespaceFunctionLookup[namespaceHash].emplace_back(std::move(function));
 }
 
 auto Vm::namespaceFunction(NamespaceHash namespaceHash, std::string_view functionName) const noexcept -> objects::PoiseFunction*
 {
-    POISE_ASSERT(m_namespaceFunctionLookup.contains(namespaceHash), fmt::format("Namespace for {} not found", namespacePath.string()));
+    POISE_ASSERT(m_namespaceFunctionLookup.contains(namespaceHash), "Namespace not found");
 
     const auto& functionVec = m_namespaceFunctionLookup.at(namespaceHash);
     const auto it = std::find_if(functionVec.cbegin(), functionVec.cend(), [functionName] (const Value& value) {
@@ -70,6 +81,13 @@ auto Vm::namespaceFunction(NamespaceHash namespaceHash, std::string_view functio
     });
 
     return it == functionVec.end() ? nullptr : it->object()->asFunction();
+}
+
+auto Vm::namespaceHasImportedNamespace(NamespaceHash parent, NamespaceHash imported) const noexcept -> bool
+{
+    POISE_ASSERT(m_namespacesImportedToNamespaceLookup.contains(parent), "Parent namespace not found");
+    const auto& namespaceVec = m_namespacesImportedToNamespaceLookup.at(parent);
+    return std::find(namespaceVec.cbegin(), namespaceVec.cend(), imported) != namespaceVec.cend();
 }
 
 auto Vm::emitOp(Op op, usize line) noexcept -> void
