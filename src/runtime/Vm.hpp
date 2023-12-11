@@ -40,7 +40,7 @@ public:
     [[nodiscard]] auto nativeFunctionHash(std::string_view functionName) const noexcept -> std::optional<NativeNameHash>;
     [[nodiscard]] auto nativeFunctionArity(NativeNameHash hash) const noexcept -> u8;
 
-    auto addNamespace(const std::filesystem::path& namespacePath, std::string namespaceName, std::optional<NamespaceHash> parent) noexcept -> void;
+    [[nodiscard]] auto addNamespace(const std::filesystem::path& namespacePath, std::string namespaceName, std::optional<NamespaceHash> parent) noexcept -> bool;
     [[nodiscard]] auto hasNamespace(NamespaceHash namespaceHash) const noexcept -> bool;
     [[nodiscard]] auto namespaceHash(const std::filesystem::path& namespaceHash) const noexcept -> NamespaceHash;
     auto addFunctionToNamespace(NamespaceHash namespaceHash, Value function) noexcept -> void;

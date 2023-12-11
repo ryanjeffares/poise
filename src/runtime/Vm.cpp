@@ -37,22 +37,31 @@ auto Vm::nativeFunctionArity(NativeNameHash hash) const noexcept -> u8
     return m_nativeFunctionLookup.at(hash).arity();
 }
 
-auto Vm::addNamespace(const std::filesystem::path& namespacePath, std::string namespaceName, std::optional<NamespaceHash> parent) noexcept -> void
+auto Vm::addNamespace(const std::filesystem::path& namespacePath, std::string namespaceName, std::optional<NamespaceHash> parent) noexcept -> bool
 {
     const auto hash = namespaceHash(namespacePath);
-    m_namespaceFunctionLookup.try_emplace(hash, std::vector<Value>{});
-    m_namespaceNameMap[hash] = std::move(namespaceName);
 
+    // sort out namespaces' imported namespaces first
     // hacky....
     if (!parent) {
         // main file compiler's constructor, needs to just be present in the map
-        m_namespacesImportedToNamespaceLookup.emplace(hash, std::vector<NamespaceHash>{});
+        m_namespacesImportedToNamespaceLookup.try_emplace(hash, std::vector<NamespaceHash>{});
     } else {
         // actual import declaration
         // parent file knows its import, imported file becomes present in the map
         m_namespacesImportedToNamespaceLookup[*parent].push_back(hash);
-        m_namespacesImportedToNamespaceLookup.emplace(hash, std::vector<NamespaceHash>());
+        m_namespacesImportedToNamespaceLookup.try_emplace(hash, std::vector<NamespaceHash>());
     }
+
+    // then return false if we've already compiled this file
+    if (m_namespaceFunctionLookup.contains(hash)) {
+        return false;
+    }
+
+    m_namespaceFunctionLookup.try_emplace(hash, std::vector<Value>{});
+    m_namespaceNameMap[hash] = std::move(namespaceName);
+
+    return true;
 }
 
 auto Vm::hasNamespace(NamespaceHash namespaceHash) const noexcept -> bool
