@@ -13,14 +13,14 @@
 #include <string>
 
 namespace poise::compiler {
-enum class CompileResult
-{
-    Success, CompileError, FileError, ParseError,
-};
-
 class Compiler
 {
 public:
+    enum class CompileResult
+    {
+        Success, CompileError, FileError, ParseError,
+    };
+
     Compiler(bool mainFile, bool stdFile, runtime::Vm* vm, std::filesystem::path inFilePath);
 
     [[nodiscard]] auto compile() -> CompileResult;
