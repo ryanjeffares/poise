@@ -43,10 +43,9 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * ~~While loops~~
 * ~~Native functions~~
     * These are done, just need to actually implement everything else
-    * Disallow calling a native function outside std files
-* Imports + Namespaces 
-    * A 'namespace' corresponds to a file and its relative path to the main file being run 
-    * Aliases for QOL
+    * ~~Disallow calling a native function outside std files~~
+* ~~Imports + Namespaces~~
+* Namespace aliases
 * Dot functions - UFCS!
 * Builtin objects
     * Iterable collections
