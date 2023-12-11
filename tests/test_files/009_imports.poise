@@ -1,10 +1,10 @@
 import std::int;
-import lib::lib;
+import lib::lib as lib;
 
 func main() {
     println(std::int::sqrt(81));
     println(std::int::abs(-2));
     println(std::int::pow(2, 8));
 
-    lib::lib::say_hello();
+    lib::say_hello();
 }

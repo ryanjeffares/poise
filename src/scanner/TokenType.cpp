@@ -88,6 +88,9 @@ auto formatter<TokenType>::format(TokenType tokenType, format_context& context) 
         case TokenType::And:
             result = "And";
             break;
+        case TokenType::As:
+            result = "As";
+            break;
         case TokenType::Catch:
             result = "Catch";
             break;

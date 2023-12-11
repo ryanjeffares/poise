@@ -46,6 +46,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * ~~Disallow calling a native function outside std files~~
 * ~~Imports + Namespaces~~
 * Namespace aliases
+* Export functions
 * Dot functions - UFCS!
 * Builtin objects
     * Iterable collections

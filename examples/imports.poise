@@ -1,10 +1,12 @@
-import std::int;
-import lib::lib;
+import std::int as int;
+import lib::lib as lib;
 
 func main() {
-    println(std::int::sqrt(81));
-    println(std::int::abs(-2));
-    println(std::int::pow(2, 8));
+    println(int::sqrt(81));
+    println(int::abs(-2));
+    println(int::pow(2, 8));
 
-    lib::lib::say_hello();
+    lib::say_hello();
+    println(typeof(lib::say_hello));
+    println(typeof(int::sqrt) == typeof(lib::say_hello));
 }

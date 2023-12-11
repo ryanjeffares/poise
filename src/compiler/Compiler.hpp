@@ -102,7 +102,7 @@ private:
 
     [[nodiscard]] auto parseCallArgs() -> u8;
     [[nodiscard]] auto parseFunctionArgs() -> u8;
-    [[nodiscard]] auto parseNamespace() -> std::optional<NamespaceParseResult>;
+    [[nodiscard]] auto parseNamespaceImport() -> std::optional<NamespaceParseResult>;
     [[nodiscard]] auto parseBlock(std::string_view scopeType) -> bool;
 
     auto errorAtCurrent(std::string_view message) -> void;
@@ -115,7 +115,7 @@ private:
     bool m_hadError{};
     bool m_passedImports{};
 
-    std::vector<std::filesystem::path> m_importedFiles;
+    std::unordered_map<std::string, std::filesystem::path> m_importAliasLookup;
     std::unique_ptr<Compiler> m_importCompiler;
 
     scanner::Scanner m_scanner;

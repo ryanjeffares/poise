@@ -19,6 +19,7 @@ enum class TokenType : u8
 
     // keywords
     And,
+    As,
     Catch,
     Else,
     EPrint,

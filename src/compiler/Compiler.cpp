@@ -14,7 +14,16 @@
         }                                               \
     } while (false)
 
+#define RETURN_VALUE_IF_NO_MATCH(tokenType, message, returnValue)   \
+    do {                                                            \
+        if (!match(tokenType)) {                                    \
+            errorAtCurrent(message);                                \
+            return (returnValue);                                   \
+        }                                                           \
+    } while (false)
+
 #define EXPECT_SEMICOLON() RETURN_IF_NO_MATCH(scanner::TokenType::Semicolon, "Expected ';'")
+#define EXPECT_SEMICOLON_RETURN_VALUE(returnValue) RETURN_VALUE_IF_NO_MATCH(scanner::TokenType::Semicolon, "Expected ';'", returnValue);
 
 namespace poise::compiler {
 Compiler::Compiler(bool mainFile, bool stdFile, runtime::Vm* vm, std::filesystem::path inFilePath)
@@ -196,7 +205,7 @@ auto Compiler::importDeclaration() -> void
 
     RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected namespace");
 
-    const auto namespaceParseRes = parseNamespace();
+    const auto namespaceParseRes = parseNamespaceImport();
     if (!namespaceParseRes) {
         return;
     }
@@ -912,26 +921,48 @@ auto Compiler::namespaceQualifiedCall() -> void
     // TODO: constants
 
     // so first, parse the rest of the namespace...
-    auto identifier = m_previous->text();
+    const auto identifier = m_previous->string();
 
     std::filesystem::path namespaceFilePath;
-    std::string namespaceText{identifier};
-
-    if (identifier == "std") {
-        if (auto stdPath = getStdPath()) {
-            namespaceFilePath.swap(*stdPath);
-        } else {
-            errorAtPrevious("The environment variable `POISE_STD_PATH` has not been set, cannot open std file");
-            return;
-        }
-    } else {
-        namespaceFilePath = m_filePath.parent_path() / identifier;
-    }
+    std::string namespaceText = identifier;
 
     advance(); // consume the first '::'
 
+    if (m_importAliasLookup.contains(namespaceText)) {
+        namespaceFilePath = m_importAliasLookup[namespaceText];
+        advance(); // consume the function name
+    } else {
+        if (identifier == "std") {
+            if (auto stdPath = getStdPath()) {
+                namespaceFilePath.swap(*stdPath);
+            } else {
+                errorAtPrevious("The environment variable `POISE_STD_PATH` has not been set, cannot open std file");
+                return;
+            }
+        } else {
+            namespaceFilePath = m_filePath.parent_path() / identifier;
+        }
+
+        // current token is EITHER the next part of the namespace OR the function
+        while (match(scanner::TokenType::Identifier)) {
+            auto text = m_previous->text();
+
+            if (check(scanner::TokenType::Semicolon) || check(scanner::TokenType::OpenParen)) {
+                break;
+            } else if (match(scanner::TokenType::ColonColon)) {
+                // continue namespace
+                namespaceFilePath /= text;
+                namespaceText += "::";
+                namespaceText += text;
+            } else {
+                errorAtCurrent("Expected call or ';'");
+                return;
+            }
+        }
+    }
+
     auto verifyNamespaceAndFunction =
-        [this] (std::string_view functionName, std::string_view namespaceText, usize namespaceHash) -> bool {
+        [this](std::string_view functionName, std::string_view namespaceText, usize namespaceHash) -> bool {
             // load the function
             if (!m_vm->namespaceHasImportedNamespace(m_vm->namespaceHash(m_filePath), namespaceHash) || !m_vm->hasNamespace(namespaceHash)) {
                 errorAtPrevious(fmt::format("Namespace '{}' not imported", namespaceText));
@@ -946,60 +977,49 @@ auto Compiler::namespaceQualifiedCall() -> void
             return true;
         };
 
-    // current token is EITHER the next part of the namespace OR the function
-    while (match(scanner::TokenType::Identifier)) {
-        auto text = m_previous->string();
+    auto functionName = m_previous->string();
 
-        if (check(scanner::TokenType::Semicolon)) { // semicolon will be consumed by expressionStatement()
+    if (match(scanner::TokenType::OpenParen)) {
+        // function call
+        // consume semicolon
+        if (!namespaceFilePath.has_extension()) {
             namespaceFilePath += ".poise";
+        }
 
-            const auto namespaceHash = m_vm->namespaceHash(namespaceFilePath);
-            if (!verifyNamespaceAndFunction(text, namespaceText, namespaceHash)) {
-                return;
-            }
-
-            emitConstant(namespaceHash);
-            emitConstant(m_stringHasher(text));
-            emitConstant(std::move(text));
-            emitOp(runtime::Op::LoadFunction, m_previous->line());
-
-            break;
-        } else if (match(scanner::TokenType::OpenParen)) {
-            // function call
-            // consume semicolon
-            namespaceFilePath += ".poise";
-
-            const auto namespaceHash = m_vm->namespaceHash(namespaceFilePath);
-            if (!verifyNamespaceAndFunction(text, namespaceText, namespaceHash)) {
-                return;
-            }
-
-            emitConstant(namespaceHash);
-            emitConstant(m_stringHasher(text));
-            emitConstant(text);
-            emitOp(runtime::Op::LoadFunction, m_previous->line());
-
-            const auto function = m_vm->namespaceFunction(namespaceHash, text);
-            const auto numArgs = parseCallArgs();
-
-            if (numArgs != function->arity()) {
-                errorAtPrevious(fmt::format("Expected {} args to '{}::{}()' but got {}", function->arity(), namespaceText, text, numArgs));
-                return;
-            }
-
-            emitConstant(numArgs);
-            emitOp(runtime::Op::Call, m_previous->line());
-
-            break;
-        } else if (match(scanner::TokenType::ColonColon)) {
-            // continue namespace
-            namespaceFilePath /= text;
-            namespaceText += "::";
-            namespaceText += text;
-        } else {
-            errorAtCurrent("Expected call or ';'");
+        const auto namespaceHash = m_vm->namespaceHash(namespaceFilePath);
+        if (!verifyNamespaceAndFunction(functionName, namespaceText, namespaceHash)) {
             return;
         }
+
+        emitConstant(namespaceHash);
+        emitConstant(m_stringHasher(functionName));
+        emitConstant(functionName);
+        emitOp(runtime::Op::LoadFunction, m_previous->line());
+
+        const auto function = m_vm->namespaceFunction(namespaceHash, functionName);
+        const auto numArgs = parseCallArgs();
+
+        if (numArgs != function->arity()) {
+            errorAtPrevious(fmt::format("Expected {} args to '{}::{}()' but got {}", function->arity(), namespaceText, functionName, numArgs));
+            return;
+        }
+
+        emitConstant(numArgs);
+        emitOp(runtime::Op::Call, m_previous->line());
+    } else {
+        if (!namespaceFilePath.has_extension()) {
+            namespaceFilePath += ".poise";
+        }
+
+        const auto namespaceHash = m_vm->namespaceHash(namespaceFilePath);
+        if (!verifyNamespaceAndFunction(functionName, namespaceText, namespaceHash)) {
+            return;
+        }
+
+        emitConstant(namespaceHash);
+        emitConstant(m_stringHasher(functionName));
+        emitConstant(std::move(functionName));
+        emitOp(runtime::Op::LoadFunction, m_previous->line());
     }
 }
 
@@ -1291,7 +1311,7 @@ auto Compiler::parseFunctionArgs() -> u8
     return numArgs;
 }
 
-auto Compiler::parseNamespace() -> std::optional<NamespaceParseResult>
+auto Compiler::parseNamespaceImport() -> std::optional<NamespaceParseResult>
 {
     std::filesystem::path namespaceFilePath;
     std::string namespaceName = m_previous->string();
@@ -1315,16 +1335,28 @@ auto Compiler::parseNamespace() -> std::optional<NamespaceParseResult>
         while (match(scanner::TokenType::ColonColon)) {
             namespaceName += "::";
 
-            if (!match(scanner::TokenType::Identifier)) {
-                errorAtCurrent("Expected namespace");
-                return {};
-            }
+            RETURN_VALUE_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected namespace", std::nullopt);
 
             auto text = m_previous->string();
             namespaceName += text;
 
             if (match(scanner::TokenType::Semicolon)) {
                 namespaceFilePath /= text + ".poise";
+                break;
+            } else if (match(scanner::TokenType::As)) {
+                namespaceFilePath /= text + ".poise";
+
+                RETURN_VALUE_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected alias for namespace", std::nullopt);
+
+                auto alias = m_previous->string();
+                if (m_importAliasLookup.contains(alias)) {
+                    errorAtPrevious(fmt::format("Namespace alias '{}' already used", alias));
+                    return {};
+                }
+
+                m_importAliasLookup[std::move(alias)] = namespaceFilePath;
+
+                EXPECT_SEMICOLON_RETURN_VALUE(std::nullopt);
                 break;
             } else {
                 namespaceFilePath /= m_previous->text();

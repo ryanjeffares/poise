@@ -28,6 +28,7 @@ Scanner::Scanner(const std::filesystem::path& inFilePath)
     }
     , m_keywordLookup{
         {"and", TokenType::And},
+        {"as", TokenType::As},
         {"catch", TokenType::Catch},
         {"else", TokenType::Else},
         {"eprint", TokenType::EPrint},
