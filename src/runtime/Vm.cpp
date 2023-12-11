@@ -21,12 +21,12 @@ auto Vm::setCurrentFunction(objects::PoiseFunction* function) noexcept -> void
     m_currentFunction = function;
 }
 
-auto Vm::getCurrentFunction() const noexcept -> objects::PoiseFunction*
+auto Vm::currentFunction() const noexcept -> objects::PoiseFunction*
 {
     return m_currentFunction;
 }
 
-auto Vm::getNativeFunctionHash(std::string_view functionName) const noexcept -> std::optional<NativeNameHash>
+auto Vm::nativeFunctionHash(std::string_view functionName) const noexcept -> std::optional<NativeNameHash>
 {
     const auto hash = m_nativeNameHasher(functionName);
     return m_nativeFunctionLookup.contains(hash) ? std::optional{hash} : std::nullopt;
@@ -35,6 +35,43 @@ auto Vm::getNativeFunctionHash(std::string_view functionName) const noexcept -> 
 auto Vm::nativeFunctionArity(NativeNameHash hash) const noexcept -> u8
 {
     return m_nativeFunctionLookup.at(hash).arity();
+}
+
+auto Vm::addNamespace(const std::filesystem::path& namespacePath, std::string namespaceName) noexcept -> void
+{
+    const auto hash = m_namespaceHasher(namespacePath);
+    m_namespaceFunctionLookup.try_emplace(hash, std::vector<Value>{});
+    m_namespaceNameMap[hash] = std::move(namespaceName);
+}
+
+auto Vm::hasNamespace(const std::filesystem::path& namespacePath) const noexcept -> bool
+{
+    return m_namespaceFunctionLookup.contains(m_namespaceHasher(namespacePath));
+}
+
+auto Vm::namespaceHash(const std::filesystem::path& namespacePath) const noexcept -> NamespaceHash
+{
+    return m_namespaceHasher(namespacePath);
+}
+
+auto Vm::addFunctionToNamespace(const std::filesystem::path& namespacePath, Value function) noexcept -> void
+{
+    const auto hash = m_namespaceHasher(namespacePath);
+    POISE_ASSERT(m_namespaceFunctionLookup.contains(hash), fmt::format("Namespace for {} not found", namespacePath.string()));
+    m_namespaceFunctionLookup[hash].emplace_back(std::move(function));
+}
+
+auto Vm::namespaceFunction(const std::filesystem::path& namespacePath, std::string_view functionName) const noexcept -> objects::PoiseFunction*
+{
+    const auto hash = m_namespaceHasher(namespacePath);
+    POISE_ASSERT(m_namespaceFunctionLookup.contains(hash), fmt::format("Namespace for {} not found", namespacePath.string()));
+
+    const auto& functionVec = m_namespaceFunctionLookup.at(hash);
+    const auto it = std::find_if(functionVec.cbegin(), functionVec.cend(), [functionName] (const Value& value) {
+        return value.object()->asFunction()->name() == functionName;
+    });
+
+    return it == functionVec.end() ? nullptr : it->object()->asFunction();
 }
 
 auto Vm::emitOp(Op op, usize line) noexcept -> void
@@ -59,7 +96,6 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
 {
     std::vector<Value> stack;
     std::vector<Value> localVariables;
-    std::vector<Value> availableFunctions;
 
     struct CallStackEntry
     {
@@ -169,11 +205,6 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                     stack.emplace_back(types::s_typeLookup.at(type).object()->asType()->construct(args));
                     break;
                 }
-                case Op::DeclareFunction: {
-                    auto function = constantList[constantIndex++];
-                    availableFunctions.emplace_back(std::move(function));
-                    break;
-                }
                 case Op::DeclareLocal: {
                     auto value = pop();
                     localVariables.emplace_back(std::move(value));
@@ -205,13 +236,18 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                     break;
                 }
                 case Op::LoadFunction: {
-                    const auto& functionName = constantList[constantIndex++];
-                    const auto it = std::find_if(availableFunctions.begin(), availableFunctions.end(), [&functionName](const Value& function) {
-                        return function.object()->asFunction()->name() == functionName.string();
+                    const auto namespaceHash = constantList[constantIndex++].value<NamespaceHash>();
+                    const auto& functionName = constantList[constantIndex++].string();
+
+                    const auto& functionVec = m_namespaceFunctionLookup[namespaceHash];
+                    const auto it = std::find_if(functionVec.cbegin(), functionVec.cend(), [&functionName] (const Value& value) {
+                        return value.object()->asFunction()->name() == functionName;
                     });
-                    if (it == availableFunctions.end()) {
-                        throw PoiseException(PoiseException::ExceptionType::FunctionNotFound, fmt::format("No variable or function named '{}'", functionName.string()));
+
+                    if (it == functionVec.cend()) {
+                        throw PoiseException(PoiseException::ExceptionType::FunctionNotFound, fmt::format("Function '{}' not found in namespace '{}'", functionName, m_namespaceNameMap[namespaceHash]));
                     }
+
                     stack.push_back(*it);
                     break;
                 }

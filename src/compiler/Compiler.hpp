@@ -92,9 +92,15 @@ private:
     auto parseInt() -> void;
     auto parseFloat() -> void;
 
+    struct NamespaceParseResult
+    {
+        std::filesystem::path path;
+        std::string name;
+    };
+
     [[nodiscard]] auto parseCallArgs() -> u8;
     [[nodiscard]] auto parseFunctionArgs() -> u8;
-    [[nodiscard]] auto parseNamespace() -> std::optional<std::filesystem::path>;
+    [[nodiscard]] auto parseNamespace() -> std::optional<NamespaceParseResult>;
     [[nodiscard]] auto parseBlock(std::string_view scopeType) -> bool;
 
     auto errorAtCurrent(std::string_view message) -> void;

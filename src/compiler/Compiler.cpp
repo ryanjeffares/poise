@@ -32,6 +32,10 @@ auto Compiler::compile() -> CompileResult
         return CompileResult::FileError;
     }
 
+    if (m_mainFile) {
+        m_vm->addNamespace(m_filePath, "entry");
+    }
+
     m_contextStack.push_back(Context::TopLevel);
 
     advance();
@@ -58,6 +62,7 @@ auto Compiler::compile() -> CompileResult
 
     if (m_mainFile) {
         if (m_mainFunction) {
+            emitConstant(m_vm->namespaceHash(m_filePath));
             emitConstant("main");
             emitOp(runtime::Op::LoadFunction, 0_uz);
             emitConstant(0);
@@ -95,7 +100,7 @@ auto Compiler::emitJump() noexcept -> JumpIndexes
 
 auto Compiler::emitJump(JumpType jumpType, bool emitPop) noexcept -> JumpIndexes
 {
-    const auto function = m_vm->getCurrentFunction();
+    const auto function = m_vm->currentFunction();
 
     switch (jumpType) {
         case JumpType::IfFalse:
@@ -124,7 +129,7 @@ auto Compiler::emitJump(JumpType jumpType, bool emitPop) noexcept -> JumpIndexes
 
 auto Compiler::patchJump(JumpIndexes jumpIndexes) noexcept -> void
 {
-    const auto function = m_vm->getCurrentFunction();
+    const auto function = m_vm->currentFunction();
 
     const auto numOps = function->numOps();
     const auto numConstants = function->numConstants();
@@ -195,17 +200,21 @@ auto Compiler::importDeclaration() -> void
 
     RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected namespace");
 
-    auto importFilePath = parseNamespace();
-    if (!importFilePath) {
+    const auto namespaceParseRes = parseNamespace();
+    if (!namespaceParseRes) {
         return;
     }
 
-    if (!std::filesystem::exists(*importFilePath)) {
-        errorAtPrevious(fmt::format("Cannot open file {}", importFilePath->string()));
+    const auto& [path, name] = *namespaceParseRes;
+
+    if (!std::filesystem::exists(path)) {
+        errorAtPrevious(fmt::format("Cannot open file {}", path.string()));
         return;
     }
 
-    m_importCompiler = std::make_unique<Compiler>(false, m_vm, std::move(*importFilePath));
+    m_vm->addNamespace(path, name);
+
+    m_importCompiler = std::make_unique<Compiler>(false, m_vm, path);
     const auto res = m_importCompiler->compile();
     m_importCompiler.reset();
     if (res != CompileResult::Success) {
@@ -226,7 +235,6 @@ auto Compiler::funcDeclaration() -> void
 
     RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected function name");
     auto functionName = m_previous->string();
-    auto line = m_previous->line();
 
     if (functionName.starts_with("__")) {
         errorAtPrevious("Function names may not start with '__' as this is reserved for the standard library");
@@ -238,7 +246,7 @@ auto Compiler::funcDeclaration() -> void
 
     RETURN_IF_NO_MATCH(scanner::TokenType::OpenBrace, "Expected '{' after function signature");
 
-    auto prevFunction = m_vm->getCurrentFunction();
+    auto prevFunction = m_vm->currentFunction();
 
     auto function = runtime::Value::createObject<objects::PoiseFunction>(std::move(functionName), m_filePath.string(), numArgs);
     auto functionPtr = function.object()->asFunction();
@@ -267,8 +275,7 @@ auto Compiler::funcDeclaration() -> void
     functionPtr->printOps();
 #endif
 
-    emitConstant(std::move(function));
-    emitOp(runtime::Op::DeclareFunction, line);
+    m_vm->addFunctionToNamespace(m_filePath, std::move(function));
 
     m_localNames.clear();
     m_contextStack.pop_back();
@@ -367,7 +374,7 @@ auto Compiler::expressionStatement() -> void
 
     expression(true);
 
-    if (m_vm->getCurrentFunction()->opList().back().op != runtime::Op::AssignLocal) {
+    if (m_vm->currentFunction()->opList().back().op != runtime::Op::AssignLocal) {
         emitOp(runtime::Op::Pop, m_previous->line());
     }
 
@@ -417,7 +424,7 @@ auto Compiler::tryStatement() -> void
 
     const auto numLocalsStart = m_localNames.size();
 
-    const auto function = m_vm->getCurrentFunction();
+    const auto function = m_vm->currentFunction();
     const auto jumpConstantIndex = function->numConstants();
     emitConstant(0_uz);
     const auto jumpOpIndex = function->numConstants();
@@ -552,7 +559,7 @@ auto Compiler::whileStatement() -> void
         return;
     }
 
-    const auto function = m_vm->getCurrentFunction();
+    const auto function = m_vm->currentFunction();
     // need to jump here at the end of each iteration
     const auto constantIndex = function->numConstants();
     const auto opIndex = function->numOps();
@@ -832,7 +839,7 @@ auto Compiler::identifier(bool canAssign) -> void
         if (identifier.starts_with("__")) {
             // trying to call a native function
             // TODO: restrict this to standard library files
-            if (const auto hash = m_vm->getNativeFunctionHash(identifier)) {
+            if (const auto hash = m_vm->nativeFunctionHash(identifier)) {
                 // I THINK we can just parse call args here...
                 if (!match(scanner::TokenType::OpenParen)) {
                     errorAtCurrent("Expected call for native function");
@@ -848,30 +855,118 @@ auto Compiler::identifier(bool canAssign) -> void
 
                 emitConstant(*hash);
                 emitOp(runtime::Op::CallNative, m_previous->line());
+            } else {
+                errorAtPrevious(fmt::format("Unrecognised native function '{}'", identifier));
+                return;
             }
         } else {
             if (check(scanner::TokenType::ColonColon)) {
-                // qualifying with a namespace
-                // parse the namespace, and verify it has been imported
-                auto namespaceFilePath = parseNamespace();
-                if (std::find(m_importedFiles.begin(), m_importedFiles.end(), namespaceFilePath) == m_importedFiles.end()) {
-                    errorAtPrevious(fmt::format("{} has not been imported", namespaceFilePath->string()));
-                    return;
+                // qualifying a function with a namespace
+                // currently, the only things you can have at the top level that you could try and load
+                // are functions, and since we've already compiled the file you're looking in, we can verify this now
+                // TODO: constants
+
+                // so first, parse the rest of the namespace...
+                std::filesystem::path namespaceFilePath;
+                std::string namespaceText{identifier};
+
+                if (identifier == "std") {
+                    if (auto stdPath = getStdPath()) {
+                        namespaceFilePath.swap(*stdPath);
+                    } else {
+                        errorAtPrevious("The environment variable `POISE_STD_PATH` has not been set, cannot open std file");
+                        return;
+                    }
+                } else {
+                    namespaceFilePath = m_filePath.parent_path() / identifier;
                 }
 
+                advance(); // consume the first '::'
 
+                auto verifyNamespaceAndFunction =
+                    [this] (std::string_view functionName, std::string_view namespaceText, const std::filesystem::path& namespacePath) -> bool {
+                        // load the function
+                        if (!m_vm->hasNamespace(namespacePath)) {
+                            errorAtPrevious(fmt::format("Namespace '{}' not imported", namespaceText));
+                            return false;
+                        }
+
+                        if (m_vm->namespaceFunction(namespacePath, functionName) == nullptr) {
+                            errorAtPrevious(fmt::format("Function '{}' not found in namespace '{}'", functionName, namespaceText));
+                            return false;
+                        }
+
+                        return true;
+                    };
+
+                // current token is EITHER the next part of the namespace OR the function
+                while (match(scanner::TokenType::Identifier)) {
+                    auto text = m_previous->string();
+
+                    if (check(scanner::TokenType::Semicolon)) { // semicolon will be consumed by expressionStatement()
+                        namespaceFilePath += ".poise";
+
+                        const auto namespaceHash = m_vm->namespaceHash(namespaceFilePath);
+                        if (!verifyNamespaceAndFunction(text, namespaceText, namespaceFilePath)) {
+                            return;
+                        }
+
+                        emitConstant(namespaceHash);
+                        emitConstant(std::move(text));
+                        emitOp(runtime::Op::LoadFunction, m_previous->line());
+
+                        break;
+                    } else if (match(scanner::TokenType::OpenParen)) {
+                        // function call
+                        // consume semicolon
+                        namespaceFilePath += ".poise";
+
+                        const auto namespaceHash = m_vm->namespaceHash(namespaceFilePath);
+                        if (!verifyNamespaceAndFunction(text, namespaceText, namespaceFilePath)) {
+                            return;
+                        }
+
+                        emitConstant(namespaceHash);
+                        emitConstant(text);
+                        emitOp(runtime::Op::LoadFunction, m_previous->line());
+
+                        const auto function = m_vm->namespaceFunction(namespaceFilePath, text);
+                        const auto numArgs = parseCallArgs();
+
+                        if (numArgs != function->arity()) {
+                            errorAtPrevious(fmt::format("Expected {} args to '{}::{}()' but got {}", function->arity(), namespaceText, text, numArgs));
+                            return;
+                        }
+
+                        emitConstant(numArgs);
+                        emitOp(runtime::Op::Call, m_previous->line());
+
+                        break;
+                    } else if (match(scanner::TokenType::ColonColon)) {
+                        // continue namespace
+                        namespaceFilePath /= text;
+                        namespaceText += "::";
+                        namespaceText += text;
+                    } else {
+                        errorAtCurrent("Expected call or ';'");
+                        return;
+                    }
+                }
             } else {
                 // not a local, native call or a namespace qualification
                 // so trying to call/load a function in the same namespace
                 // resolve this at runtime
+                emitConstant(m_vm->namespaceHash(m_filePath));
                 emitConstant(identifier);
                 emitOp(runtime::Op::LoadFunction, m_previous->line());
             }
         }
     } else {
+        // a local variable that definitely exists
         const auto localIndex = std::distance(m_localNames.begin(), findLocal);
 
         if (match(scanner::TokenType::Equal)) {
+            // trying to assign
             if (!canAssign) {
                 errorAtPrevious("Assignment not allowed here");
                 return;
@@ -886,6 +981,7 @@ auto Compiler::identifier(bool canAssign) -> void
             emitConstant(localIndex);
             emitOp(runtime::Op::AssignLocal, m_previous->line());
         } else {
+            // just loading the value
             emitConstant(localIndex);
             emitOp(runtime::Op::LoadLocal, m_previous->line());
         }
@@ -981,7 +1077,7 @@ auto Compiler::lambda() -> void
 
     RETURN_IF_NO_MATCH(scanner::TokenType::OpenBrace, "Expected '{");
 
-    const auto prevFunction = m_vm->getCurrentFunction();
+    const auto prevFunction = m_vm->currentFunction();
 
     m_contextStack.push_back(Context::Function);
 
@@ -1180,9 +1276,11 @@ auto Compiler::parseFunctionArgs() -> u8
     return numArgs;
 }
 
-auto Compiler::parseNamespace() -> std::optional<std::filesystem::path>
+auto Compiler::parseNamespace() -> std::optional<NamespaceParseResult>
 {
     std::filesystem::path namespaceFilePath;
+    std::string namespaceName = m_previous->string();
+
     if (m_previous->text() == "std") {
         if (auto stdPath = getStdPath()) {
             namespaceFilePath.swap(*stdPath);
@@ -1198,12 +1296,16 @@ auto Compiler::parseNamespace() -> std::optional<std::filesystem::path>
         namespaceFilePath += ".poise";
     } else {
         while (match(scanner::TokenType::ColonColon)) {
+            namespaceName += "::";
+
             if (!match(scanner::TokenType::Identifier)) {
                 errorAtCurrent("Expected namespace");
                 return {};
             }
 
             auto text = m_previous->string();
+            namespaceName += text;
+
             if (match(scanner::TokenType::Semicolon)) {
                 namespaceFilePath /= text + ".poise";
                 break;
@@ -1213,7 +1315,7 @@ auto Compiler::parseNamespace() -> std::optional<std::filesystem::path>
         }
     }
 
-    return namespaceFilePath;
+    return {{std::move(namespaceFilePath), std::move(namespaceName)}};
 }
 
 auto Compiler::parseBlock(std::string_view scopeType) -> bool

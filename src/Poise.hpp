@@ -90,11 +90,19 @@ inline auto operator ""_f64(long double value) noexcept -> f64
 
 inline auto getStdPath() -> std::optional<std::filesystem::path>
 {
-    if (const auto var = std::getenv("POISE_STD_PATH")) {
-        return std::filesystem::path{var};
-    } else {
-        return std::nullopt;
+    static std::optional<std::filesystem::path> result;
+    static bool found = false;
+
+    if (!found) {
+        found = true;
+        if (const auto var = std::getenv("POISE_STD_PATH")) {
+            result = std::filesystem::path{var};
+        } else {
+            return std::nullopt;
+        }
     }
+
+    return result;
 }
 } // namespace grace
 
