@@ -7,10 +7,13 @@
 #include <ranges>
 
 namespace poise::objects {
-PoiseFunction::PoiseFunction(std::string name, std::string filePath, u8 arity)
+static std::hash<std::string> s_hasher;
+
+PoiseFunction::PoiseFunction(std::string name, std::filesystem::path filePath, u8 arity)
     : m_name{std::move(name)}
     , m_filePath{std::move(filePath)}
     , m_arity{arity}
+    , m_nameHash{s_hasher(m_name)}
 {
 
 }
@@ -85,7 +88,7 @@ auto PoiseFunction::name() const noexcept -> std::string_view
     return m_name;
 }
 
-auto PoiseFunction::filePath() const noexcept -> std::string_view
+auto PoiseFunction::filePath() const noexcept -> const std::filesystem::path&
 {
     return m_filePath;
 }
@@ -93,6 +96,11 @@ auto PoiseFunction::filePath() const noexcept -> std::string_view
 auto PoiseFunction::arity() const noexcept -> u8
 {
     return m_arity;
+}
+
+auto PoiseFunction::nameHash() const noexcept -> usize
+{
+    return m_nameHash;
 }
 
 auto PoiseFunction::numLambdas() const noexcept -> u32

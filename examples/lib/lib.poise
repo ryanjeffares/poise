@@ -1,0 +1,4 @@
+func say_hello() {
+    // final i = std::int::sqrt(81);
+    println("Hello from lib::lib()!");
+}

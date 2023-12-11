@@ -1,0 +1,11 @@
+func pow(final base, final exponent) {
+    return __NATIVE_INT_POW(base, exponent);
+}
+
+func abs(final value) {
+    return __NATIVE_INT_ABS(value);
+}
+
+func sqrt(final value) {
+    return __NATIVE_INT_SQRT(value);
+}

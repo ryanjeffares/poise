@@ -15,7 +15,6 @@ enum class Op : u8
     AssignLocal,
     CaptureLocal,
     ConstructBuiltin,
-    DeclareFunction,
     DeclareLocal,
     EnterTry,
     ExitTry,    // gracefully!

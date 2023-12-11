@@ -1,7 +1,8 @@
 program = { declaration } EOF ;
 
-declaration = funcDecl | varDecl | statement ;
+declaration = importDecl | funcDecl | varDecl | statement ;
 
+importDecl = "import", NAMESPACE, ";" ;
 funcDecl = "func", IDENTIFIER, "(", [ FUNCTION_ARGS ], ")", ":", BLOCK, "end" ;
 varDecl = ("var" | "final") , IDENTIFIER, [ "=", expression ] ";" ;
 
@@ -43,3 +44,5 @@ CAPTURE_LIST = IDENTIFIER, [ { ",", IDENTIFIER } ] ;
 CALL_ARGS = expression, [ { ",", expression } ] ;
 FUNCTION_ARGS = IDENTIFIER, [ { ",", IDENTIFIER } ] ;
 BLOCK = [ { declaration - funcDecl } ] ;
+
+NAMESPACE = IDENTIFIER, [ { ".", IDENTIFIER } ] ;

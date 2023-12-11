@@ -36,6 +36,7 @@ Scanner::Scanner(const std::filesystem::path& inFilePath)
         {"final", TokenType::Final},
         {"func", TokenType::Func},
         {"if", TokenType::If},
+        {"import", TokenType::Import},
         {"none", TokenType::None},
         {"or", TokenType::Or},
         {"print", TokenType::Print},
@@ -126,12 +127,20 @@ auto Scanner::scanToken() noexcept -> Token
                 return multiCharSymbol({{'>', TokenType::ShiftRight}, {'=', TokenType::GreaterEqual}}, TokenType::Greater);
             case '"':
                 return string();
+            case ':': {
+                if (peek().value_or(char{}) == ':') {
+                    advance();
+                    return makeToken(TokenType::ColonColon);
+                } else {
+                    return {TokenType::Error, m_line, m_column, std::string_view{m_code.data() + m_start, m_current - m_start}};
+                }
+            }
             default: {
                 if (const auto t = m_symbolLookup.find(*current); t != m_symbolLookup.end()) {
                     return makeToken(t->second);
                 }
 
-                return {TokenType::Error, m_line, m_column, "Invalid text"};
+                return {TokenType::Error, m_line, m_column, std::string_view{m_code.data() + m_start, m_current - m_start}};
             }
         }
     }

@@ -21,12 +21,12 @@ auto Vm::setCurrentFunction(objects::PoiseFunction* function) noexcept -> void
     m_currentFunction = function;
 }
 
-auto Vm::getCurrentFunction() const noexcept -> objects::PoiseFunction*
+auto Vm::currentFunction() const noexcept -> objects::PoiseFunction*
 {
     return m_currentFunction;
 }
 
-auto Vm::getNativeFunctionHash(std::string_view functionName) const noexcept -> std::optional<NativeNameHash>
+auto Vm::nativeFunctionHash(std::string_view functionName) const noexcept -> std::optional<NativeNameHash>
 {
     const auto hash = m_nativeNameHasher(functionName);
     return m_nativeFunctionLookup.contains(hash) ? std::optional{hash} : std::nullopt;
@@ -35,6 +35,68 @@ auto Vm::getNativeFunctionHash(std::string_view functionName) const noexcept -> 
 auto Vm::nativeFunctionArity(NativeNameHash hash) const noexcept -> u8
 {
     return m_nativeFunctionLookup.at(hash).arity();
+}
+
+auto Vm::addNamespace(const std::filesystem::path& namespacePath, std::string namespaceName, std::optional<NamespaceHash> parent) noexcept -> bool
+{
+    const auto hash = namespaceHash(namespacePath);
+
+    // sort out namespaces' imported namespaces first
+    // hacky....
+    if (!parent) {
+        // main file compiler's constructor, needs to just be present in the map
+        m_namespacesImportedToNamespaceLookup.try_emplace(hash, std::vector<NamespaceHash>{});
+    } else {
+        // actual import declaration
+        // parent file knows its import, imported file becomes present in the map
+        m_namespacesImportedToNamespaceLookup[*parent].push_back(hash);
+        m_namespacesImportedToNamespaceLookup.try_emplace(hash, std::vector<NamespaceHash>());
+    }
+
+    // then return false if we've already compiled this file
+    if (m_namespaceFunctionLookup.contains(hash)) {
+        return false;
+    }
+
+    m_namespaceFunctionLookup.try_emplace(hash, std::vector<Value>{});
+    m_namespaceNameMap[hash] = std::move(namespaceName);
+
+    return true;
+}
+
+auto Vm::hasNamespace(NamespaceHash namespaceHash) const noexcept -> bool
+{
+    return m_namespaceFunctionLookup.contains(namespaceHash);
+}
+
+auto Vm::namespaceHash(const std::filesystem::path& namespacePath) const noexcept -> NamespaceHash
+{
+    return m_namespaceHasher(namespacePath);
+}
+
+auto Vm::addFunctionToNamespace(NamespaceHash namespaceHash, Value function) noexcept -> void
+{
+    POISE_ASSERT(m_namespaceFunctionLookup.contains(namespaceHash), "Namespace not found");
+    m_namespaceFunctionLookup[namespaceHash].emplace_back(std::move(function));
+}
+
+auto Vm::namespaceFunction(NamespaceHash namespaceHash, std::string_view functionName) const noexcept -> objects::PoiseFunction*
+{
+    POISE_ASSERT(m_namespaceFunctionLookup.contains(namespaceHash), "Namespace not found");
+
+    const auto& functionVec = m_namespaceFunctionLookup.at(namespaceHash);
+    const auto it = std::find_if(functionVec.cbegin(), functionVec.cend(), [functionName] (const Value& value) {
+        return value.object()->asFunction()->name() == functionName;
+    });
+
+    return it == functionVec.end() ? nullptr : it->object()->asFunction();
+}
+
+auto Vm::namespaceHasImportedNamespace(NamespaceHash parent, NamespaceHash imported) const noexcept -> bool
+{
+    POISE_ASSERT(m_namespacesImportedToNamespaceLookup.contains(parent), "Parent namespace not found");
+    const auto& namespaceVec = m_namespacesImportedToNamespaceLookup.at(parent);
+    return std::find(namespaceVec.cbegin(), namespaceVec.cend(), imported) != namespaceVec.cend();
 }
 
 auto Vm::emitOp(Op op, usize line) noexcept -> void
@@ -59,7 +121,6 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
 {
     std::vector<Value> stack;
     std::vector<Value> localVariables;
-    std::vector<Value> availableFunctions;
 
     struct CallStackEntry
     {
@@ -169,11 +230,6 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                     stack.emplace_back(types::s_typeLookup.at(type).object()->asType()->construct(args));
                     break;
                 }
-                case Op::DeclareFunction: {
-                    auto function = constantList[constantIndex++];
-                    availableFunctions.emplace_back(std::move(function));
-                    break;
-                }
                 case Op::DeclareLocal: {
                     auto value = pop();
                     localVariables.emplace_back(std::move(value));
@@ -205,13 +261,19 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                     break;
                 }
                 case Op::LoadFunction: {
-                    const auto& functionName = constantList[constantIndex++];
-                    const auto it = std::find_if(availableFunctions.begin(), availableFunctions.end(), [&functionName](const Value& function) {
-                        return function.object()->asFunction()->name() == functionName.string();
+                    const auto namespaceHash = constantList[constantIndex++].value<NamespaceHash>();
+                    const auto functionNameHash = constantList[constantIndex++].value<usize>();
+                    const auto& functionName = constantList[constantIndex++].string();
+
+                    const auto& functionVec = m_namespaceFunctionLookup[namespaceHash];
+                    const auto it = std::find_if(functionVec.cbegin(), functionVec.cend(), [functionNameHash] (const Value& value) {
+                        return value.object()->asFunction()->nameHash() == functionNameHash;
                     });
-                    if (it == availableFunctions.end()) {
-                        throw PoiseException(PoiseException::ExceptionType::FunctionNotFound, fmt::format("No variable or function named '{}'", functionName.string()));
+
+                    if (it == functionVec.cend()) {
+                        throw PoiseException(PoiseException::ExceptionType::FunctionNotFound, fmt::format("Function '{}' not found in namespace '{}'", functionName, m_namespaceNameMap[namespaceHash]));
                     }
+
                     stack.push_back(*it);
                     break;
                 }
@@ -461,12 +523,12 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                 fmt::print(stderr, fmt::emphasis::bold | fmt::fg(fmt::color::red), "Runtime Error: ");
                 fmt::print(stderr, "{}\n", exception.toString());
 
-                fmt::print(stderr, "  At {}:{} in function '{}'\n", currentFunction->filePath(), line, currentFunction->name());
+                fmt::print(stderr, "  At {}:{} in function '{}'\n", currentFunction->filePath().string(), line, currentFunction->name());
                 fmt::print(stderr, "    {}\n", scanner->getCodeAtLine(line));
 
                 for (const auto& entry : callStack | std::views::reverse) {
                     if (const auto caller = entry.callerFunction) {
-                        fmt::print(stderr, "  At {}:{} in function '{}'\n", caller->filePath(), entry.callSiteLine, caller->name());
+                        fmt::print(stderr, "  At {}:{} in function '{}'\n", caller->filePath().string(), entry.callSiteLine, caller->name());
                         fmt::print(stderr, "    {}\n", scanner->getCodeAtLine(entry.callSiteLine));
                     }
                 }
@@ -475,12 +537,12 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                 fmt::print(stderr, "Consider reviewing your code or catching this exception with a `try/catch` statement.\n");
                 return RunResult::RuntimeError;
             }
-        }/* catch (const std::exception& exception) {
+        } catch (const std::exception& exception) {
             fmt::print(stderr, fmt::emphasis::bold | fmt::fg(fmt::color::red), "PANIC: ");
             fmt::print(stderr, "{}\n", exception.what());
             fmt::print(stderr, "This is an error that cannot be recovered from or caught, and is likely a bug in the interpreter.\n");
             return RunResult::RuntimeError;
-        }*/
+        }
     }
 #undef PRINT_MEMORY
 }

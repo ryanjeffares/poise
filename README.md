@@ -14,19 +14,12 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * Test individual important functions
     * Fuzzing
 * Think about object -> bool conversion
-* Think about imports
-    * Could do simple file opening during compilation, but how do we resolve what has been imported during runtime?
-        * I GUESS we could have some sort of map, file -> imported namespaces if we can keep track of what file the currently executing function is in during the runtime
-        * Yeah, I think I like this
-        * No, we're doing Python style `namespace` objects
-    * Or a Python style thing where a `namespace` is a type
-        * So, a `namespace` is an object
-        * It corresponds to a file
-        * It contains the functions (and later constants) defined in that file if it is a file
-        * Otherwise, if it is a folder, it contains the namespaces within that folder (files or folders, also as namespaces)
-        * This way, in the Vm, we load a namespace (?)
-        * The Vm will contain just 2 namespaces - the main file, with namespaces branching from that, and the std (if it's ever imported)
+* Imports
+    * The code is really messy
 * Generally improve compiler errors and stop it from spitting out nonsense after one error, eg lambda capture errors
+* Use hashes instead of strings in runtime
+    * Function names, namespace lookups, etc
+    * And maybe also in the compiler when we need to optimise that
 
 ## Roadmap
 * ~~Pop unused expression/return results~~
@@ -50,7 +43,10 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * ~~While loops~~
 * ~~Native functions~~
     * These are done, just need to actually implement everything else
-* Imports + Namespaces
+    * ~~Disallow calling a native function outside std files~~
+* ~~Imports + Namespaces~~
+* Namespace aliases
+* Dot functions - UFCS!
 * Builtin objects
     * Iterable collections
         * Lists
@@ -68,6 +64,8 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * Constants
 * Type hints
 * CL arg parsing
+* Standard Library
+    * Precompile as bytecode files
 
 ### Types as First Class Objects
 * So, a variable can hold an instance of a `PoiseType` which describes some type

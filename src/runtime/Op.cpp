@@ -17,9 +17,6 @@ auto formatter<Op>::format(poise::runtime::Op op, fmt::format_context& context) 
         case Op::ConstructBuiltin:
             result = "ConstructBuiltin";
             break;
-        case Op::DeclareFunction:
-            result = "DeclareFunction";
-            break;
         case Op::DeclareLocal:
             result = "DeclareLocal";
             break;

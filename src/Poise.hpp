@@ -9,6 +9,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
+#include <filesystem>
 
 namespace poise {
 using i8 = std::int8_t;
@@ -87,6 +88,22 @@ inline auto operator ""_f64(long double value) noexcept -> f64
     return static_cast<f64>(value);
 }
 
+inline auto getStdPath() -> std::optional<std::filesystem::path>
+{
+    static std::optional<std::filesystem::path> result;
+    static bool found = false;
+
+    if (!found) {
+        found = true;
+        if (const auto var = std::getenv("POISE_STD_PATH")) {
+            result = std::filesystem::path{var};
+        } else {
+            return std::nullopt;
+        }
+    }
+
+    return result;
+}
 } // namespace grace
 
 #ifndef POISE_ASSERT
