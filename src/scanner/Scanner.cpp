@@ -33,6 +33,7 @@ Scanner::Scanner(const std::filesystem::path& inFilePath)
         {"else", TokenType::Else},
         {"eprint", TokenType::EPrint},
         {"eprintln", TokenType::EPrintLn},
+        {"export", TokenType::Export},
         {"false", TokenType::False},
         {"final", TokenType::Final},
         {"func", TokenType::Func},

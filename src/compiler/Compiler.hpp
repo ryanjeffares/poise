@@ -55,7 +55,7 @@ private:
 
     auto declaration() -> void;
     auto importDeclaration() -> void;
-    auto funcDeclaration() -> void;
+    auto funcDeclaration(bool isExported) -> void;
     auto varDeclaration(bool isFinal) -> void;
 
     auto statement() -> void;

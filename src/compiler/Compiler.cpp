@@ -18,12 +18,12 @@
     do {                                                            \
         if (!match(tokenType)) {                                    \
             errorAtCurrent(message);                                \
-            return (returnValue);                                   \
+            return returnValue;                                     \
         }                                                           \
     } while (false)
 
 #define EXPECT_SEMICOLON() RETURN_IF_NO_MATCH(scanner::TokenType::Semicolon, "Expected ';'")
-#define EXPECT_SEMICOLON_RETURN_VALUE(returnValue) RETURN_VALUE_IF_NO_MATCH(scanner::TokenType::Semicolon, "Expected ';'", returnValue);
+#define EXPECT_SEMICOLON_RETURN_VALUE(returnValue) RETURN_VALUE_IF_NO_MATCH(scanner::TokenType::Semicolon, "Expected ';'", returnValue)
 
 namespace poise::compiler {
 Compiler::Compiler(bool mainFile, bool stdFile, runtime::Vm* vm, std::filesystem::path inFilePath)
@@ -181,11 +181,17 @@ auto Compiler::declaration() -> void
     if (match(scanner::TokenType::Import)) {
         importDeclaration();
     } else if (match(scanner::TokenType::Func)) {
-        funcDeclaration();
+        funcDeclaration(false);
     } else if (match(scanner::TokenType::Var)) {
         varDeclaration(false);
     } else if (match(scanner::TokenType::Final)) {
         varDeclaration(true);
+    } else if (match(scanner::TokenType::Export)) {
+        if (match(scanner::TokenType::Func)) {
+            funcDeclaration(true);
+        } else {
+            errorAtCurrent("Expected function");
+        }
     } else {
         statement();
     }
@@ -229,7 +235,7 @@ auto Compiler::importDeclaration() -> void
     }
 }
 
-auto Compiler::funcDeclaration() -> void
+auto Compiler::funcDeclaration(bool isExported) -> void
 {
     if (m_contextStack.back() != Context::TopLevel) {
         errorAtPrevious("Function declaration only allowed at top level");
@@ -253,7 +259,7 @@ auto Compiler::funcDeclaration() -> void
 
     auto prevFunction = m_vm->currentFunction();
 
-    auto function = runtime::Value::createObject<objects::PoiseFunction>(std::move(functionName), m_filePath.string(), numArgs);
+    auto function = runtime::Value::createObject<objects::PoiseFunction>(std::move(functionName), m_filePath.string(), numArgs, isExported);
     auto functionPtr = function.object()->asFunction();
     m_vm->setCurrentFunction(functionPtr);
 
@@ -969,12 +975,17 @@ auto Compiler::namespaceQualifiedCall() -> void
                 return false;
             }
 
-            if (m_vm->namespaceFunction(namespaceHash, functionName) == nullptr) {
+            if (auto function = m_vm->namespaceFunction(namespaceHash, functionName)) {
+                if (function->exported()) {
+                    return true;
+                } else {
+                    errorAtPrevious(fmt::format("Function '{}' is not exported", functionName));
+                    return false;
+                }
+            } else {
                 errorAtPrevious(fmt::format("Function '{}' not found in namespace '{}'", functionName, namespaceText));
                 return false;
             }
-
-            return true;
         };
 
     auto functionName = m_previous->string();
@@ -1117,7 +1128,7 @@ auto Compiler::lambda() -> void
     m_contextStack.push_back(Context::Function);
 
     auto lambdaName = fmt::format("{}_lambda{}", prevFunction->name(), prevFunction->numLambdas());
-    auto lambda = runtime::Value::createObject<objects::PoiseFunction>(std::move(lambdaName), m_filePath, numArgs);
+    auto lambda = runtime::Value::createObject<objects::PoiseFunction>(std::move(lambdaName), m_filePath, numArgs, false);
     auto functionPtr = lambda.object()->asFunction();
 
     m_vm->setCurrentFunction(functionPtr);

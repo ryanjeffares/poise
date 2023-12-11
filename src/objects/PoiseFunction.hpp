@@ -15,7 +15,7 @@ namespace poise::objects {
 class PoiseFunction : public PoiseObject
 {
 public:
-    PoiseFunction(std::string name, std::filesystem::path filePath, u8 arity);
+    PoiseFunction(std::string name, std::filesystem::path filePath, u8 arity, bool isExported);
     ~PoiseFunction() override = default;
 
     auto print() const -> void override;
@@ -39,6 +39,7 @@ public:
     [[nodiscard]] auto filePath() const noexcept -> const std::filesystem::path&;
     [[nodiscard]] auto arity() const noexcept -> u8;
     [[nodiscard]] auto nameHash() const noexcept -> usize;
+    [[nodiscard]] auto exported() const noexcept -> bool;
 
     auto lamdaAdded() noexcept -> void;
     [[nodiscard]] auto numLambdas() const noexcept -> u32;
@@ -52,6 +53,7 @@ private:
     std::filesystem::path m_filePath;
     u8 m_arity;
     usize m_nameHash;
+    bool m_isExported;
 
     u32 m_numLambdas{0};
 

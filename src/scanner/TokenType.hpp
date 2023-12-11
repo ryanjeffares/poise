@@ -24,6 +24,7 @@ enum class TokenType : u8
     Else,
     EPrint,
     EPrintLn,
+    Export,
     Final,
     Func,
     If,

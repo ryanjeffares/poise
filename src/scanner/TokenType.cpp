@@ -103,6 +103,9 @@ auto formatter<TokenType>::format(TokenType tokenType, format_context& context) 
         case TokenType::EPrintLn:
             result = "EPrintLn";
             break;
+        case TokenType::Export:
+            result = "Export";
+            break;
         case TokenType::Final:
             result = "Final";
             break;
