@@ -9,8 +9,8 @@
 
 #define THROW_IF_WRONG_TYPE(expected, position)                                                                                                                                 \
     do {                                                                                                                                                                        \
-        if (args[position].type() != expected) {                                                                                                                                \
-            throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("Expected {} at position {} but got {}", expected, position, args[position].type())); \
+        if (args[position].type() != (expected)) {                                                                                                                              \
+            throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("Expected {} at position {} but got {}", expected, position, args[position].type()));  \
         }                                                                                                                                                                       \
     } while (false)
 

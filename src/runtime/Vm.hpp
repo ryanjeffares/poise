@@ -32,7 +32,7 @@ public:
     using NamespaceFunctionLookup = std::unordered_map<NamespaceHash, std::vector<Value>>;
     using NamespacesImportedToNamespaceLookup = std::unordered_map<NamespaceHash, std::vector<NamespaceHash>>;
 
-    Vm(std::string mainFilePath);
+    explicit Vm(std::string mainFilePath);
 
     auto setCurrentFunction(objects::PoiseFunction* function) noexcept -> void;
     [[nodiscard]] auto currentFunction() const noexcept -> objects::PoiseFunction*;
@@ -50,7 +50,7 @@ public:
     auto emitOp(Op op, usize line) noexcept -> void;
     auto emitConstant(Value value) noexcept -> void;
 
-    [[nodiscard]] auto run(const scanner::Scanner* const scanner) noexcept -> RunResult;
+    [[nodiscard]] auto run(const scanner::Scanner* scanner) noexcept -> RunResult;
 
 private:
     auto registerNatives() noexcept -> void;

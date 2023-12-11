@@ -48,7 +48,7 @@ public:
     Value(Value&& other) noexcept;
 
     template<Primitive T>
-    Value(T value)
+    /* implicit */ Value(T value)
     {
         if constexpr (IsString<T>) {
             m_type = Type::String;
@@ -177,7 +177,7 @@ private:
         i64 integer;
         f64 floating;
         bool boolean;
-    } m_data;
+    } m_data{};
 
     Type m_type;
 

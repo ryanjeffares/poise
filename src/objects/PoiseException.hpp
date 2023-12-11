@@ -20,7 +20,7 @@ public:
         Exception, FunctionNotFound, IncorrectArgCount, InvalidOperand, InvalidType,
     };
 
-    PoiseException(std::string message);
+    explicit PoiseException(std::string message);
     PoiseException(ExceptionType exceptionType, std::string message);
     ~PoiseException() override = default;
 
