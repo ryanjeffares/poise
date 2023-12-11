@@ -54,6 +54,30 @@ TEST_CASE("Compile and run 006_exceptions.poise")
     REQUIRE(vm.run(compiler.scanner()) == runtime::Vm::RunResult::Success);
 }
 
+TEST_CASE("Compile and run 007_if_statements.poise")
+{
+    runtime::Vm vm{"tests/test_files/007_if_statements.poise"};
+    compiler::Compiler compiler{true, false, &vm, "tests/test_files/007_if_statements.poise"};
+    REQUIRE(compiler.compile() == compiler::Compiler::CompileResult::Success);
+    REQUIRE(vm.run(compiler.scanner()) == runtime::Vm::RunResult::Success);
+}
+
+TEST_CASE("Compile and run 008_while_loops.poise")
+{
+    runtime::Vm vm{"tests/test_files/008_while_loops.poise"};
+    compiler::Compiler compiler{true, false, &vm, "tests/test_files/008_while_loops.poise"};
+    REQUIRE(compiler.compile() == compiler::Compiler::CompileResult::Success);
+    REQUIRE(vm.run(compiler.scanner()) == runtime::Vm::RunResult::Success);
+}
+
+TEST_CASE("Compile and run 009_imports.poise")
+{
+    runtime::Vm vm{"tests/test_files/009_imports.poise"};
+    compiler::Compiler compiler{true, false, &vm, "tests/test_files/009_imports.poise"};
+    REQUIRE(compiler.compile() == compiler::Compiler::CompileResult::Success);
+    REQUIRE(vm.run(compiler.scanner()) == runtime::Vm::RunResult::Success);
+}
+
 TEST_CASE("Check binary operations on Value class")
 {
     using namespace poise::runtime;

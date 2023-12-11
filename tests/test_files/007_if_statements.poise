@@ -1,0 +1,37 @@
+func fib(final n) {
+    if n < 2 {
+        return n;
+    } else {
+        return fib(n - 1) + fib(n - 2);
+    }
+}
+
+func say_hello(final country) {
+    if country == "France" {
+        var a;
+        println("Bonjour!");
+    } else if country == "Ireland" {
+        var a;
+        var b;
+        println("Dia Duit!");
+    } else if country == "Spain" {
+        var a;
+        var b;
+        var c;
+        println("Hola!");
+    } else if country == "Germany" {
+        println("Hallo!");
+    } else {
+        println("Fuck off");
+    }
+}
+
+func main() {
+    println(fib(20));
+
+    say_hello("France");
+    say_hello("Ireland");
+    say_hello("Spain");
+    say_hello("Germany");
+    say_hello(none);
+}
