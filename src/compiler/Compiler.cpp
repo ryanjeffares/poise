@@ -275,7 +275,7 @@ auto Compiler::funcDeclaration() -> void
     functionPtr->printOps();
 #endif
 
-    m_vm->addFunctionToNamespace(m_filePath, std::move(function));
+    m_vm->addFunctionToNamespace(m_vm->namespaceHash(m_filePath), std::move(function));
 
     m_localNames.clear();
     m_contextStack.pop_back();
@@ -884,14 +884,14 @@ auto Compiler::identifier(bool canAssign) -> void
                 advance(); // consume the first '::'
 
                 auto verifyNamespaceAndFunction =
-                    [this] (std::string_view functionName, std::string_view namespaceText, const std::filesystem::path& namespacePath) -> bool {
+                    [this] (std::string_view functionName, std::string_view namespaceText, usize namespaceHash) -> bool {
                         // load the function
-                        if (!m_vm->hasNamespace(namespacePath)) {
+                        if (!m_vm->hasNamespace(namespaceHash)) {
                             errorAtPrevious(fmt::format("Namespace '{}' not imported", namespaceText));
                             return false;
                         }
 
-                        if (m_vm->namespaceFunction(namespacePath, functionName) == nullptr) {
+                        if (m_vm->namespaceFunction(namespaceHash, functionName) == nullptr) {
                             errorAtPrevious(fmt::format("Function '{}' not found in namespace '{}'", functionName, namespaceText));
                             return false;
                         }
@@ -907,7 +907,7 @@ auto Compiler::identifier(bool canAssign) -> void
                         namespaceFilePath += ".poise";
 
                         const auto namespaceHash = m_vm->namespaceHash(namespaceFilePath);
-                        if (!verifyNamespaceAndFunction(text, namespaceText, namespaceFilePath)) {
+                        if (!verifyNamespaceAndFunction(text, namespaceText, namespaceHash)) {
                             return;
                         }
 
@@ -922,7 +922,7 @@ auto Compiler::identifier(bool canAssign) -> void
                         namespaceFilePath += ".poise";
 
                         const auto namespaceHash = m_vm->namespaceHash(namespaceFilePath);
-                        if (!verifyNamespaceAndFunction(text, namespaceText, namespaceFilePath)) {
+                        if (!verifyNamespaceAndFunction(text, namespaceText, namespaceHash)) {
                             return;
                         }
 
@@ -930,7 +930,7 @@ auto Compiler::identifier(bool canAssign) -> void
                         emitConstant(text);
                         emitOp(runtime::Op::LoadFunction, m_previous->line());
 
-                        const auto function = m_vm->namespaceFunction(namespaceFilePath, text);
+                        const auto function = m_vm->namespaceFunction(namespaceHash, text);
                         const auto numArgs = parseCallArgs();
 
                         if (numArgs != function->arity()) {

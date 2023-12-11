@@ -40,10 +40,10 @@ public:
     [[nodiscard]] auto nativeFunctionArity(NativeNameHash hash) const noexcept -> u8;
 
     auto addNamespace(const std::filesystem::path& namespacePath, std::string namespaceName) noexcept -> void;
-    [[nodiscard]] auto hasNamespace(const std::filesystem::path& namespacePath) const noexcept -> bool;
-    [[nodiscard]] auto namespaceHash(const std::filesystem::path& namespacePath) const noexcept -> NamespaceHash;
-    auto addFunctionToNamespace(const std::filesystem::path& namespacePath, Value function) noexcept -> void;
-    [[nodiscard]] auto namespaceFunction(const std::filesystem::path& namespacePath, std::string_view functionName) const noexcept -> objects::PoiseFunction*;
+    [[nodiscard]] auto hasNamespace(NamespaceHash namespaceHash) const noexcept -> bool;
+    [[nodiscard]] auto namespaceHash(const std::filesystem::path& namespaceHash) const noexcept -> NamespaceHash;
+    auto addFunctionToNamespace(NamespaceHash namespaceHash, Value function) noexcept -> void;
+    [[nodiscard]] auto namespaceFunction(NamespaceHash namespaceHash, std::string_view functionName) const noexcept -> objects::PoiseFunction*;
 
     auto emitOp(Op op, usize line) noexcept -> void;
     auto emitConstant(Value value) noexcept -> void;

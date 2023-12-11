@@ -44,9 +44,9 @@ auto Vm::addNamespace(const std::filesystem::path& namespacePath, std::string na
     m_namespaceNameMap[hash] = std::move(namespaceName);
 }
 
-auto Vm::hasNamespace(const std::filesystem::path& namespacePath) const noexcept -> bool
+auto Vm::hasNamespace(NamespaceHash namespaceHash) const noexcept -> bool
 {
-    return m_namespaceFunctionLookup.contains(m_namespaceHasher(namespacePath));
+    return m_namespaceFunctionLookup.contains(namespaceHash);
 }
 
 auto Vm::namespaceHash(const std::filesystem::path& namespacePath) const noexcept -> NamespaceHash
@@ -54,19 +54,17 @@ auto Vm::namespaceHash(const std::filesystem::path& namespacePath) const noexcep
     return m_namespaceHasher(namespacePath);
 }
 
-auto Vm::addFunctionToNamespace(const std::filesystem::path& namespacePath, Value function) noexcept -> void
+auto Vm::addFunctionToNamespace(NamespaceHash namespaceHash, Value function) noexcept -> void
 {
-    const auto hash = m_namespaceHasher(namespacePath);
-    POISE_ASSERT(m_namespaceFunctionLookup.contains(hash), fmt::format("Namespace for {} not found", namespacePath.string()));
-    m_namespaceFunctionLookup[hash].emplace_back(std::move(function));
+    POISE_ASSERT(m_namespaceFunctionLookup.contains(namespaceHash), fmt::format("Namespace for {} not found", namespacePath.string()));
+    m_namespaceFunctionLookup[namespaceHash].emplace_back(std::move(function));
 }
 
-auto Vm::namespaceFunction(const std::filesystem::path& namespacePath, std::string_view functionName) const noexcept -> objects::PoiseFunction*
+auto Vm::namespaceFunction(NamespaceHash namespaceHash, std::string_view functionName) const noexcept -> objects::PoiseFunction*
 {
-    const auto hash = m_namespaceHasher(namespacePath);
-    POISE_ASSERT(m_namespaceFunctionLookup.contains(hash), fmt::format("Namespace for {} not found", namespacePath.string()));
+    POISE_ASSERT(m_namespaceFunctionLookup.contains(namespaceHash), fmt::format("Namespace for {} not found", namespacePath.string()));
 
-    const auto& functionVec = m_namespaceFunctionLookup.at(hash);
+    const auto& functionVec = m_namespaceFunctionLookup.at(namespaceHash);
     const auto it = std::find_if(functionVec.cbegin(), functionVec.cend(), [functionName] (const Value& value) {
         return value.object()->asFunction()->name() == functionName;
     });
