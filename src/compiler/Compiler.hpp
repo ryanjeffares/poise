@@ -21,7 +21,7 @@ enum class CompileResult
 class Compiler
 {
 public:
-    Compiler(bool mainFile, runtime::Vm* vm, std::filesystem::path inFilePath);
+    Compiler(bool mainFile, bool stdFile, runtime::Vm* vm, std::filesystem::path inFilePath);
 
     [[nodiscard]] auto compile() -> CompileResult;
     [[nodiscard]] auto scanner() const noexcept -> const scanner::Scanner*;
@@ -85,6 +85,9 @@ private:
     auto primary(bool canAssign) -> void;
 
     auto identifier(bool canAssign) -> void;
+    auto nativeCall() -> void;
+    auto namespaceQualifiedCall() -> void;
+
     auto typeIdent() -> void;
     auto typeOf() -> void;
     auto lambda() -> void;
@@ -96,6 +99,7 @@ private:
     {
         std::filesystem::path path;
         std::string name;
+        bool isStdFile;
     };
 
     [[nodiscard]] auto parseCallArgs() -> u8;
@@ -109,6 +113,7 @@ private:
 
 private:
     bool m_mainFile{};
+    bool m_stdFile{};
     bool m_hadError{};
     bool m_passedImports{};
 

@@ -29,7 +29,7 @@ int main(int argc, const char* argv[])
     }
 
     poise::runtime::Vm vm{inFilePath.string()};
-    poise::compiler::Compiler compiler{true, &vm, std::move(inFilePath)};
+    poise::compiler::Compiler compiler{true, false, &vm, std::move(inFilePath)};
 
     {
         const auto start = std::chrono::steady_clock::now();

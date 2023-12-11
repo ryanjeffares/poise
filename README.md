@@ -14,18 +14,8 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * Test individual important functions
     * Fuzzing
 * Think about object -> bool conversion
-* Think about imports
-    * Could do simple file opening during compilation, but how do we resolve what has been imported during runtime?
-        * I GUESS we could have some sort of map, file -> imported namespaces if we can keep track of what file the currently executing function is in during the runtime
-        * Yeah, I think I like this
-        * No, we're doing Python style `namespace` objects
-    * Or a Python style thing where a `namespace` is a type
-        * So, a `namespace` is an object
-        * It corresponds to a file
-        * It contains the functions (and later constants) defined in that file if it is a file
-        * Otherwise, if it is a folder, it contains the namespaces within that folder (files or folders, also as namespaces)
-        * This way, in the Vm, we load a namespace (?)
-        * The Vm will contain just 2 namespaces - the main file, with namespaces branching from that, and the std (if it's ever imported)
+* Imports
+    * The code is really messy
 * Generally improve compiler errors and stop it from spitting out nonsense after one error, eg lambda capture errors
 * Use hashes instead of strings in runtime
     * Function names, namespace lookups, etc
@@ -55,8 +45,8 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * These are done, just need to actually implement everything else
     * Disallow calling a native function outside std files
 * Imports + Namespaces 
-    * A 'namespace' corresponds to a file and its relative path to the main file being run
-    * In the runtime, we need some type of map to know what namespaces are imported to the file of the current function
+    * A 'namespace' corresponds to a file and its relative path to the main file being run 
+    * Aliases for QOL
 * Builtin objects
     * Iterable collections
         * Lists
