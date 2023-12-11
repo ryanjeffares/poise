@@ -135,6 +135,8 @@ private:
 
     runtime::Vm* m_vm;
     std::optional<runtime::Value> m_mainFunction{};
+
+    std::hash<std::string> m_stringHasher;
 };  // class Compiler
 }   // namespace poise::compiler
 

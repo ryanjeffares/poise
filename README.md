@@ -47,6 +47,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * Imports + Namespaces 
     * A 'namespace' corresponds to a file and its relative path to the main file being run 
     * Aliases for QOL
+* Dot functions - UFCS!
 * Builtin objects
     * Iterable collections
         * Lists

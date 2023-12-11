@@ -262,11 +262,12 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                 }
                 case Op::LoadFunction: {
                     const auto namespaceHash = constantList[constantIndex++].value<NamespaceHash>();
+                    const auto functionNameHash = constantList[constantIndex++].value<usize>();
                     const auto& functionName = constantList[constantIndex++].string();
 
                     const auto& functionVec = m_namespaceFunctionLookup[namespaceHash];
-                    const auto it = std::find_if(functionVec.cbegin(), functionVec.cend(), [&functionName] (const Value& value) {
-                        return value.object()->asFunction()->name() == functionName;
+                    const auto it = std::find_if(functionVec.cbegin(), functionVec.cend(), [functionNameHash] (const Value& value) {
+                        return value.object()->asFunction()->nameHash() == functionNameHash;
                     });
 
                     if (it == functionVec.cend()) {

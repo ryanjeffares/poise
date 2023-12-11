@@ -64,6 +64,7 @@ auto Compiler::compile() -> CompileResult
     if (m_mainFile) {
         if (m_mainFunction) {
             emitConstant(m_vm->namespaceHash(m_filePath));
+            emitConstant(m_stringHasher("main"));
             emitConstant("main");
             emitOp(runtime::Op::LoadFunction, 0_uz);
             emitConstant(0);
@@ -830,7 +831,7 @@ auto Compiler::primary(bool canAssign) -> void
 
 auto Compiler::identifier(bool canAssign) -> void
 {
-    const auto identifier = m_previous->text();
+    auto identifier = m_previous->string();
     const auto findLocal = std::find_if(m_localNames.begin(), m_localNames.end(),
         [&identifier](const LocalVariable& local) {
             return local.name == identifier;
@@ -848,7 +849,8 @@ auto Compiler::identifier(bool canAssign) -> void
             // so trying to call/load a function in the same namespace
             // resolve this at runtime
             emitConstant(m_vm->namespaceHash(m_filePath));
-            emitConstant(identifier);
+            emitConstant(m_stringHasher(identifier));
+            emitConstant(std::move(identifier));
             emitOp(runtime::Op::LoadFunction, m_previous->line());
         }
     } else {
@@ -963,6 +965,7 @@ auto Compiler::namespaceQualifiedCall() -> void
             }
 
             emitConstant(namespaceHash);
+            emitConstant(m_stringHasher(text));
             emitConstant(std::move(text));
             emitOp(runtime::Op::LoadFunction, m_previous->line());
 
@@ -978,6 +981,7 @@ auto Compiler::namespaceQualifiedCall() -> void
             }
 
             emitConstant(namespaceHash);
+            emitConstant(m_stringHasher(text));
             emitConstant(text);
             emitOp(runtime::Op::LoadFunction, m_previous->line());
 
