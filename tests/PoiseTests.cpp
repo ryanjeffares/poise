@@ -9,48 +9,48 @@ namespace poise::tests
 TEST_CASE("Compile and run 001_primitives.poise")
 {
     runtime::Vm vm{"tests/test_files/001_primitives.poise"};
-    compiler::Compiler compiler{&vm, "tests/test_files/001_primitives.poise"};
-    REQUIRE(compiler.compile() == compiler::CompileResult::Success);
+    compiler::Compiler compiler{true, false, &vm, "tests/test_files/001_primitives.poise"};
+    REQUIRE(compiler.compile() == compiler::Compiler::CompileResult::Success);
     REQUIRE(vm.run(compiler.scanner()) == runtime::Vm::RunResult::Success);
 }
 
 TEST_CASE("Compile and run 002_local_variables.poise")
 {
     runtime::Vm vm{"tests/test_files/002_local_variables.poise"};
-    compiler::Compiler compiler{&vm, "tests/test_files/002_local_variables.poise"};
-    REQUIRE(compiler.compile() == compiler::CompileResult::Success);
+    compiler::Compiler compiler{true, false, &vm, "tests/test_files/002_local_variables.poise"};
+    REQUIRE(compiler.compile() == compiler::Compiler::CompileResult::Success);
     REQUIRE(vm.run(compiler.scanner()) == runtime::Vm::RunResult::Success);
 }
 
 TEST_CASE("Compile and run 003_functions.poise")
 {
     runtime::Vm vm{"tests/test_files/003_functions.poise"};
-    compiler::Compiler compiler{&vm, "tests/test_files/003_functions.poise"};
-    REQUIRE(compiler.compile() == compiler::CompileResult::Success);
+    compiler::Compiler compiler{true, false, &vm, "tests/test_files/003_functions.poise"};
+    REQUIRE(compiler.compile() == compiler::Compiler::CompileResult::Success);
     REQUIRE(vm.run(compiler.scanner()) == runtime::Vm::RunResult::Success);
 }
 
 TEST_CASE("Compile and run 004_types.poise")
 {
     runtime::Vm vm{"tests/test_files/004_types.poise"};
-    compiler::Compiler compiler{&vm, "tests/test_files/004_types.poise"};
-    REQUIRE(compiler.compile() == compiler::CompileResult::Success);
+    compiler::Compiler compiler{true, false, &vm, "tests/test_files/004_types.poise"};
+    REQUIRE(compiler.compile() == compiler::Compiler::CompileResult::Success);
     REQUIRE(vm.run(compiler.scanner()) == runtime::Vm::RunResult::Success);
 }
 
 TEST_CASE("Compile and run 005_short_circuiting.poise")
 {
     runtime::Vm vm{"tests/test_files/005_short_circuiting.poise"};
-    compiler::Compiler compiler{&vm, "tests/test_files/005_short_circuiting.poise"};
-    REQUIRE(compiler.compile() == compiler::CompileResult::Success);
+    compiler::Compiler compiler{true, false, &vm, "tests/test_files/005_short_circuiting.poise"};
+    REQUIRE(compiler.compile() == compiler::Compiler::CompileResult::Success);
     REQUIRE(vm.run(compiler.scanner()) == runtime::Vm::RunResult::Success);
 }
 
 TEST_CASE("Compile and run 006_exceptions.poise")
 {
     runtime::Vm vm{"tests/test_files/006_exceptions.poise"};
-    compiler::Compiler compiler{&vm, "tests/test_files/006_exceptions.poise"};
-    REQUIRE(compiler.compile() == compiler::CompileResult::Success);
+    compiler::Compiler compiler{true, false, &vm, "tests/test_files/006_exceptions.poise"};
+    REQUIRE(compiler.compile() == compiler::Compiler::CompileResult::Success);
     REQUIRE(vm.run(compiler.scanner()) == runtime::Vm::RunResult::Success);
 }
 

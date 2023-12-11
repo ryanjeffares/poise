@@ -38,7 +38,6 @@ private:
     struct JumpIndexes
     {
         usize constantIndex, opIndex;
-        bool emitPop;
     };
 
     enum class JumpType
@@ -54,7 +53,6 @@ private:
     [[nodiscard]] auto match(scanner::TokenType expected) -> bool;
     [[nodiscard]] auto check(scanner::TokenType expected) -> bool;
 
-    // this returns a CompileResult so that we can propagate up the correct error from imported files
     auto declaration() -> void;
     auto importDeclaration() -> void;
     auto funcDeclaration() -> void;

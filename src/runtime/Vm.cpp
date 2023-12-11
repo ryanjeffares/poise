@@ -478,10 +478,15 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                     const auto& value = stack.back();
                     const auto& jumpConstantIndex = constantList[constantIndex++];
                     const auto& jumpOpIndex = constantList[constantIndex++];
+                    const auto& popValue = constantList[constantIndex++];
 
                     if (!value.toBool()) {
                         callStackTop.constantIndex = jumpConstantIndex.value<usize>();
                         callStackTop.opIndex = jumpOpIndex.value<usize>();
+                    }
+
+                    if (popValue.toBool()) {
+                        pop();
                     }
 
                     break;
@@ -492,10 +497,15 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                     const auto& value = stack.back();
                     const auto& jumpConstantIndex = constantList[constantIndex++];
                     const auto& jumpOpIndex = constantList[constantIndex++];
+                    const auto& popIfJump = constantList[constantIndex++];
 
                     if (value.toBool()) {
                         callStackTop.constantIndex = jumpConstantIndex.value<usize>();
                         callStackTop.opIndex = jumpOpIndex.value<usize>();
+                    }
+                    
+                    if (popIfJump.toBool()) {
+                        pop();
                     }
 
                     break;

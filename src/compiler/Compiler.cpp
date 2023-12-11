@@ -116,17 +116,16 @@ auto Compiler::emitJump(JumpType jumpType, bool emitPop) noexcept -> JumpIndexes
             break;
     }
 
-    if (emitPop && jumpType != JumpType::None) {
-        // this will get hit if we don't jump
-        emitOp(runtime::Op::Pop, m_previous->line());
-    }
-
     const auto jumpConstantIndex = function->numConstants();
     emitConstant(0_uz);
     const auto jumpOpIndex = function->numConstants();
     emitConstant(0_uz);
 
-    return {jumpConstantIndex, jumpOpIndex, emitPop && jumpType != JumpType::None};
+    if (jumpType != JumpType::None) {
+        emitConstant(emitPop);
+    }
+
+    return {jumpConstantIndex, jumpOpIndex};
 }
 
 auto Compiler::patchJump(JumpIndexes jumpIndexes) noexcept -> void
@@ -137,11 +136,6 @@ auto Compiler::patchJump(JumpIndexes jumpIndexes) noexcept -> void
     const auto numConstants = function->numConstants();
     function->setConstant(numOps, jumpIndexes.opIndex);
     function->setConstant(numConstants, jumpIndexes.constantIndex);
-
-    if (jumpIndexes.emitPop) {
-        // gets hit if we did jump originally
-        emitOp(runtime::Op::Pop, m_previous->line());
-    }
 }
 
 auto Compiler::advance() -> void

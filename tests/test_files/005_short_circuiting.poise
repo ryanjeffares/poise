@@ -13,7 +13,14 @@ func main() {
     println("---");
     println(say_hello() and say_goodbye());
     println("---");
-    println(say_goodbye() or say_hello());
+
+    if say_goodbye() or say_hello() {
+        println("");
+    }
     println("---");
-    println(say_goodbye() and say_hello());
+
+    if say_goodbye() and say_hello() {
+        println("");
+    }
+    println("---");
 }
