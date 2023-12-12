@@ -54,12 +54,12 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * ~~Imports + Namespaces~~
 * ~~Namespace aliases~~
 * ~~Export functions~~
-* Dot functions - UFCS!
-    * For imported functions...
+* ~~Dot functions - UFCS!~~
+    * ~~For imported functions...~~
         * ~~Put the namespace stuff into its own class~~
         * ~~Functions need to know what namespace they're in~~
-        * Types know what extension functions they have
-        * Check if that function's namespace has been imported to the namespace of the current function in the Vm
+        * ~~Types know what extension functions they have~~
+        * ~~Check if that function's namespace has been imported to the namespace of the current function in the Vm~~
 * Builtin objects
     * Iterable collections
         * Lists

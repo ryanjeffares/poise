@@ -116,8 +116,7 @@ public:
         return *this;
     }
 
-    template<Primitive T>
-    requires(!std::is_same_v<T, std::string>)
+    template<Primitive T> requires(!IsString<T>)
     [[nodiscard]] auto value() const -> T
     {
         if constexpr (std::is_same_v<T, std::nullptr_t>) {

@@ -1,7 +1,9 @@
 import std::int;
+import std::float;
 
 func main() {
-    final n = 10;
+    final n = 10.0;
+    println(n);
     println(n.pow(2));
     println(n.sqrt());
     println(n.abs());
