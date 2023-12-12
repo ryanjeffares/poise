@@ -117,7 +117,7 @@ auto Value::typeValue() const -> const Value&
     if (type() == Type::Object) {
         return object()->typeValue();
     } else {
-        return types::s_typeLookup.at(static_cast<types::Type>(type()));
+        return types::typeValue(static_cast<types::Type>(type()));
     }
 }
 

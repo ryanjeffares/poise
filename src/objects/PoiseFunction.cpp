@@ -9,11 +9,12 @@
 namespace poise::objects {
 static std::hash<std::string> s_hasher;
 
-PoiseFunction::PoiseFunction(std::string name, std::filesystem::path filePath, u8 arity, bool isExported)
+PoiseFunction::PoiseFunction(std::string name, std::filesystem::path filePath, usize namespaceHash, u8 arity, bool isExported)
     : m_name{std::move(name)}
     , m_filePath{std::move(filePath)}
     , m_arity{arity}
     , m_nameHash{s_hasher(m_name)}
+    , m_namespaceHash{namespaceHash}
     , m_isExported{isExported}
 {
 
@@ -56,7 +57,7 @@ auto PoiseFunction::toString() const noexcept -> std::string
 
 auto PoiseFunction::typeValue() const noexcept -> const runtime::Value&
 {
-    return types::s_functionType;
+    return types::typeValue(types::Type::Function);
 }
 
 auto PoiseFunction::objectType() const noexcept -> ObjectType
@@ -102,6 +103,11 @@ auto PoiseFunction::arity() const noexcept -> u8
 auto PoiseFunction::nameHash() const noexcept -> usize
 {
     return m_nameHash;
+}
+
+auto PoiseFunction::namespaceHash() const noexcept -> usize
+{
+    return m_namespaceHash;
 }
 
 auto PoiseFunction::exported() const noexcept -> bool

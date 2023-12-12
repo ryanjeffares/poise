@@ -110,7 +110,7 @@ TEST_CASE("Check some basic reference counting")
     using namespace poise::runtime;
     using namespace poise::objects;
 
-    auto function = Value::createObject<PoiseFunction>("test", "", 0_u8);
+    auto function = Value::createObject<PoiseFunction>("test", "", 0_uz, 0_u8, false);
     auto exception = Value::createObject<PoiseException>("Test");
 
     {

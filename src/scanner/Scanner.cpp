@@ -12,6 +12,7 @@ Scanner::Scanner(const std::filesystem::path& inFilePath)
         {'}', TokenType::CloseBrace},
         {')', TokenType::CloseParen},
         {',', TokenType::Comma},
+        {'.', TokenType::Dot},
         {'!', TokenType::Exclamation},
         {'>', TokenType::Greater},
         {'<', TokenType::Less},
@@ -44,6 +45,7 @@ Scanner::Scanner(const std::filesystem::path& inFilePath)
         {"print", TokenType::Print},
         {"println", TokenType::PrintLn},
         {"return", TokenType::Return},
+        {"this", TokenType::This},
         {"true", TokenType::True},
         {"try", TokenType::Try},
         {"typeof", TokenType::TypeOf},
@@ -64,7 +66,7 @@ Scanner::Scanner(const std::filesystem::path& inFilePath)
     m_code = inCodeStream.str();
 
     if (!m_code.empty() && m_code.back() != '\n') {
-        // hack to make our compiler errors not throw assertion failures
+        // hack to make our compiler errors not throw assertion failures in fmt
         // if the error is on the last line of the file
         // and there's no trailing newline
         m_code.push_back('\n');

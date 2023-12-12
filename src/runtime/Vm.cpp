@@ -37,66 +37,14 @@ auto Vm::nativeFunctionArity(NativeNameHash hash) const noexcept -> u8
     return m_nativeFunctionLookup.at(hash).arity();
 }
 
-auto Vm::addNamespace(const std::filesystem::path& namespacePath, std::string namespaceName, std::optional<NamespaceHash> parent) noexcept -> bool
+auto Vm::namespaceManager() const -> const NamespaceManager*
 {
-    const auto hash = namespaceHash(namespacePath);
-
-    // sort out namespaces' imported namespaces first
-    // hacky....
-    if (!parent) {
-        // main file compiler's constructor, needs to just be present in the map
-        m_namespacesImportedToNamespaceLookup.try_emplace(hash, std::vector<NamespaceHash>{});
-    } else {
-        // actual import declaration
-        // parent file knows its import, imported file becomes present in the map
-        m_namespacesImportedToNamespaceLookup[*parent].push_back(hash);
-        m_namespacesImportedToNamespaceLookup.try_emplace(hash, std::vector<NamespaceHash>());
-    }
-
-    // then return false if we've already compiled this file
-    if (m_namespaceFunctionLookup.contains(hash)) {
-        return false;
-    }
-
-    m_namespaceFunctionLookup.try_emplace(hash, std::vector<Value>{});
-    m_namespaceNameMap[hash] = std::move(namespaceName);
-
-    return true;
+    return &m_namespaceManager;
 }
 
-auto Vm::hasNamespace(NamespaceHash namespaceHash) const noexcept -> bool
+auto Vm::namespaceManager() -> NamespaceManager*
 {
-    return m_namespaceFunctionLookup.contains(namespaceHash);
-}
-
-auto Vm::namespaceHash(const std::filesystem::path& namespacePath) const noexcept -> NamespaceHash
-{
-    return m_namespaceHasher(namespacePath);
-}
-
-auto Vm::addFunctionToNamespace(NamespaceHash namespaceHash, Value function) noexcept -> void
-{
-    POISE_ASSERT(m_namespaceFunctionLookup.contains(namespaceHash), "Namespace not found");
-    m_namespaceFunctionLookup[namespaceHash].emplace_back(std::move(function));
-}
-
-auto Vm::namespaceFunction(NamespaceHash namespaceHash, std::string_view functionName) const noexcept -> objects::PoiseFunction*
-{
-    POISE_ASSERT(m_namespaceFunctionLookup.contains(namespaceHash), "Namespace not found");
-
-    const auto& functionVec = m_namespaceFunctionLookup.at(namespaceHash);
-    const auto it = std::find_if(functionVec.cbegin(), functionVec.cend(), [functionName] (const Value& value) {
-        return value.object()->asFunction()->name() == functionName;
-    });
-
-    return it == functionVec.end() ? nullptr : it->object()->asFunction();
-}
-
-auto Vm::namespaceHasImportedNamespace(NamespaceHash parent, NamespaceHash imported) const noexcept -> bool
-{
-    POISE_ASSERT(m_namespacesImportedToNamespaceLookup.contains(parent), "Parent namespace not found");
-    const auto& namespaceVec = m_namespacesImportedToNamespaceLookup.at(parent);
-    return std::find(namespaceVec.cbegin(), namespaceVec.cend(), imported) != namespaceVec.cend();
+    return &m_namespaceManager;
 }
 
 auto Vm::emitOp(Op op, usize line) noexcept -> void
@@ -227,7 +175,7 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                     const auto type = static_cast<types::Type>(constantList[constantIndex++].value<u8>());
                     const auto numArgs = constantList[constantIndex++].value<u8>();
                     const auto args = popCallArgs(numArgs);
-                    stack.emplace_back(types::s_typeLookup.at(type).object()->asType()->construct(args));
+                    stack.emplace_back(types::typeValue(type).object()->asType()->construct(args));
                     break;
                 }
                 case Op::DeclareLocal: {
@@ -261,20 +209,16 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                     break;
                 }
                 case Op::LoadFunction: {
-                    const auto namespaceHash = constantList[constantIndex++].value<NamespaceHash>();
+                    const auto namespaceHash = constantList[constantIndex++].value<NamespaceManager::NamespaceHash>();
                     const auto functionNameHash = constantList[constantIndex++].value<usize>();
                     const auto& functionName = constantList[constantIndex++].string();
 
-                    const auto& functionVec = m_namespaceFunctionLookup[namespaceHash];
-                    const auto it = std::find_if(functionVec.cbegin(), functionVec.cend(), [functionNameHash] (const Value& value) {
-                        return value.object()->asFunction()->nameHash() == functionNameHash;
-                    });
-
-                    if (it == functionVec.cend()) {
-                        throw PoiseException(PoiseException::ExceptionType::FunctionNotFound, fmt::format("Function '{}' not found in namespace '{}'", functionName, m_namespaceNameMap[namespaceHash]));
+                    if (auto function = m_namespaceManager.namespaceFunction(namespaceHash, functionNameHash)) {
+                        stack.push_back(std::move(*function));
+                    } else {
+                        throw PoiseException(PoiseException::ExceptionType::FunctionNotFound, fmt::format("Function '{}' not found in namespace '{}'", functionName, m_namespaceManager.namespaceDisplayName(namespaceHash)));
                     }
 
-                    stack.push_back(*it);
                     break;
                 }
                 case Op::LoadLocal: {
@@ -283,9 +227,31 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                     stack.push_back(localValue);
                     break;
                 }
+                case Op::LoadMember: {
+                    // TODO: class member variables
+                    auto value = pop();
+                    const auto type = value.typeValue().object()->asType();
+                    const auto& memberName = constantList[constantIndex++].string();
+                    const auto& memberNameHash = constantList[constantIndex++].value<usize>();
+                    const auto pushParentBack = constantList[constantIndex++].toBool();
+
+                    if (auto function = type->findExtensionFunction(memberNameHash)) {
+                        const auto p = function->object()->asFunction();
+                        if (!m_namespaceManager.namespaceHasImportedNamespace(currentFunction->namespaceHash(), p->namespaceHash())) {
+                            throw PoiseException(PoiseException::ExceptionType::FunctionNotFound, fmt::format("Extension function '{}' not found for type '{}' - are you missing an import?", p->name(), type->typeName()));
+                        }
+                        stack.push_back(std::move(*function));
+                        if (pushParentBack) {
+                            stack.push_back(std::move(value));
+                        }
+                    } else {
+                        throw PoiseException(PoiseException::ExceptionType::FunctionNotFound, fmt::format("Function '{}' not defined for type '{}'", memberName, type->typeName()));
+                    }
+                    break;
+                }
                 case Op::LoadType: {
                     const auto type = static_cast<types::Type>(constantList[constantIndex++].value<u8>());
-                    stack.push_back(types::s_typeLookup.at(type));
+                    stack.push_back(types::typeValue(type));
                     break;
                 }
                 case Op::PopLocals: {
@@ -458,6 +424,38 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                     const auto arity = function.arity();
                     auto args = popCallArgs(arity); // number of call args is checked at compile time
                     stack.emplace_back(function(args));
+                    break;
+                }
+                case Op::DotCall: {
+                    const auto numArgs = constantList[constantIndex++].value<u8>();
+                    auto args = popCallArgs(numArgs);
+                    auto [function, callee] = popTwo();
+                    args.insert(args.begin(), std::move(callee));
+
+                    if (auto object = function.object()) {
+                        if (auto calleeFunction = object->asFunction()) {
+                            if (calleeFunction->arity() != numArgs + 1) {
+                                throw PoiseException(PoiseException::ExceptionType::IncorrectArgCount, fmt::format("Function '{}' takes {} args but was given {}", calleeFunction->name(), calleeFunction->arity(), numArgs + 1));
+                            }
+
+                            callStack.push_back({
+                                .localIndexOffset = localVariables.size(),
+                                .opIndex = 0_uz,
+                                .constantIndex = 0_uz,
+                                .callSiteLine = line,
+                                .callerFunction = currentFunction,
+                                .calleeFunction = calleeFunction,
+                            });
+
+                            localVariables.insert(localVariables.end(), std::make_move_iterator(args.begin()), std::make_move_iterator(args.end()));
+                        } else if (auto type = object->asType()) {
+                            stack.emplace_back(type->construct(args));
+                        } else {
+                            throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("{} is not callable", function));
+                        }
+                    } else {
+                        throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("{} is not callable", function.type()));
+                    }
                     break;
                 }
                 case Op::Exit: {

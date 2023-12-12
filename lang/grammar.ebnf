@@ -26,7 +26,7 @@ shift = term, [ { ( "<<" | ">>" ), term } ] ;
 term = factor, [ { ( "-" | "+" ), factor } ] ;
 factor = unary, [ { ( "/" | "*" ), unary } ] ;
 unary = [ ( "!" | "-" | "~" ) ], ( unary | call ) ;
-call = primary [ { "(", [ CALL_ARGS ], ")" } ] ;
+call = primary [ { ("(", [ CALL_ARGS ], ")") | (".", IDENTIFIER) } ] ;
 primary = BOOL | NUMBER | STRING | "(", expression, ")" | TYPE | TYPEOF | LAMBDA ;
 
 BOOL = "false" | "true" ;

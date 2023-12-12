@@ -3,6 +3,7 @@
 
 #include "../Poise.hpp"
 
+#include "../objects/PoiseType.hpp"
 #include "../runtime/Op.hpp"
 #include "../runtime/Vm.hpp"
 #include "../scanner/Scanner.hpp"
@@ -100,8 +101,14 @@ private:
         bool isStdFile;
     };
 
-    [[nodiscard]] auto parseCallArgs() -> u8;
-    [[nodiscard]] auto parseFunctionArgs() -> u8;
+    struct FunctionArgsParseResult
+    {
+        u8 numArgs;
+        std::optional<types::Type> extensionFunctionType;
+    };
+
+    [[nodiscard]] auto parseCallArgs() -> std::optional<u8>;
+    [[nodiscard]] auto parseFunctionArgs(bool isLambda) -> std::optional<FunctionArgsParseResult>;
     [[nodiscard]] auto parseNamespaceImport() -> std::optional<NamespaceParseResult>;
     [[nodiscard]] auto parseBlock(std::string_view scopeType) -> bool;
 
@@ -119,7 +126,9 @@ private:
     std::unique_ptr<Compiler> m_importCompiler;
 
     scanner::Scanner m_scanner;
+    runtime::Vm* m_vm;
     std::filesystem::path m_filePath;
+    runtime::NamespaceManager::NamespaceHash m_filePathHash;
     std::optional<scanner::Token> m_previous, m_current;
     std::vector<Context> m_contextStack;
 
@@ -131,7 +140,6 @@ private:
 
     std::vector<LocalVariable> m_localNames;
 
-    runtime::Vm* m_vm;
     std::optional<runtime::Value> m_mainFunction{};
 
     std::hash<std::string> m_stringHasher;

@@ -59,7 +59,11 @@ int main(int argc, const char* argv[])
 
         if (verbose) {
             const auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-            fmt::print("Run finished in {} μs\n", duration);
+            if (duration > 1000) {
+                fmt::print("Run finished in {} ms\n", static_cast<float>(duration) / 1000.0f);
+            } else {
+                fmt::print("Run finished in {} μs\n", duration);
+            }
         }
 
         return res;

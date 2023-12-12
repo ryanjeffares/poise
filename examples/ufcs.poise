@@ -1,0 +1,8 @@
+import std::int;
+
+func main() {
+    final n = 10;
+    println(n.pow(2));
+    println(n.sqrt());
+    println(n.abs());
+}

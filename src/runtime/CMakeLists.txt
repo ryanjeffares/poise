@@ -1,4 +1,4 @@
-add_library(poise_runtime Op.cpp Value.cpp Vm.cpp Vm_RegisterNatives.cpp NativeFunction.cpp)
+add_library(poise_runtime Op.cpp Value.cpp Vm.cpp Vm_RegisterNatives.cpp NamespaceManager.cpp NativeFunction.cpp)
 
 target_compile_definitions(poise_runtime PRIVATE ${POISE_COMPILE_DEFINITIONS})
 target_compile_options(poise_runtime PRIVATE ${POISE_COMPILE_OPTIONS})

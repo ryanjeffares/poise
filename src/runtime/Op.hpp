@@ -22,6 +22,7 @@ enum class Op : u8
     LoadConstant,
     LoadFunction,
     LoadLocal,
+    LoadMember,
     LoadType,
     Pop,
     PopLocals,
@@ -59,6 +60,7 @@ enum class Op : u8
     // jumping/control flow
     Call,
     CallNative,
+    DotCall,
     Exit,
     Jump,
     JumpIfFalse,

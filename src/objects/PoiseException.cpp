@@ -37,7 +37,7 @@ auto PoiseException::toString() const noexcept -> std::string
 
 auto PoiseException::typeValue() const noexcept -> const runtime::Value&
 {
-    return types::s_exceptionType;
+    return types::typeValue(types::Type::Exception);
 }
 
 auto PoiseException::objectType() const noexcept -> ObjectType

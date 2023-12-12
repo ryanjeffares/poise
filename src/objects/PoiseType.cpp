@@ -1,5 +1,6 @@
 #include "PoiseType.hpp"
 #include "PoiseException.hpp"
+#include "PoiseFunction.hpp"
 
 #include <fmt/core.h>
 #include <fmt/format.h>
@@ -30,7 +31,7 @@ auto PoiseType::toString() const noexcept -> std::string
 
 auto PoiseType::typeValue() const noexcept -> const runtime::Value&
 {
-    return types::s_typeType;
+    return types::typeValue(type());
 }
 
 auto PoiseType::objectType() const noexcept -> ObjectType
@@ -110,5 +111,33 @@ auto PoiseType::construct(std::span<const runtime::Value> args) const -> runtime
             POISE_UNREACHABLE();
             return runtime::Value::none();
     }
+}
+
+auto PoiseType::addExtensionFunction(runtime::Value extensionFunction) -> void
+{
+    m_extensionFunctions.emplace_back(std::move(extensionFunction));
+}
+
+auto PoiseType::findExtensionFunction(usize functionNameHash) const -> std::optional<runtime::Value>
+{
+    if (const auto it = std::find_if(m_extensionFunctions.cbegin(), m_extensionFunctions.cend(), [functionNameHash](const runtime::Value& value) {
+        return value.object()->asFunction()->nameHash() == functionNameHash;
+    }); it != m_extensionFunctions.cend()) {
+        return *it;
+    }
+
+    return {};
+
+}
+
+auto PoiseType::findExtensionFunction(std::string_view functionName) const -> std::optional<runtime::Value>
+{
+    if (const auto it = std::find_if(m_extensionFunctions.cbegin(), m_extensionFunctions.cend(), [functionName](const runtime::Value& value) {
+        return value.object()->asFunction()->name() == functionName;
+    }); it != m_extensionFunctions.cend()) {
+        return *it;
+    }
+
+    return {};
 }
 }   // namespace poise::objects

@@ -1,11 +1,11 @@
-export func pow(final base, final exponent) {
+export func pow(this final Int base, final exponent) {
     return __NATIVE_INT_POW(base, exponent);
 }
 
-export func abs(final value) {
+export func abs(this final Int value) {
     return __NATIVE_INT_ABS(value);
 }
 
-export func sqrt(final value) {
+export func sqrt(this final Int value) {
     return __NATIVE_INT_SQRT(value);
 }

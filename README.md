@@ -4,8 +4,8 @@ The Poise programming language.
 
 This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grace was a mess (the name is a synonym).
 
-## Issues
-* Parse argv properly, main function in general
+## Issues/Things on the Long Finger
+* Parse argv properly, main function/file in general
 * Error Handling
     * Option/Result types as built in language types
     * Eh, still need exceptions that can be thrown internally for binary operations for example
@@ -14,14 +14,20 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * Test individual important functions
     * Fuzzing
 * Think about object -> bool conversion
+* Construct `Type` instance, `Type` ident
 * Imports
     * The code is really messy
+    * Give nicer compiler errors
 * Generally improve compiler errors and stop it from spitting out nonsense after one error, eg lambda capture errors
 * Use hashes instead of strings in runtime
     * Function names, namespace lookups, etc
     * And maybe also in the compiler when we need to optimise that
+* Zig style try assignment
+* Type checker for those optional type hints
+* Compiler warnings
+* Optimisation
 
-## Roadmap
+## Roadmap to MVP
 * ~~Pop unused expression/return results~~
 * ~~Create values by calling type as a constructor, eg `Int()`, `Float(1.0)`~~
 * ~~Implement types as first class objects - see below~~
@@ -39,6 +45,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * ~~Error handling~~
     * When we do constants, handle a constant value for construction Exceptions
     * Print only the first few call stack entries on error
+    * `throw` statement
 * ~~If statements~~
 * ~~While loops~~
 * ~~Native functions~~
@@ -48,46 +55,31 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * ~~Namespace aliases~~
 * ~~Export functions~~
 * Dot functions - UFCS!
+    * For imported functions...
+        * ~~Put the namespace stuff into its own class~~
+        * ~~Functions need to know what namespace they're in~~
+        * Types know what extension functions they have
+        * Check if that function's namespace has been imported to the namespace of the current function in the Vm
 * Builtin objects
     * Iterable collections
         * Lists
-        * Ranges?
+        * Ranges
         * Dicts
             * Pair
         * Sets
-        * Ranges
     * Option and Result types?
 * For loops
 * Break statements
 * Classes
-* Dot function calls/member access
+    * Member variable access as well as extension function access
+    * Need to generate `PoiseType` instances for these, and hook them into everything else...
 * GC
+* Binary/Hex literals
+* Digit separators
 * Constants
+    * Constant expressions
+* Pattern matching
 * Type hints
 * CL arg parsing
 * Standard Library
     * Precompile as bytecode files
-
-### Types as First Class Objects
-* So, a variable can hold an instance of a `PoiseType` which describes some type
-* Need name, primitive/object
-* Constructing any object can be done by calling an instance of its type like a constructor:
-
-```
-final t_list = typeof([]);
-final list_instance = t_list();
-
-final t_int = Int;
-int_value = t_int(5);
-```
-
-* To allow the above, naming a type (`Int`, `Float`, `MyClass` (if MyClass is defined)) without a call (`()`) will load an instance of `PoiseType` made for each of these
-* For user defined classes, these will hold a `Value` which is the constructor function
-* For builtins, there will just be some bytecode
-* Cannot get the type of a type, _for now_:
-
-```
-final t = typeof(Int);  // error - cannot take type of type
-```
-
-* This is **ALL DONE** now, just need to consider user defined classes and collections when we add them (and _maybe_ constructing Types themselves...)

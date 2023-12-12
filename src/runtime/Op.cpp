@@ -38,6 +38,9 @@ auto formatter<Op>::format(poise::runtime::Op op, fmt::format_context& context) 
         case Op::LoadLocal:
             result = "LoadLocal";
             break;
+        case Op::LoadMember:
+            result = "LoadMember";
+            break;
         case Op::LoadType:
             result = "LoadType";
             break;
@@ -124,6 +127,9 @@ auto formatter<Op>::format(poise::runtime::Op op, fmt::format_context& context) 
             break;
         case Op::CallNative:
             result = "CallNative";
+            break;
+        case Op::DotCall:
+            result = "DotCall";
             break;
         case Op::Jump:
             result = "Jump";

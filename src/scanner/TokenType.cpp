@@ -130,6 +130,9 @@ auto formatter<TokenType>::format(TokenType tokenType, format_context& context) 
         case TokenType::Return:
             result = "Return";
             break;
+        case TokenType::This:
+            result = "This";
+            break;
         case TokenType::Try:
             result = "Try";
             break;
@@ -159,6 +162,9 @@ auto formatter<TokenType>::format(TokenType tokenType, format_context& context) 
             break;
         case TokenType::Comma:
             result = "Comma";
+            break;
+        case TokenType::Dot:
+            result = "Dot";
             break;
         case TokenType::Equal:
             result = "Equal";
