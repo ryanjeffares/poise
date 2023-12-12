@@ -1,10 +1,19 @@
-import std::int;
 import std::float;
 
+func is_none(this None n) {
+    return n == none;
+}
+
 func main() {
-    final n = 10.0;
-    println(n);
-    println(n.pow(2));
-    println(n.sqrt());
-    println(n.abs());
+    final make_type = || (final value) {
+        return typeof(value);
+    };
+
+    println(make_type(typeof(None())())().is_none());
+
+    final f = 10.0;
+    println(f);
+    println(f.pow(2));
+    println(f.sqrt());
+    println(f.abs());
 }

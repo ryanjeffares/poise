@@ -237,8 +237,10 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
 
                     if (auto function = type->findExtensionFunction(memberNameHash)) {
                         const auto p = function->object()->asFunction();
-                        if (!m_namespaceManager.namespaceHasImportedNamespace(currentFunction->namespaceHash(), p->namespaceHash())) {
-                            throw PoiseException(PoiseException::ExceptionType::FunctionNotFound, fmt::format("Extension function '{}' not found for type '{}' - are you missing an import?", p->name(), type->typeName()));
+                        if (currentFunction->namespaceHash() != p->namespaceHash()) {
+                            if (!m_namespaceManager.namespaceHasImportedNamespace(currentFunction->namespaceHash(), p->namespaceHash())) {
+                                throw PoiseException(PoiseException::ExceptionType::FunctionNotFound, fmt::format("Extension function '{}' not found for type '{}' - are you missing an import?", p->name(), type->typeName()));
+                            }
                         }
                         stack.push_back(std::move(*function));
                         if (pushParentBack) {

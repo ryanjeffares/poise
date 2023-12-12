@@ -2,8 +2,9 @@ import std::int;
 import lib::lib as lib;
 
 func main() {
-    println(std::int::sqrt(81));
+    println(81.sqrt());
     println(std::int::abs(-2));
+    println(2.pow(8));
     println(std::int::pow(2, 8));
 
     lib::say_hello();
