@@ -319,9 +319,9 @@ auto Compiler::varDeclaration(bool isFinal) -> void
         return;
     }
 
-    if (std::find_if(m_localNames.begin(), m_localNames.end(), [&varName](const LocalVariable& local) {
+    if (std::find_if(m_localNames.cbegin(), m_localNames.cend(), [&varName](const LocalVariable& local) {
         return local.name == varName;
-    }) != m_localNames.end()) {
+    }) != m_localNames.cend()) {
         errorAtPrevious("Local variable with the same name already declared");
         return;
     }
@@ -494,9 +494,9 @@ auto Compiler::catchStatement() -> void
         // assign the caught exception to that local
         const auto text = m_previous->text();
 
-        if (std::find_if(m_localNames.begin(), m_localNames.end(), [&text](const LocalVariable& local) {
+        if (std::find_if(m_localNames.cbegin(), m_localNames.cend(), [&text](const LocalVariable& local) {
             return local.name == text;
-        }) != m_localNames.end()) {
+        }) != m_localNames.cend()) {
             errorAtPrevious("Local variable with the same name already declared");
             return;
         }
@@ -869,30 +869,11 @@ auto Compiler::primary(bool canAssign) -> void
 auto Compiler::identifier(bool canAssign) -> void
 {
     auto identifier = m_previous->string();
-    const auto findLocal = std::find_if(m_localNames.begin(), m_localNames.end(),
-        [&identifier](const LocalVariable& local) {
-            return local.name == identifier;
-        });
-
-    if (findLocal == m_localNames.end()) {
-        if (identifier.starts_with("__")) {
-            // trying to call a native function
-            nativeCall();
-        } else if (check(scanner::TokenType::ColonColon)) {
-            // qualifying a function with a namespace
-            namespaceQualifiedCall();
-        } else {
-            // not a local, native call or a namespace qualification
-            // so trying to call/load a function in the same namespace
-            // resolve this at runtime
-            emitConstant(m_filePathHash);
-            emitConstant(m_stringHasher(identifier));
-            emitConstant(std::move(identifier));
-            emitOp(runtime::Op::LoadFunction, m_previous->line());
-        }
-    } else {
+    if (const auto findLocal = std::find_if(m_localNames.cbegin(), m_localNames.cend(), [&identifier](const LocalVariable& local) {
+        return local.name == identifier;
+    }); findLocal != m_localNames.cend()) {
         // a local variable that definitely exists
-        const auto localIndex = std::distance(m_localNames.begin(), findLocal);
+        const auto localIndex = std::distance(m_localNames.cbegin(), findLocal);
 
         if (match(scanner::TokenType::Equal)) {
             // trying to assign
@@ -913,6 +894,22 @@ auto Compiler::identifier(bool canAssign) -> void
             // just loading the value
             emitConstant(localIndex);
             emitOp(runtime::Op::LoadLocal, m_previous->line());
+        }
+    } else {
+        if (identifier.starts_with("__")) {
+            // trying to call a native function
+            nativeCall();
+        } else if (check(scanner::TokenType::ColonColon)) {
+            // qualifying a function with a namespace
+            namespaceQualifiedCall();
+        } else {
+            // not a local, native call or a namespace qualification
+            // so trying to call/load a function in the same namespace
+            // resolve this at runtime
+            emitConstant(m_filePathHash);
+            emitConstant(m_stringHasher(identifier));
+            emitConstant(std::move(identifier));
+            emitOp(runtime::Op::LoadFunction, m_previous->line());
         }
     }
 }
@@ -1107,34 +1104,32 @@ auto Compiler::lambda() -> void
             }
 
             const auto text = m_previous->text();
-            const auto localIt = std::find_if(m_localNames.begin(), m_localNames.end(), [text](const LocalVariable& local) {
+            if (const auto localIt = std::find_if(m_localNames.cbegin(), m_localNames.cend(), [text](const LocalVariable& local) {
                 return local.name == text;
-            });
+            }); localIt != m_localNames.cend()) {
+                if (std::find_if(captures.cbegin(), captures.cend(), [&text](const LocalVariable& local) {
+                    return local.name == text;
+                }) != captures.cend()) {
+                    errorAtPrevious(fmt::format("Local variable '{}' has already been captured", text));
+                    return;
+                }
 
-            if (localIt == m_localNames.end()) {
+                const auto index = std::distance(m_localNames.cbegin(), localIt);
+                captures.push_back(*localIt);
+                captureIndexes.push_back(static_cast<usize>(index));
+
+                // trailing commas are allowed but all arguments must be comma separated
+                // so here, if the next token is not a comma or a pipe, it's invalid
+                if (!check(scanner::TokenType::Pipe) && !check(scanner::TokenType::Comma)) {
+                    errorAtCurrent("Expected ',' or '|'");
+                    break;
+                }
+
+                if (check(scanner::TokenType::Comma)) {
+                    advance();
+                }
+            } else {
                 errorAtPrevious(fmt::format("No local variable named '{}' to capture", text));
-            }
-
-            if (std::find_if(captures.begin(), captures.end(), [&text](const LocalVariable& local) {
-                return local.name == text;
-            }) != captures.end()) {
-                errorAtPrevious(fmt::format("Local variable '{}' has already been captured", text));
-                return;
-            }
-
-            const auto index = std::distance(m_localNames.begin(), localIt);
-            captures.push_back(*localIt);
-            captureIndexes.push_back(static_cast<usize>(index));
-
-            // trailing commas are allowed but all arguments must be comma separated
-            // so here, if the next token is not a comma or a pipe, it's invalid
-            if (!check(scanner::TokenType::Pipe) && !check(scanner::TokenType::Comma)) {
-                errorAtCurrent("Expected ',' or '|'");
-                break;
-            }
-
-            if (check(scanner::TokenType::Comma)) {
-                advance();
             }
         } else {
             errorAtCurrent("Expected identifier for capture");
@@ -1385,9 +1380,9 @@ auto Compiler::parseFunctionArgs(bool isLambda) -> std::optional<FunctionArgsPar
         }
 
         auto argName = m_previous->string();
-        if (std::find_if(m_localNames.begin(), m_localNames.end(), [&argName](const LocalVariable& local) {
+        if (std::find_if(m_localNames.cbegin(), m_localNames.cend(), [&argName](const LocalVariable& local) {
             return local.name == argName;
-        }) != m_localNames.end()) {
+        }) != m_localNames.cend()) {
             errorAtPrevious("Function argument with the same name already declared");
             return {};
         }

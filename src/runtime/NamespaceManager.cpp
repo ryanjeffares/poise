@@ -19,14 +19,12 @@ auto NamespaceManager::addNamespace(const std::filesystem::path& namespacePath, 
 
     // sort out namespaces' imported namespaces first
     // hacky....
-    if (!parent) {
-        // main file compiler's constructor, needs to just be present in the map
-        m_namespacesImportedToNamespaceLookup.try_emplace(hash, std::vector<NamespaceHash>{});
-    } else {
-        // actual import declaration
-        // parent file knows its import, imported file becomes present in the map
+    // in any case, this needs to be present in the map
+    m_namespacesImportedToNamespaceLookup.try_emplace(hash, std::vector<NamespaceHash>{});
+    if (parent) {
+        // parent is only a nullopt if this was called from the constructor of the main file's compiler
+        // so the parent file needs to have this import, but nothing imports the main file
         m_namespacesImportedToNamespaceLookup[*parent].push_back(hash);
-        m_namespacesImportedToNamespaceLookup.try_emplace(hash, std::vector<NamespaceHash>());
     }
 
     // then return false if we've already compiled this file
@@ -34,13 +32,13 @@ auto NamespaceManager::addNamespace(const std::filesystem::path& namespacePath, 
         return false;
     }
 
-    m_namespaceFunctionLookup.try_emplace(hash, std::vector<Value>{});
+    m_namespaceFunctionLookup.emplace(hash, std::vector<Value>{});
     m_namespaceDisplayNameMap[hash] = std::move(namespaceName);
 
     return true;
 }
 
-auto NamespaceManager::namespaceDisplayName(NamespaceManager::NamespaceHash namespaceHash) const noexcept -> std::string_view
+auto NamespaceManager::namespaceDisplayName(NamespaceHash namespaceHash) const noexcept -> std::string_view
 {
     return m_namespaceDisplayNameMap.at(namespaceHash);
 }
@@ -56,28 +54,28 @@ auto NamespaceManager::namespaceFunction(NamespaceHash namespaceHash, std::strin
     POISE_ASSERT(m_namespaceFunctionLookup.contains(namespaceHash), "Namespace not found");
 
     const auto& functionVec = m_namespaceFunctionLookup.at(namespaceHash);
-    const auto it = std::find_if(functionVec.cbegin(), functionVec.cend(), [functionName] (const Value& value) {
+    if (const auto it = std::find_if(functionVec.cbegin(), functionVec.cend(), [functionName] (const Value& value) {
         return value.object()->asFunction()->name() == functionName;
-    });
-
-    return it == functionVec.end() ? nullptr : it->object()->asFunction();
-}
-
-auto NamespaceManager::namespaceFunction(NamespaceManager::NamespaceHash namespaceHash, NamespaceManager::FunctionNameHash functionNameHash) const noexcept -> std::optional<runtime::Value>
-{
-    const auto functions = namespaceFunctions(namespaceHash);
-    const auto it = std::find_if(functions.cbegin(), functions.cend(), [functionNameHash] (const Value& value) {
-        return value.object()->asFunction()->nameHash() == functionNameHash;
-    });
-
-    if (it == functions.cend()) {
-        return {};
+    }); it != functionVec.cend()) {
+        return it->object()->asFunction();
     } else {
-        return *it;
+        return nullptr;
     }
 }
 
-auto NamespaceManager::namespaceFunctions(NamespaceManager::NamespaceHash namespaceHash) const noexcept -> std::span<const runtime::Value>
+auto NamespaceManager::namespaceFunction(NamespaceHash namespaceHash, FunctionNameHash functionNameHash) const noexcept -> std::optional<runtime::Value>
+{
+    const auto functions = namespaceFunctions(namespaceHash);
+    if (const auto it = std::find_if(functions.cbegin(), functions.cend(), [functionNameHash] (const Value& value) {
+        return value.object()->asFunction()->nameHash() == functionNameHash;
+    }); it != functions.cend()) {
+        return (*it);
+    } else {
+        return {};
+    }
+}
+
+auto NamespaceManager::namespaceFunctions(NamespaceHash namespaceHash) const noexcept -> std::span<const runtime::Value>
 {
     return m_namespaceFunctionLookup.at(namespaceHash);
 }

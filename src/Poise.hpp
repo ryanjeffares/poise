@@ -112,7 +112,7 @@ inline auto getStdPath() -> std::optional<std::filesystem::path>
     do {                                                                                            \
         if (!(condition)) {                                                                         \
             const auto stacktrace = boost::stacktrace::stacktrace{};                                \
-            const auto stackTop = stacktrace.begin();                                               \
+            const auto stackTop = stacktrace.cbegin();                                              \
             fmt::print(stderr, "Assertion failed with expression '{}': {}\n", #condition, message); \
             fmt::print(stderr, "At {}:{}\n", stackTop->source_file(), stackTop->name());            \
             fmt::print(stderr, "Stacktrace:\n{}\n", boost::stacktrace::to_string(stacktrace));      \
