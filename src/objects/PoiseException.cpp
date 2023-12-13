@@ -20,16 +20,6 @@ PoiseException::PoiseException(PoiseException::ExceptionType exceptionType, std:
 
 }
 
-auto PoiseException::print() const -> void
-{
-    fmt::print("{}", toString());
-}
-
-auto PoiseException::printLn() const -> void
-{
-    fmt::print("{}\n", toString());
-}
-
 auto PoiseException::toString() const noexcept -> std::string
 {
     return fmt::format("{}: {}", exceptionType(), message());
@@ -38,11 +28,6 @@ auto PoiseException::toString() const noexcept -> std::string
 auto PoiseException::typeValue() const noexcept -> const runtime::Value&
 {
     return types::typeValue(types::Type::Exception);
-}
-
-auto PoiseException::objectType() const noexcept -> ObjectType
-{
-    return ObjectType::Exception;
 }
 
 auto PoiseException::asException() noexcept -> PoiseException*
@@ -83,6 +68,9 @@ auto formatter<PoiseException::ExceptionType>::format(PoiseException::ExceptionT
             break;
         case PoiseException::ExceptionType::IncorrectArgCount:
             res = "IncorrectArgCountException";
+            break;
+        case PoiseException::ExceptionType::InvalidIterator:
+            res = "InvalidIteratorException";
             break;
         case PoiseException::ExceptionType::InvalidOperand:
             res = "InvalidOperandException";

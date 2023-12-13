@@ -62,6 +62,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
         * ~~Check if that function's namespace has been imported to the namespace of the current function in the Vm~~
 * Builtin objects
     * Iterable collections
+        * Tidy up access modifiers
         * Lists
         * Ranges
         * Dicts

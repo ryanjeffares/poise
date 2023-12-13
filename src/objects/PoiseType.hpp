@@ -12,7 +12,7 @@ namespace poise::types {
 enum class Type
 {
     // order matches primitive type tokens and Value::Type primitives
-    Bool, Float, Int, None, String, Exception, Function, Type,
+    Bool, Float, Int, None, String, Exception, Function, Iterator, Type,
 };
 }   // namespace poise::types
 
@@ -23,11 +23,8 @@ public:
     PoiseType(types::Type type, std::string name, runtime::Value constructorFunction = runtime::Value::none());
     ~PoiseType() override = default;
 
-    auto print() const -> void override;
-    auto printLn() const -> void override;
     [[nodiscard]] auto toString() const noexcept -> std::string override;
     [[nodiscard]] auto typeValue() const noexcept -> const runtime::Value& override;
-    [[nodiscard]] auto objectType() const noexcept -> ObjectType override;
 
     [[nodiscard]] auto asType() noexcept -> PoiseType* override;
 
@@ -59,6 +56,7 @@ inline const runtime::Value s_noneType = runtime::Value::createObject<objects::P
 inline const runtime::Value s_stringType = runtime::Value::createObject<objects::PoiseType>(Type::String, "String");
 inline const runtime::Value s_exceptionType = runtime::Value::createObject<objects::PoiseType>(Type::Exception, "Exception");
 inline const runtime::Value s_functionType = runtime::Value::createObject<objects::PoiseType>(Type::Function, "Function");
+inline const runtime::Value s_iteratorType = runtime::Value::createObject<objects::PoiseType>(Type::Iterator, "Iterator");
 inline const runtime::Value s_typeType = runtime::Value::createObject<objects::PoiseType>(Type::Type, "Type");
 
 inline const std::unordered_map<Type, runtime::Value> s_typeLookup = {
@@ -69,6 +67,7 @@ inline const std::unordered_map<Type, runtime::Value> s_typeLookup = {
     {types::Type::String, s_stringType},
     {types::Type::Exception, s_exceptionType},
     {types::Type::Function, s_functionType},
+    {types::Type::Iterator, s_iteratorType},
     {types::Type::Type, s_typeType},
 };
 }

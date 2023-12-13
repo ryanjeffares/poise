@@ -40,16 +40,6 @@ auto PoiseFunction::setConstant(runtime::Value value, usize index) noexcept -> v
     m_constants[index] = std::move(value);
 }
 
-auto PoiseFunction::print() const -> void
-{
-    fmt::print("{}", toString());
-}
-
-auto PoiseFunction::printLn() const -> void
-{
-    fmt::print("{}\n", toString());
-}
-
 auto PoiseFunction::toString() const noexcept -> std::string
 {
     return fmt::format("<function instance '{}' at {}>", m_name, fmt::ptr(this));
@@ -58,11 +48,6 @@ auto PoiseFunction::toString() const noexcept -> std::string
 auto PoiseFunction::typeValue() const noexcept -> const runtime::Value&
 {
     return types::typeValue(types::Type::Function);
-}
-
-auto PoiseFunction::objectType() const noexcept -> ObjectType
-{
-    return ObjectType::Function;
 }
 
 auto PoiseFunction::opList() const noexcept -> std::span<const runtime::OpLine>
@@ -137,7 +122,7 @@ auto PoiseFunction::getCapture(poise::usize index) const noexcept -> const runti
 
 auto PoiseFunction::printOps() const -> void
 {
-    printLn();
+    fmt::print("{}\n", toString());
 
     fmt::print("Ops:\n");
     for (auto i = 0_uz; i < m_ops.size(); i++) {

@@ -18,11 +18,8 @@ public:
     PoiseFunction(std::string name, std::filesystem::path filePath, usize namespaceHash, u8 arity, bool isExported);
     ~PoiseFunction() override = default;
 
-    auto print() const -> void override;
-    auto printLn() const -> void override;
     [[nodiscard]] auto toString() const noexcept -> std::string override;
     [[nodiscard]] auto typeValue() const noexcept -> const runtime::Value& override;
-    [[nodiscard]] auto objectType() const noexcept -> ObjectType override;
 
     auto asFunction() noexcept -> PoiseFunction* override;
 

@@ -14,16 +14,6 @@ PoiseType::PoiseType(types::Type type, std::string name, runtime::Value construc
 
 }
 
-auto PoiseType::print() const -> void
-{
-    fmt::print("{}", toString());
-}
-
-auto PoiseType::printLn() const -> void
-{
-    fmt::print("{}\n", toString());
-}
-
 auto PoiseType::toString() const noexcept -> std::string
 {
     return fmt::format("<type instance '{}' at {}>", m_typeName, fmt::ptr(this));
@@ -32,11 +22,6 @@ auto PoiseType::toString() const noexcept -> std::string
 auto PoiseType::typeValue() const noexcept -> const runtime::Value&
 {
     return types::typeValue(type());
-}
-
-auto PoiseType::objectType() const noexcept -> ObjectType
-{
-    return ObjectType::Type;
 }
 
 auto PoiseType::asType() noexcept -> PoiseType*

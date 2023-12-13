@@ -15,14 +15,13 @@ class PoiseException;
 class PoiseFunction;
 class PoiseType;
 
+namespace iterables {
+class PoiseIterator;
+}
+
 class PoiseObject
 {
 public:
-    enum class ObjectType
-    {
-        Exception, Function, Type,
-    };
-
     PoiseObject() = default;
 
     PoiseObject(const PoiseObject&) = delete;
@@ -36,13 +35,11 @@ public:
 
     [[nodiscard]] virtual auto asException() noexcept -> PoiseException*;
     [[nodiscard]] virtual auto asFunction() noexcept -> PoiseFunction*;
+    [[nodiscard]] virtual auto asIterator() noexcept -> iterables::PoiseIterator*;
     [[nodiscard]] virtual auto asType() noexcept -> PoiseType*;
 
-    virtual auto print() const -> void = 0;
-    virtual auto printLn() const -> void = 0;
     [[nodiscard]] virtual auto toString() const noexcept -> std::string = 0;
     [[nodiscard]] virtual auto typeValue() const noexcept -> const runtime::Value& = 0;
-    [[nodiscard]] virtual auto objectType() const noexcept -> ObjectType = 0;
 
 private:
     usize m_refCount{};
