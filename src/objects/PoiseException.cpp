@@ -30,11 +30,6 @@ auto PoiseException::type() const noexcept -> runtime::types::Type
     return runtime::types::Type::Exception;
 }
 
-auto PoiseException::typeValue() const noexcept -> const runtime::Value&
-{
-    return runtime::types::typeValue(runtime::types::Type::Exception);
-}
-
 auto PoiseException::asException() noexcept -> PoiseException*
 {
     return this;

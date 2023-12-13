@@ -48,11 +48,6 @@ auto PoiseFunction::type() const noexcept -> runtime::types::Type
     return runtime::types::Type::Function;
 }
 
-auto PoiseFunction::typeValue() const noexcept -> const runtime::Value&
-{
-    return runtime::types::typeValue(runtime::types::Type::Function);
-}
-
 auto PoiseFunction::opList() const noexcept -> std::span<const runtime::OpLine>
 {
     return m_ops;

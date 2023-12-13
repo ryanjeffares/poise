@@ -124,7 +124,7 @@ auto Value::typeInternal() const -> Type
 auto Value::typeValue() const -> const Value&
 {
     if (typeInternal() == Type::Object) {
-        return object()->typeValue();
+        return types::typeValue(object()->type());
     } else {
         return types::typeValue(static_cast<types::Type>(typeInternal()));
     }

@@ -26,7 +26,6 @@ public:
 
     [[nodiscard]] auto toString() const noexcept -> std::string override;
     [[nodiscard]] auto type() const noexcept -> runtime::types::Type override;
-    [[nodiscard]] auto typeValue() const noexcept -> const runtime::Value& override;
 
     [[nodiscard]] auto asException() noexcept -> PoiseException* override;
 

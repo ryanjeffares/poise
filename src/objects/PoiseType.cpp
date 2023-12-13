@@ -24,11 +24,6 @@ auto PoiseType::type() const noexcept -> runtime::types::Type
     return runtime::types::Type::Type;
 }
 
-auto PoiseType::typeValue() const noexcept -> const runtime::Value&
-{
-    return runtime::types::typeValue(type());
-}
-
 auto PoiseType::asType() noexcept -> PoiseType*
 {
     return this;

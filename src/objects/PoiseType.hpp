@@ -2,7 +2,6 @@
 #define POISE_TYPE_HPP
 
 #include "PoiseObject.hpp"
-#include "../runtime/Types.hpp"
 #include "../runtime/Value.hpp"
 
 #include <optional>
@@ -18,7 +17,6 @@ public:
 
     [[nodiscard]] auto toString() const noexcept -> std::string override;
     [[nodiscard]] auto type() const noexcept -> runtime::types::Type override;
-    [[nodiscard]] auto typeValue() const noexcept -> const runtime::Value& override;
 
     [[nodiscard]] auto asType() noexcept -> PoiseType* override;
 

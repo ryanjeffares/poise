@@ -43,7 +43,6 @@ public:
 
     [[nodiscard]] virtual auto toString() const noexcept -> std::string = 0;
     [[nodiscard]] virtual auto type() const noexcept -> runtime::types::Type = 0;
-    [[nodiscard]] virtual auto typeValue() const noexcept -> const runtime::Value& = 0;
 
 private:
     usize m_refCount{};

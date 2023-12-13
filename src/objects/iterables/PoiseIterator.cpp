@@ -42,11 +42,6 @@ auto PoiseIterator::type() const noexcept -> runtime::types::Type
     return runtime::types::Type::Iterator;
 }
 
-auto PoiseIterator::typeValue() const noexcept -> const runtime::Value&
-{
-    return runtime::types::typeValue(runtime::types::Type::Iterator);
-}
-
 auto PoiseIterator::increment() -> void
 {
     if (!valid()) {

@@ -23,7 +23,6 @@ public:
 
     [[nodiscard]] auto toString() const noexcept -> std::string override;
     [[nodiscard]] auto type() const noexcept -> runtime::types::Type override;
-    [[nodiscard]] auto typeValue() const noexcept -> const runtime::Value& override;
 
     auto append(runtime::Value value) noexcept -> void;
     [[nodiscard]] auto insert(usize index, runtime::Value value) noexcept -> bool;
