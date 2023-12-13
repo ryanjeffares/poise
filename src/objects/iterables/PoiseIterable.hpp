@@ -6,8 +6,8 @@
 #define POISE_ITERABLE_HPP
 
 #include "../../Poise.hpp"
-#include "../PoiseObject.hpp"
 #include "PoiseIterator.hpp"
+#include "../PoiseObject.hpp"
 #include "../../runtime/Value.hpp"
 
 #include <span>

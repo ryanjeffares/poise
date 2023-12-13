@@ -3,7 +3,6 @@
 //
 
 #include "PoiseException.hpp"
-#include "../runtime/Types.hpp"
 
 namespace poise::objects {
 PoiseException::PoiseException(std::string message)

@@ -1,15 +1,15 @@
 #ifndef POISE_FUNCTION_HPP
 #define POISE_FUNCTION_HPP
 
-#include <cstdint>
-#include <span>
-#include <vector>
-
 #include "../Poise.hpp"
 
 #include "PoiseObject.hpp"
 #include "../runtime/Op.hpp"
 #include "../runtime/Value.hpp"
+
+#include <cstdint>
+#include <span>
+#include <vector>
 
 namespace poise::objects {
 class PoiseFunction : public PoiseObject

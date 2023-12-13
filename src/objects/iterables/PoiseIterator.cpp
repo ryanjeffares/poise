@@ -5,7 +5,6 @@
 #include "PoiseIterator.hpp"
 #include "PoiseIterable.hpp"
 #include "../PoiseException.hpp"
-#include "../../runtime/Types.hpp"
 
 #include <fmt/format.h>
 
