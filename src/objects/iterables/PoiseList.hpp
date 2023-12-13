@@ -5,10 +5,11 @@
 #ifndef POISE_LIST_HPP
 #define POISE_LIST_HPP
 
+#include "../PoiseObject.hpp"
 #include "PoiseIterable.hpp"
 
 namespace poise::objects::iterables {
-class PoiseList : public PoiseIterable
+class PoiseList : public PoiseObject, public PoiseIterable
 {
 public:
     explicit PoiseList(std::vector<runtime::Value> data);

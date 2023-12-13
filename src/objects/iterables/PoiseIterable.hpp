@@ -7,13 +7,12 @@
 
 #include "../../Poise.hpp"
 #include "PoiseIterator.hpp"
-#include "../PoiseObject.hpp"
 #include "../../runtime/Value.hpp"
 
 #include <span>
 
 namespace poise::objects::iterables {
-class PoiseIterable : public PoiseObject
+class PoiseIterable
 {
 public:
     using DifferenceType = std::vector<runtime::Value>::difference_type;
@@ -21,7 +20,7 @@ public:
 
     explicit PoiseIterable(usize initialSize, const runtime::Value& defaultValue = runtime::Value::none());
     explicit PoiseIterable(std::vector<runtime::Value> data);
-    ~PoiseIterable() override;
+    virtual ~PoiseIterable();
 
     [[nodiscard]] virtual auto begin() noexcept -> IteratorType = 0;
     [[nodiscard]] virtual auto end() noexcept -> IteratorType = 0;

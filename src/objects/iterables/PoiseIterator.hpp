@@ -19,7 +19,7 @@ class PoiseIterator : public PoiseObject
 public:
     using IteratorType = std::vector<runtime::Value>::iterator;
 
-    explicit PoiseIterator(PoiseIterable* iterable);
+    explicit PoiseIterator(runtime::Value iterable);
     ~PoiseIterator() override;
 
     [[nodiscard]] auto asIterator() noexcept -> PoiseIterator* override;
@@ -34,7 +34,8 @@ public:
     [[nodiscard]] auto value() const -> const runtime::Value&;
 
 private:
-    PoiseIterable* m_iterable;
+    runtime::Value m_iterableValue;
+    PoiseIterable* m_iterablePtr;
     IteratorType m_iterator;
     bool m_isValid;
 };
