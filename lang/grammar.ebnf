@@ -27,7 +27,7 @@ term = factor, [ { ( "-" | "+" ), factor } ] ;
 factor = unary, [ { ( "/" | "*" ), unary } ] ;
 unary = [ ( "!" | "-" | "~" ) ], ( unary | call ) ;
 call = primary [ { ("(", [ CALL_ARGS ], ")") | (".", IDENTIFIER) } ] ;
-primary = BOOL | NUMBER | STRING | "(", expression, ")" | TYPE | TYPEOF | LAMBDA ;
+primary = BOOL | NUMBER | STRING | "(", expression, ")" | TYPE | TYPEOF | LAMBDA | LIST ;
 
 BOOL = "false" | "true" ;
 FLOAT = { DIGIT }, ".", { DIGIT } ;
@@ -37,6 +37,7 @@ STRING = '"', [ { all characters } ], '"' ;
 TYPE = "Bool", "Float", "Int", "None", "String", "Function" ;
 TYPEOF = "typeof", "(", expression, ")" ;
 LAMBDA = "|", [ CAPTURE_LIST ], "|", "(", [ FUNCTION_ARGS ], ")", ":", [ { declaration } ], "end" ;
+LIST = "[", CALL_ARGS, "]" ;
 
 DIGIT = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 ;
 

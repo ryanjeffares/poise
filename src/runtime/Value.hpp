@@ -3,6 +3,7 @@
 
 #include "../Poise.hpp"
 #include "../objects/PoiseObject.hpp"
+#include "Types.hpp"
 
 #include <fmt/format.h>
 
@@ -37,12 +38,6 @@ concept Object = std::is_base_of_v<objects::PoiseObject, T>;
 class Value
 {
 public:
-    enum class Type
-    {
-        // order matches primitive type tokens
-        Bool, Float, Int, None, String, Object,
-    };
-
     Value();
     Value(const Value& other);
     Value(Value&& other) noexcept;
@@ -88,9 +83,9 @@ public:
     template<Primitive T>
     Value& operator=(T value)
     {
-        if (type() == Type::String) {
+        if (typeInternal() == Type::String) {
             delete m_data.string;
-        } else if (type() == Type::Object) {
+        } else if (typeInternal() == Type::Object) {
             if (object()->decrementRefCount() == 0_uz) {
                 delete m_data.object;
             }
@@ -132,7 +127,7 @@ public:
 
     [[nodiscard]] auto string() const noexcept -> const std::string&;
     [[nodiscard]] auto object() const noexcept -> objects::PoiseObject*;
-    [[nodiscard]] auto type() const noexcept -> Type;
+    [[nodiscard]] auto type() const noexcept -> types::Type;
     [[nodiscard]] auto typeValue() const -> const Value&;
 
     auto print(bool err, bool newLine) const -> void;
@@ -168,6 +163,13 @@ public:
     [[nodiscard]] auto operator&&(const Value& other) const noexcept -> bool;
 
 private:
+    enum class Type
+    {
+        Bool, Float, Int, None, String, Object,
+    };
+
+    [[nodiscard]] auto typeInternal() const -> Type;
+
     union
     {
         objects::PoiseObject* object;
@@ -189,15 +191,7 @@ namespace fmt {
 template<>
 struct formatter<poise::runtime::Value> : formatter<string_view>
 {
-    [[nodiscard]] auto
-    format(const poise::runtime::Value& value, format_context& context) const -> decltype(context.out());
-};
-
-template<>
-struct formatter<poise::runtime::Value::Type> : formatter<string_view>
-{
-    [[nodiscard]] auto
-    format(poise::runtime::Value::Type type, format_context& context) const -> decltype(context.out());
+    [[nodiscard]] auto format(const poise::runtime::Value& value, format_context& context) const -> decltype(context.out());
 };
 }   // namespace fmt
 

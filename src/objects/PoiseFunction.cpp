@@ -1,10 +1,8 @@
 #include "PoiseFunction.hpp"
-#include "PoiseType.hpp"
+#include "../runtime/Types.hpp"
 
 #include <fmt/core.h>
 #include <fmt/format.h>
-
-#include <ranges>
 
 namespace poise::objects {
 static std::hash<std::string> s_hasher;
@@ -45,9 +43,14 @@ auto PoiseFunction::toString() const noexcept -> std::string
     return fmt::format("<function instance '{}' at {}>", m_name, fmt::ptr(this));
 }
 
+auto PoiseFunction::type() const noexcept -> runtime::types::Type
+{
+    return runtime::types::Type::Function;
+}
+
 auto PoiseFunction::typeValue() const noexcept -> const runtime::Value&
 {
-    return types::typeValue(types::Type::Function);
+    return runtime::types::typeValue(runtime::types::Type::Function);
 }
 
 auto PoiseFunction::opList() const noexcept -> std::span<const runtime::OpLine>

@@ -2,6 +2,7 @@
 #define POISE_OBJECT_HPP
 
 #include "../Poise.hpp"
+#include "../runtime/Types.hpp"
 
 #include <cstddef>
 #include <string>
@@ -17,6 +18,7 @@ class PoiseType;
 
 namespace iterables {
 class PoiseIterator;
+class PoiseList;
 }
 
 class PoiseObject
@@ -36,9 +38,11 @@ public:
     [[nodiscard]] virtual auto asException() noexcept -> PoiseException*;
     [[nodiscard]] virtual auto asFunction() noexcept -> PoiseFunction*;
     [[nodiscard]] virtual auto asIterator() noexcept -> iterables::PoiseIterator*;
+    [[nodiscard]] virtual auto asList() noexcept -> iterables::PoiseList*;
     [[nodiscard]] virtual auto asType() noexcept -> PoiseType*;
 
     [[nodiscard]] virtual auto toString() const noexcept -> std::string = 0;
+    [[nodiscard]] virtual auto type() const noexcept -> runtime::types::Type = 0;
     [[nodiscard]] virtual auto typeValue() const noexcept -> const runtime::Value& = 0;
 
 private:

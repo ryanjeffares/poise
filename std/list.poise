@@ -1,0 +1,24 @@
+export func append(this final List list, final value) {
+    __NATIVE_LIST_APPEND(list, value);
+}
+
+// returns true if insertion happened, false if index was out of range
+export func insert(this final List list, final index, final value) {
+    return __NATIVE_LIST_INSERT(list, index, value);
+}
+
+// returns count of matching values removed
+export func remove(this final List list, final value) {
+    return __NATIVE_LIST_REMOVE(list, value);
+}
+
+// returns true if removal happened, false if not
+export func remove_first(this final List list, final value) {
+    return __NATIVE_LIST_REMOVE_FIRST(list, value);
+}
+
+// returns true if removal happened, false if no match was found or index out of range
+export func remove_at(this final List list, final index) {
+    return __NATIVE_LIST_REMOVE_AT(list, index);
+}
+

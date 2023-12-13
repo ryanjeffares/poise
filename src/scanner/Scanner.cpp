@@ -11,6 +11,7 @@ Scanner::Scanner(const std::filesystem::path& inFilePath)
         {'^', TokenType::Caret},
         {'}', TokenType::CloseBrace},
         {')', TokenType::CloseParen},
+        {']', TokenType::CloseSquareBracket},
         {',', TokenType::Comma},
         {'.', TokenType::Dot},
         {'!', TokenType::Exclamation},
@@ -20,6 +21,7 @@ Scanner::Scanner(const std::filesystem::path& inFilePath)
         {'%', TokenType::Modulus},
         {'{', TokenType::OpenBrace},
         {'(', TokenType::OpenParen},
+        {'[', TokenType::OpenSquareBracket},
         {'|', TokenType::Pipe},
         {'+', TokenType::Plus},
         {';', TokenType::Semicolon},
@@ -58,6 +60,7 @@ Scanner::Scanner(const std::filesystem::path& inFilePath)
         {"String", TokenType::StringIdent},
         {"Function", TokenType::FunctionIdent},
         {"Exception", TokenType::ExceptionIdent},
+        {"List", TokenType::ListIdent},
     }
 {
     std::ifstream inFileStream{inFilePath};

@@ -293,7 +293,7 @@ auto Compiler::funcDeclaration(bool isExported) -> void
 #endif
 
     if (extensionFunctionType) {
-        types::associateExtensionFunction(*extensionFunctionType, function);
+        runtime::types::typeValue(*extensionFunctionType).object()->asType()->addExtensionFunction(function);
     }
 
     m_vm->namespaceManager()->addFunctionToNamespace(m_filePathHash, std::move(function));
@@ -803,7 +803,7 @@ auto Compiler::call(bool canAssign) -> void
 
     while (true) {
         if (match(scanner::TokenType::OpenParen)) {
-            if (const auto numArgs = parseCallArgs()) {
+            if (const auto numArgs = parseCallArgs(scanner::TokenType::CloseParen)) {
                 emitConstant(*numArgs);
                 emitOp(runtime::Op::Call, m_previous->line());
             }
@@ -815,7 +815,7 @@ auto Compiler::call(bool canAssign) -> void
 
             if (match(scanner::TokenType::OpenParen)) {
                 emitConstant(true);
-                if (const auto numArgs = parseCallArgs()) {
+                if (const auto numArgs = parseCallArgs(scanner::TokenType::CloseParen)) {
                     emitConstant(*numArgs);
                     emitOp(runtime::Op::DotCall, m_previous->line());
                 }
@@ -855,6 +855,8 @@ auto Compiler::primary(bool canAssign) -> void
         typeOf();
     } else if (match(scanner::TokenType::Pipe)) {
         lambda();
+    } else if (match(scanner::TokenType::OpenSquareBracket)) {
+        list();
     } else {
         errorAtCurrent("Invalid token at start of expression");
     }
@@ -930,7 +932,7 @@ auto Compiler::nativeCall() -> void
             return;
         }
 
-        if (const auto numArgs = parseCallArgs()) {
+        if (const auto numArgs = parseCallArgs(scanner::TokenType::CloseParen)) {
             const auto arity = m_vm->nativeFunctionArity(*hash);
             if (*numArgs != arity) {
                 errorAtPrevious(fmt::format("Expected {} arguments to native function {} but got {}", arity, identifier, *numArgs));
@@ -1032,7 +1034,7 @@ auto Compiler::namespaceQualifiedCall() -> void
         emitConstant(functionName);
         emitOp(runtime::Op::LoadFunction, m_previous->line());
 
-        if (const auto numArgs = parseCallArgs()) {
+        if (const auto numArgs = parseCallArgs(scanner::TokenType::CloseParen)) {
             const auto function = namespaceManager->namespaceFunction(namespaceHash, functionName);
             if (*numArgs != function->arity()) {
                 errorAtPrevious(fmt::format("Expected {} args to '{}::{}()' but got {}", function->arity(), namespaceText, functionName, *numArgs));
@@ -1065,7 +1067,7 @@ auto Compiler::typeIdent() -> void
 
     if (match(scanner::TokenType::OpenParen)) {
         // constructing an instance of the type
-        if (const auto numArgs = parseCallArgs()) {
+        if (const auto numArgs = parseCallArgs(scanner::TokenType::CloseParen)) {
             if (*numArgs > 1) {
                 // TODO: this will be different for collections
                 errorAtPrevious(fmt::format("'{}' can only be constructed from a single argument but was given {}", tokenType, *numArgs));
@@ -1197,6 +1199,17 @@ auto Compiler::lambda() -> void
     }
 }
 
+auto Compiler::list() -> void
+{
+    const auto args = parseCallArgs(scanner::TokenType::CloseSquareBracket);
+    if (!args) {
+        return;
+    }
+
+    emitConstant(*args);
+    emitOp(runtime::Op::MakeList, m_previous->line());
+}
+
 static auto getEscapeCharacter(char c) -> std::optional<char>
 {
     switch (c) {
@@ -1279,11 +1292,11 @@ auto Compiler::parseFloat() -> void
     }
 }
 
-auto Compiler::parseCallArgs() -> std::optional<u8>
+auto Compiler::parseCallArgs(scanner::TokenType sentinel) -> std::optional<u8>
 {
     auto numArgs = 0_u8;
 
-    while (!match(scanner::TokenType::CloseParen)) {
+    while (!match(sentinel)) {
         if (numArgs == std::numeric_limits<u8>::max()) {
             errorAtCurrent("Maximum function parameters of 255 exceeded");
             return {};
@@ -1294,7 +1307,7 @@ auto Compiler::parseCallArgs() -> std::optional<u8>
 
         // trailing commas are allowed but all arguments must be comma separated
         // so here, if the next token is not a comma or a close paren, it's invalid
-        if (!check(scanner::TokenType::CloseParen) && !check(scanner::TokenType::Comma)) {
+        if (!check(sentinel) && !check(scanner::TokenType::Comma)) {
             errorAtCurrent("Expected ',' or ')'");
             return {};
         }
@@ -1311,7 +1324,7 @@ auto Compiler::parseFunctionArgs(bool isLambda) -> std::optional<FunctionArgsPar
 {
     auto hasThisArg = false;
     auto numArgs = 0_u8;
-    std::optional<types::Type> extensionFunctionType;
+    std::optional<runtime::types::Type> extensionFunctionType;
 
     while (!match(scanner::TokenType::CloseParen)) {
         if (numArgs == std::numeric_limits<u8>::max()) {
@@ -1343,34 +1356,7 @@ auto Compiler::parseFunctionArgs(bool isLambda) -> std::optional<FunctionArgsPar
             }
 
             advance();
-
-            switch (m_previous->tokenType()) {
-                case scanner::TokenType::BoolIdent:
-                    extensionFunctionType = types::Type::Bool;
-                    break;
-                case scanner::TokenType::FloatIdent:
-                    extensionFunctionType = types::Type::Float;
-                    break;
-                case scanner::TokenType::IntIdent:
-                    extensionFunctionType = types::Type::Int;
-                    break;
-                case scanner::TokenType::NoneIdent:
-                    extensionFunctionType = types::Type::None;
-                    break;
-                case scanner::TokenType::StringIdent:
-                    extensionFunctionType = types::Type::String;
-                    break;
-                case scanner::TokenType::ExceptionIdent:
-                    extensionFunctionType = types::Type::Exception;
-                    break;
-                case scanner::TokenType::FunctionIdent:
-                    extensionFunctionType = types::Type::Function;
-                    break;
-                default:
-                    POISE_UNREACHABLE();
-                    break;
-            }
-
+            extensionFunctionType = static_cast<runtime::types::Type>(m_previous->tokenType());
             hasThisArg = false;
         }
 

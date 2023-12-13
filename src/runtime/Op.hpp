@@ -56,6 +56,7 @@ enum class Op : u8
     BitwiseNot,
     Negate,
     Plus,
+    MakeList,
 
     // jumping/control flow
     Call,

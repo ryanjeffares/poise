@@ -19,8 +19,14 @@ public:
     auto incrementIterator(IteratorType& iterator) noexcept -> void override;
     auto isAtEnd(const IteratorType& iterator) noexcept -> bool override;
 
+    [[nodiscard]] auto asList() noexcept -> iterables::PoiseList* override;
+
+    [[nodiscard]] auto toString() const noexcept -> std::string override;
+    [[nodiscard]] auto type() const noexcept -> runtime::types::Type override;
+    [[nodiscard]] auto typeValue() const noexcept -> const runtime::Value& override;
+
     auto append(runtime::Value value) noexcept -> void;
-    [[nodiscard]] auto insert(runtime::Value value, usize index) noexcept -> bool;
+    [[nodiscard]] auto insert(usize index, runtime::Value value) noexcept -> bool;
     [[nodiscard]] auto remove(const runtime::Value& value) noexcept -> i64;
     [[nodiscard]] auto removeFirst(const runtime::Value& value) noexcept -> bool;
     [[nodiscard]] auto removeAt(usize index) noexcept -> bool;

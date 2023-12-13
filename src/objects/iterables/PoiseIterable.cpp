@@ -35,7 +35,7 @@ auto PoiseIterable::addIterator(PoiseIterator* iterator) noexcept -> void
 
 auto PoiseIterable::removeIterator(PoiseIterator* iterator) noexcept -> void
 {
-    const auto cnt = std::erase(m_activeIterators, iterator);
+    [[maybe_unused]] const auto cnt = std::erase(m_activeIterators, iterator);
 #ifdef POISE_DEBUG
     POISE_ASSERT(cnt > 0, "Trying to remove iterator that was never added");
 #endif

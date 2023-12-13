@@ -16,6 +16,7 @@ enum class TokenType : u8
     StringIdent,
     ExceptionIdent,
     FunctionIdent,
+    ListIdent,
 
     // keywords
     And,
@@ -44,6 +45,7 @@ enum class TokenType : u8
     Caret,
     CloseBrace,
     CloseParen,
+    CloseSquareBracket,
     ColonColon,
     Comma,
     Dot,
@@ -59,6 +61,7 @@ enum class TokenType : u8
     NotEqual,
     OpenBrace,
     OpenParen,
+    OpenSquareBracket,
     Pipe,
     Plus,
     Semicolon,

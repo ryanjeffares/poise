@@ -1,0 +1,19 @@
+import std::list;
+
+func main() {
+    final l = [0, 1, 2, 3, 4, 5];
+    println(l);
+    l.remove(10);
+    println(l);
+
+    final t = typeof(0);
+    final l2 = [t, t, t];
+    println(l2);
+    l2.remove_first(t);
+    println(l2);
+    l2.append("Hello");
+    l2.remove_at(0);
+    println(l2);
+    l2.append(l2);
+    println(l2);
+}

@@ -28,7 +28,8 @@ auto isTypeIdent(TokenType tokenType) noexcept -> bool
            tokenType == TokenType::NoneIdent ||
            tokenType == TokenType::StringIdent ||
            tokenType == TokenType::ExceptionIdent ||
-           tokenType == TokenType::FunctionIdent;
+           tokenType == TokenType::FunctionIdent ||
+           tokenType == TokenType::ListIdent;
 }
 
 auto isPrimitiveTypeIdent(TokenType tokenType) noexcept -> bool
@@ -51,8 +52,9 @@ auto isValidStartOfExpression(TokenType tokenType) noexcept -> bool
            isUnaryOp(tokenType) ||
            isTypeIdent(tokenType) ||
            isBuiltinFunction(tokenType) ||
-           tokenType == TokenType::OpenParen ||
-           tokenType == TokenType::Pipe;    // for lambdas
+           tokenType == TokenType::OpenParen ||         // for groupings
+           tokenType == TokenType::Pipe ||              // for lambdas
+           tokenType == TokenType::OpenSquareBracket;   // for lists
 }
 }   // namespace poise::scanner
 
@@ -84,6 +86,9 @@ auto formatter<TokenType>::format(TokenType tokenType, format_context& context) 
             break;
         case TokenType::FunctionIdent:
             result = "FunctionIdent";
+            break;
+        case TokenType::ListIdent:
+            result = "ListIdent";
             break;
         case TokenType::And:
             result = "And";
@@ -157,6 +162,9 @@ auto formatter<TokenType>::format(TokenType tokenType, format_context& context) 
         case TokenType::CloseParen:
             result = "CloseParen";
             break;
+        case TokenType::CloseSquareBracket:
+            result = "CloseSquareBracket";
+            break;
         case TokenType::ColonColon:
             result = "ColonColon";
             break;
@@ -201,6 +209,9 @@ auto formatter<TokenType>::format(TokenType tokenType, format_context& context) 
             break;
         case TokenType::OpenParen:
             result = "OpenParen";
+            break;
+        case TokenType::OpenSquareBracket:
+            result = "OpenSquareBracket";
             break;
         case TokenType::Pipe:
             result = "Pipe";

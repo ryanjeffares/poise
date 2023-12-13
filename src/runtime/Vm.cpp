@@ -1,4 +1,5 @@
 #include "Vm.hpp"
+#include "../objects/iterables/PoiseList.hpp"
 #include "../objects/PoiseException.hpp"
 #include "../objects/PoiseType.hpp"
 
@@ -386,6 +387,11 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                 case Op::Plus: {
                     const auto value = pop();
                     stack.emplace_back(+value);
+                    break;
+                }
+                case Op::MakeList: {
+                    const auto numArgs = constantList[constantIndex++].value<u8>();
+                    stack.emplace_back(Value::createObject<objects::iterables::PoiseList>(popCallArgs(numArgs)));
                     break;
                 }
                 case Op::Call: {

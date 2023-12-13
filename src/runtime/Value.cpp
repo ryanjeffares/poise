@@ -14,9 +14,9 @@ Value::Value()
 Value::Value(const Value& other)
     : m_type{other.m_type}
 {
-    if (type() == Type::String) {
+    if (typeInternal() == Type::String) {
         m_data.string = new std::string{other.string()};
-    } else if (type() == Type::Object) {
+    } else if (typeInternal() == Type::Object) {
         m_data.object = other.object();
         object()->incrementRefCount();
     } else {
@@ -26,9 +26,9 @@ Value::Value(const Value& other)
 
 Value::Value(Value&& other) noexcept
     : m_data{other.data()}
-    , m_type{other.type()}
+    , m_type{other.typeInternal()}
 {
-    if (type() == Type::String || type() == Type::Object) {
+    if (typeInternal() == Type::String || typeInternal() == Type::Object) {
         other.makeNone();
     }
 }
@@ -36,19 +36,19 @@ Value::Value(Value&& other) noexcept
 Value& Value::operator=(const Value& other)
 {
     if (this != &other) {
-        if (type() == Type::String) {
+        if (typeInternal() == Type::String) {
             delete m_data.string;
-        } else if (type() == Type::Object) {
+        } else if (typeInternal() == Type::Object) {
             if (object()->decrementRefCount() == 0_uz) {
                 delete m_data.object;
             }
         }
 
-        m_type = other.type();
+        m_type = other.typeInternal();
 
-        if (type() == Type::String) {
+        if (typeInternal() == Type::String) {
             m_data.string = new std::string{other.toString()};
-        } else if (type() == Type::Object) {
+        } else if (typeInternal() == Type::Object) {
             m_data.object = other.object();
             object()->incrementRefCount();
         } else {
@@ -62,18 +62,18 @@ Value& Value::operator=(const Value& other)
 Value& Value::operator=(Value&& other) noexcept
 {
     if (this != &other) {
-        if (type() == Type::String) {
+        if (typeInternal() == Type::String) {
             delete m_data.string;
-        } else if (type() == Type::Object) {
+        } else if (typeInternal() == Type::Object) {
             if (object()->decrementRefCount() == 0_uz) {
                 delete m_data.object;
             }
         }
 
-        m_type = other.type();
+        m_type = other.typeInternal();
         m_data = other.data();
 
-        if (type() == Type::String || type() == Type::Object) {
+        if (typeInternal() == Type::String || typeInternal() == Type::Object) {
             other.makeNone();
         }
     }
@@ -83,9 +83,9 @@ Value& Value::operator=(Value&& other) noexcept
 
 Value::~Value()
 {
-    if (type() == Type::String) {
+    if (typeInternal() == Type::String) {
         delete m_data.string;
-    } else if (type() == Type::Object) {
+    } else if (typeInternal() == Type::Object) {
         if (object()->decrementRefCount() == 0_uz) {
             delete m_data.object;
         }
@@ -104,20 +104,29 @@ auto Value::string() const noexcept -> const std::string&
 
 auto Value::object() const noexcept -> objects::PoiseObject*
 {
-    return type() == Type::Object ? m_data.object : nullptr;
+    return typeInternal() == Type::Object ? m_data.object : nullptr;
 }
 
-auto Value::type() const noexcept -> Type
+auto Value::type() const noexcept -> types::Type
+{
+    if (typeInternal() == Type::Object) {
+        return object()->type();
+    } else {
+        return static_cast<types::Type>(typeInternal());
+    }
+}
+
+auto Value::typeInternal() const -> Type
 {
     return m_type;
 }
 
 auto Value::typeValue() const -> const Value&
 {
-    if (type() == Type::Object) {
+    if (typeInternal() == Type::Object) {
         return object()->typeValue();
     } else {
-        return types::typeValue(static_cast<types::Type>(type()));
+        return types::typeValue(static_cast<types::Type>(typeInternal()));
     }
 }
 
@@ -132,7 +141,7 @@ auto Value::print(bool err, bool newLine) const -> void
 
 auto Value::toBool() const noexcept -> bool
 {
-    switch (type()) {
+    switch (typeInternal()) {
         case Type::Bool:
             return value<bool>();
         case Type::Float:
@@ -153,7 +162,7 @@ auto Value::toBool() const noexcept -> bool
 
 auto Value::toFloat() const -> f64
 {
-    switch (type()) {
+    switch (typeInternal()) {
         case Type::Bool:
             return value<bool>() ? 1.0 : 0.0;
         case Type::Float:
@@ -169,7 +178,7 @@ auto Value::toFloat() const -> f64
 
 auto Value::toInt() const -> i64
 {
-    switch (type()) {
+    switch (typeInternal()) {
         case Type::Bool:
             return value<bool>() ? 1 : 0;
         case Type::Float:
@@ -185,7 +194,7 @@ auto Value::toInt() const -> i64
 
 auto Value::toString() const noexcept -> std::string
 {
-    switch (type()) {
+    switch (typeInternal()) {
         case Type::Bool:
             return fmt::format("{}", value<bool>());
         case Type::Float:
@@ -206,9 +215,9 @@ auto Value::toString() const noexcept -> std::string
 
 auto Value::operator|(const Value& other) const -> Value
 {
-    switch (type()) {
+    switch (typeInternal()) {
         case Type::Int: {
-            switch (other.type()) {
+            switch (other.typeInternal()) {
                 case Type::Int:
                     return value<i64>() | other.value<i64>();
                 default:
@@ -222,9 +231,9 @@ auto Value::operator|(const Value& other) const -> Value
 
 auto Value::operator^(const Value& other) const -> Value
 {
-    switch (type()) {
+    switch (typeInternal()) {
         case Type::Int: {
-            switch (other.type()) {
+            switch (other.typeInternal()) {
                 case Type::Int:
                     return value<i64>() ^ other.value<i64>();
                 default:
@@ -238,9 +247,9 @@ auto Value::operator^(const Value& other) const -> Value
 
 auto Value::operator&(const Value& other) const -> Value
 {
-    switch (type()) {
+    switch (typeInternal()) {
         case Type::Int: {
-            switch (other.type()) {
+            switch (other.typeInternal()) {
                 case Type::Int:
                     return value<i64>() & other.value<i64>();
                 default:
@@ -254,9 +263,9 @@ auto Value::operator&(const Value& other) const -> Value
 
 auto Value::operator<<(const Value& other) const -> Value
 {
-    switch (type()) {
+    switch (typeInternal()) {
         case Type::Int: {
-            switch (other.type()) {
+            switch (other.typeInternal()) {
                 case Type::Int:
                     return value<i64>() << other.value<i64>();
                 default:
@@ -270,9 +279,9 @@ auto Value::operator<<(const Value& other) const -> Value
 
 auto Value::operator>>(const Value& other) const -> Value
 {
-    switch (type()) {
+    switch (typeInternal()) {
         case Type::Int: {
-            switch (other.type()) {
+            switch (other.typeInternal()) {
                 case Type::Int:
                     return value<i64>() >> other.value<i64>();
                 default:
@@ -286,9 +295,9 @@ auto Value::operator>>(const Value& other) const -> Value
 
 auto Value::operator+(const Value& other) const -> Value
 {
-    switch (type()) {
+    switch (typeInternal()) {
         case Type::Float: {
-            switch (other.type()) {
+            switch (other.typeInternal()) {
                 case Type::Float:
                     return value<f64>() + other.value<f64>();
                 case Type::Int:
@@ -298,7 +307,7 @@ auto Value::operator+(const Value& other) const -> Value
             }
         }
         case Type::Int: {
-            switch (other.type()) {
+            switch (other.typeInternal()) {
                 case Type::Float:
                     return static_cast<f64>(value<i64>()) + other.value<f64>();
                 case Type::Int:
@@ -316,9 +325,9 @@ auto Value::operator+(const Value& other) const -> Value
 
 auto Value::operator-(const Value& other) const -> Value
 {
-    switch (type()) {
+    switch (typeInternal()) {
         case Type::Float: {
-            switch (other.type()) {
+            switch (other.typeInternal()) {
                 case Type::Float:
                     return value<f64>() - other.value<f64>();
                 case Type::Int:
@@ -328,7 +337,7 @@ auto Value::operator-(const Value& other) const -> Value
             }
         }
         case Type::Int: {
-            switch (other.type()) {
+            switch (other.typeInternal()) {
                 case Type::Float:
                     return static_cast<f64>(value<i64>()) - other.value<f64>();
                 case Type::Int:
@@ -344,9 +353,9 @@ auto Value::operator-(const Value& other) const -> Value
 
 auto Value::operator/(const Value& other) const -> Value
 {
-    switch (type()) {
+    switch (typeInternal()) {
         case Type::Float: {
-            switch (other.type()) {
+            switch (other.typeInternal()) {
                 case Type::Float:
                     return value<f64>() / other.value<f64>();
                 case Type::Int:
@@ -356,7 +365,7 @@ auto Value::operator/(const Value& other) const -> Value
             }
         }
         case Type::Int: {
-            switch (other.type()) {
+            switch (other.typeInternal()) {
                 case Type::Float:
                     return static_cast<f64>(value<i64>()) / other.value<f64>();
                 case Type::Int:
@@ -372,9 +381,9 @@ auto Value::operator/(const Value& other) const -> Value
 
 auto Value::operator*(const Value& other) const -> Value
 {
-    switch (type()) {
+    switch (typeInternal()) {
         case Type::Float: {
-            switch (other.type()) {
+            switch (other.typeInternal()) {
                 case Type::Float:
                     return value<f64>() * other.value<f64>();
                 case Type::Int:
@@ -384,7 +393,7 @@ auto Value::operator*(const Value& other) const -> Value
             }
         }
         case Type::Int: {
-            switch (other.type()) {
+            switch (other.typeInternal()) {
                 case Type::Float:
                     return static_cast<f64>(value<i64>()) * other.value<f64>();
                 case Type::Int:
@@ -394,10 +403,10 @@ auto Value::operator*(const Value& other) const -> Value
             }
         }
         case Type::String: {
-            switch (other.type()) {
+            switch (other.typeInternal()) {
                 case Type::Int: {
                     if (other.value<i64>() < 0) {
-                        throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, "Factor to repeat string cannot be negative");
+                        throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, "Factor to repeat string cannot be type");
                     }
 
                     std::string res;
@@ -419,9 +428,9 @@ auto Value::operator*(const Value& other) const -> Value
 
 auto Value::operator%(const Value& other) const -> Value
 {
-    switch (type()) {
+    switch (typeInternal()) {
         case Type::Int: {
-            switch (other.type()) {
+            switch (other.typeInternal()) {
                 case Type::Int: {
                     return value<i64>() % other.value<i64>();
                 }
@@ -441,7 +450,7 @@ auto Value::operator!() const noexcept -> Value
 
 auto Value::operator~() const -> Value
 {
-    switch (type()) {
+    switch (typeInternal()) {
         case Type::Int:
             return ~value<i64>();
         default:
@@ -451,7 +460,7 @@ auto Value::operator~() const -> Value
 
 auto Value::operator-() const -> Value
 {
-    switch (type()) {
+    switch (typeInternal()) {
         case Type::Int:
             return -value<i64>();
         case Type::Float:
@@ -463,7 +472,7 @@ auto Value::operator-() const -> Value
 
 auto Value::operator+() const -> Value
 {
-    switch (type()) {
+    switch (typeInternal()) {
         case Type::Int:
             return +value<i64>();
         case Type::Float:
@@ -475,9 +484,9 @@ auto Value::operator+() const -> Value
 
 auto Value::operator==(const Value& other) const noexcept -> bool
 {
-    switch (type()) {
+    switch (typeInternal()) {
         case Type::Bool: {
-            switch (other.type()) {
+            switch (other.typeInternal()) {
                 case Type::Bool: {
                     return value<bool>() == other.value<bool>();
                 }
@@ -486,7 +495,7 @@ auto Value::operator==(const Value& other) const noexcept -> bool
             }
         }
         case Type::Float: {
-            switch (other.type()) {
+            switch (other.typeInternal()) {
                 case Type::Float: {
                     return value<f64>() == other.value<f64>();
                 }
@@ -498,7 +507,7 @@ auto Value::operator==(const Value& other) const noexcept -> bool
             }
         }
         case Type::Int: {
-            switch (other.type()) {
+            switch (other.typeInternal()) {
                 case Type::Float: {
                     return value<i64>() == static_cast<i64>(other.value<f64>());
                 }
@@ -510,7 +519,7 @@ auto Value::operator==(const Value& other) const noexcept -> bool
             }
         }
         case Type::Object: {
-            switch (other.type()) {
+            switch (other.typeInternal()) {
                 case Type::Object: {
                     return object() == other.object();
                 }
@@ -519,10 +528,10 @@ auto Value::operator==(const Value& other) const noexcept -> bool
             }
         }
         case Type::None: {
-            return other.type() == Type::None;
+            return other.typeInternal() == Type::None;
         }
         case Type::String: {
-            return other.type() == Type::String && string() == other.string();
+            return other.typeInternal() == Type::String && string() == other.string();
         }
         default:
             return false;
@@ -536,9 +545,9 @@ auto Value::operator!=(const Value& other) const noexcept -> bool
 
 auto Value::operator<(const Value& other) const -> bool
 {
-    switch (type()) {
+    switch (typeInternal()) {
         case Type::Float: {
-            switch (other.type()) {
+            switch (other.typeInternal()) {
                 case Type::Float: {
                     return value<f64>() < other.value<f64>();
                 }
@@ -550,7 +559,7 @@ auto Value::operator<(const Value& other) const -> bool
             }
         }
         case Type::Int: {
-            switch (other.type()) {
+            switch (other.typeInternal()) {
                 case Type::Float: {
                     return value<i64>() < static_cast<i64>(other.value<f64>());
                 }
@@ -568,9 +577,9 @@ auto Value::operator<(const Value& other) const -> bool
 
 auto Value::operator<=(const Value& other) const -> bool
 {
-    switch (type()) {
+    switch (typeInternal()) {
         case Type::Float: {
-            switch (other.type()) {
+            switch (other.typeInternal()) {
                 case Type::Float: {
                     return value<f64>() <= other.value<f64>();
                 }
@@ -582,7 +591,7 @@ auto Value::operator<=(const Value& other) const -> bool
             }
         }
         case Type::Int: {
-            switch (other.type()) {
+            switch (other.typeInternal()) {
                 case Type::Float: {
                     return value<i64>() <= static_cast<i64>(other.value<f64>());
                 }
@@ -632,37 +641,8 @@ auto Value::makeNone() -> void
 
 namespace fmt {
 using namespace poise::runtime;
-
 auto formatter<Value>::format(const Value& value, format_context& context) const -> decltype(context.out())
 {
     return formatter<string_view>::format(value.toString(), context);
 }
-
-auto formatter<Value::Type>::format(Value::Type type, format_context& context) const -> decltype(context.out())
-{
-    string_view result = "unknown";
-
-    switch (type) {
-        case Value::Type::Bool:
-            result = "Bool";
-            break;
-        case Value::Type::Float:
-            result = "Float";
-            break;
-        case Value::Type::Int:
-            result = "Int";
-            break;
-        case Value::Type::Object:
-            result = "Object";
-            break;
-        case Value::Type::None:
-            result = "None";
-            break;
-        case Value::Type::String:
-            result = "String";
-            break;
-    }
-
-    return formatter<string_view>::format(result, context);
 }
-}   // namespace fmt

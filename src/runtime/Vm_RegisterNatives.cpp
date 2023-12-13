@@ -3,31 +3,25 @@
 //
 
 #include "Vm.hpp"
+#include "../objects/iterables/PoiseList.hpp"
 #include "../objects/PoiseException.hpp"
+#include "Types.hpp"
 
 #include <cmath>
-
-#define THROW_IF_WRONG_TYPE(expected, position)                                                                                                                                 \
-    do {                                                                                                                                                                        \
-        if (args[position].type() != (expected)) {                                                                                                                              \
-            throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("Expected {} at position {} but got {}", expected, position, args[position].type()));  \
-        }                                                                                                                                                                       \
-    } while (false)
-
 
 namespace poise::runtime {
 using objects::PoiseException;
 
-auto throwIfWrongType(usize position, const Value& value, Value::Type type) -> void
+auto throwIfWrongType(usize position, const Value& value, types::Type type) -> void
 {
     if (value.type() != type) {
         throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("Expected {} at position {} but got {}", type, position, value.type()));
     }
 }
 
-auto throwIfWrongType(usize position, const Value& value, std::initializer_list<Value::Type> types) -> void
+auto throwIfWrongType(usize position, const Value& value, std::initializer_list<types::Type> types) -> void
 {
-    if (std::none_of(types.begin(), types.end(), [&value] (Value::Type type) {
+    if (std::none_of(types.begin(), types.end(), [&value] (types::Type type) {
         return value.type() == type;
     })) {
         throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("Expected {} at position {} but got {}", fmt::join(types, " or "), position, value.type()));
@@ -38,23 +32,24 @@ auto Vm::registerNatives() noexcept -> void
 {
     registerIntNatives();
     registerFloatNatives();
+    registerListNatives();
 }   // Vm::registerNatives()
 
 auto Vm::registerIntNatives() noexcept -> void
 {
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_INT_POW"), NativeFunction{2, [] (std::span<Value> args) -> Value {
-        throwIfWrongType(0, args[0], Value::Type::Int);
-        throwIfWrongType(1, args[1], Value::Type::Int);
+        throwIfWrongType(0, args[0], types::Type::Int);
+        throwIfWrongType(1, args[1], types::Type::Int);
         return static_cast<i64>(std::pow(args[0].value<i64>(), args[1].value<i64>()));
     }});
 
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_INT_SQRT"), NativeFunction{1, [] (std::span<Value> args) -> Value {
-        throwIfWrongType(0, args[0], Value::Type::Int);
+        throwIfWrongType(0, args[0], types::Type::Int);
         return static_cast<i64>(std::sqrt(args[0].value<i64>()));
     }});
 
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_INT_ABS"), NativeFunction{1, [] (std::span<Value> args) -> Value {
-        throwIfWrongType(0, args[0], Value::Type::Int);
+        throwIfWrongType(0, args[0], types::Type::Int);
         return std::abs(args[0].value<i64>());
     }});
 }
@@ -62,19 +57,50 @@ auto Vm::registerIntNatives() noexcept -> void
 auto Vm::registerFloatNatives() noexcept -> void
 {
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_FLOAT_POW"), NativeFunction{2, [] (std::span<Value> args) -> Value {
-        throwIfWrongType(0, args[0], Value::Type::Float);
-        throwIfWrongType(1, args[1], {Value::Type::Float, Value::Type::Int});
-        return static_cast<f64>(std::pow(args[0].value<f64>(), args[1].type() == Value::Type::Float ? args[1].value<f64>() : static_cast<f64>(args[1].value<i64>())));
+        throwIfWrongType(0, args[0], types::Type::Float);
+        throwIfWrongType(1, args[1], {types::Type::Float, types::Type::Int});
+        return static_cast<f64>(std::pow(args[0].value<f64>(), args[1].type() == types::Type::Float ? args[1].value<f64>() : static_cast<f64>(args[1].value<i64>())));
     }});
 
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_FLOAT_SQRT"), NativeFunction{1, [] (std::span<Value> args) -> Value {
-        THROW_IF_WRONG_TYPE(Value::Type::Float, 0);
+        throwIfWrongType(0, args[0], types::Type::Float);
         return static_cast<f64>(std::sqrt(args[0].value<f64>()));
     }});
 
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_FLOAT_ABS"), NativeFunction{1, [] (std::span<Value> args) -> Value {
-        THROW_IF_WRONG_TYPE(Value::Type::Float, 0);
+        throwIfWrongType(0, args[0], types::Type::Float);
         return std::abs(args[0].value<f64>());
+    }});
+}
+
+auto Vm::registerListNatives() noexcept -> void
+{
+    m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_LIST_APPEND"), NativeFunction{2, [](std::span<Value> args) -> Value {
+        throwIfWrongType(0, args[0], types::Type::List);
+        args[0].object()->asList()->append(std::move(args[1]));
+        return Value::none();
+    }});
+
+    m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_LIST_INSERT"), NativeFunction{3, [](std::span<Value> args) -> Value {
+        throwIfWrongType(0, args[0], types::Type::List);
+        throwIfWrongType(1, args[1], types::Type::Int);
+        return args[0].object()->asList()->insert(args[1].value<usize>(), std::move(args[2]));
+    }});
+
+    m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_LIST_REMOVE"), NativeFunction{2, [](std::span<Value> args) -> Value {
+        throwIfWrongType(0, args[0], types::Type::List);
+        return args[0].object()->asList()->remove(args[1]);
+    }});
+
+    m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_LIST_REMOVE_FIRST"), NativeFunction{2, [](std::span<Value> args) -> Value {
+        throwIfWrongType(0, args[0], types::Type::List);
+        return args[0].object()->asList()->removeFirst(args[1]);
+    }});
+
+    m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_LIST_REMOVE_AT"), NativeFunction{2, [](std::span<Value> args) -> Value {
+        throwIfWrongType(0, args[0], types::Type::List);
+        throwIfWrongType(1, args[1], types::Type::Int);
+        return args[0].object()->asList()->removeAt(args[1].value<usize>());
     }});
 }
 }   // namespace poise::runtime

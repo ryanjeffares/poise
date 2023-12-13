@@ -122,6 +122,9 @@ auto formatter<Op>::format(poise::runtime::Op op, fmt::format_context& context) 
         case Op::Plus:
             result = "Plus";
             break;
+        case Op::MakeList:
+            result = "MakeList";
+            break;
         case Op::Call:
             result = "Call";
             break;

@@ -90,9 +90,12 @@ private:
     auto typeIdent() -> void;
     auto typeOf() -> void;
     auto lambda() -> void;
+    auto list() -> void;
+
     auto parseString() -> void;
     auto parseInt() -> void;
     auto parseFloat() -> void;
+
 
     struct NamespaceParseResult
     {
@@ -104,10 +107,10 @@ private:
     struct FunctionArgsParseResult
     {
         u8 numArgs;
-        std::optional<types::Type> extensionFunctionType;
+        std::optional<runtime::types::Type> extensionFunctionType;
     };
 
-    [[nodiscard]] auto parseCallArgs() -> std::optional<u8>;
+    [[nodiscard]] auto parseCallArgs(scanner::TokenType sentinel) -> std::optional<u8>;
     [[nodiscard]] auto parseFunctionArgs(bool isLambda) -> std::optional<FunctionArgsParseResult>;
     [[nodiscard]] auto parseNamespaceImport() -> std::optional<NamespaceParseResult>;
     [[nodiscard]] auto parseBlock(std::string_view scopeType) -> bool;

@@ -5,7 +5,7 @@
 #include "PoiseIterator.hpp"
 #include "PoiseIterable.hpp"
 #include "../PoiseException.hpp"
-#include "../PoiseType.hpp"
+#include "../../runtime/Types.hpp"
 
 #include <fmt/format.h>
 
@@ -37,9 +37,14 @@ auto PoiseIterator::toString() const noexcept -> std::string
     return fmt::format("<iterator instance at {}>", fmt::ptr(this));
 }
 
+auto PoiseIterator::type() const noexcept -> runtime::types::Type
+{
+    return runtime::types::Type::Iterator;
+}
+
 auto PoiseIterator::typeValue() const noexcept -> const runtime::Value&
 {
-    return types::typeValue(types::Type::Iterator);
+    return runtime::types::typeValue(runtime::types::Type::Iterator);
 }
 
 auto PoiseIterator::increment() -> void

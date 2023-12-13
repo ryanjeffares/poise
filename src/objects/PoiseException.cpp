@@ -3,7 +3,7 @@
 //
 
 #include "PoiseException.hpp"
-#include "PoiseType.hpp"
+#include "../runtime/Types.hpp"
 
 namespace poise::objects {
 PoiseException::PoiseException(std::string message)
@@ -25,9 +25,14 @@ auto PoiseException::toString() const noexcept -> std::string
     return fmt::format("{}: {}", exceptionType(), message());
 }
 
+auto PoiseException::type() const noexcept -> runtime::types::Type
+{
+    return runtime::types::Type::Exception;
+}
+
 auto PoiseException::typeValue() const noexcept -> const runtime::Value&
 {
-    return types::typeValue(types::Type::Exception);
+    return runtime::types::typeValue(runtime::types::Type::Exception);
 }
 
 auto PoiseException::asException() noexcept -> PoiseException*

@@ -6,7 +6,7 @@
 #include <fmt/format.h>
 
 namespace poise::objects {
-PoiseType::PoiseType(types::Type type, std::string name, runtime::Value constructorFunction)
+PoiseType::PoiseType(runtime::types::Type type, std::string name, runtime::Value constructorFunction)
     : m_type{type}
     , m_typeName{std::move(name)}
     , m_constructorFunction{std::move(constructorFunction)}
@@ -19,9 +19,14 @@ auto PoiseType::toString() const noexcept -> std::string
     return fmt::format("<type instance '{}' at {}>", m_typeName, fmt::ptr(this));
 }
 
+auto PoiseType::type() const noexcept -> runtime::types::Type
+{
+    return runtime::types::Type::Type;
+}
+
 auto PoiseType::typeValue() const noexcept -> const runtime::Value&
 {
-    return types::typeValue(type());
+    return runtime::types::typeValue(type());
 }
 
 auto PoiseType::asType() noexcept -> PoiseType*
@@ -29,7 +34,7 @@ auto PoiseType::asType() noexcept -> PoiseType*
     return this;
 }
 
-auto PoiseType::type() const noexcept -> types::Type
+auto PoiseType::heldType() const noexcept -> runtime::types::Type
 {
     return m_type;
 }
@@ -41,41 +46,41 @@ auto PoiseType::typeName() const noexcept -> std::string_view
 
 auto PoiseType::isPrimitiveType() const noexcept -> bool
 {
-    return type() == types::Type::Bool ||
-           type() == types::Type::Float ||
-           type() == types::Type::Int ||
-           type() == types::Type::None ||
-           type() == types::Type::String;
+    return heldType() == runtime::types::Type::Bool ||
+           heldType() == runtime::types::Type::Float ||
+           heldType() == runtime::types::Type::Int ||
+           heldType() == runtime::types::Type::None ||
+           heldType() == runtime::types::Type::String;
 }
 
 auto PoiseType::hasConstructor() const noexcept -> bool
 {
-    return m_constructorFunction.type() != runtime::Value::Type::None;
+    return m_constructorFunction.type() != runtime::types::Type::None;
 }
 
 auto PoiseType::construct(std::span<const runtime::Value> args) const -> runtime::Value
 {
-    switch (type()) {
-        case types::Type::Bool:
+    switch (heldType()) {
+        case runtime::types::Type::Bool:
             return !args.empty() && args[0].toBool();
-        case types::Type::Float:
+        case runtime::types::Type::Float:
             return args.empty() ? 0.0 : args[0].toFloat();
-        case types::Type::Int:
+        case runtime::types::Type::Int:
             return args.empty() ? 0 : args[0].toInt();
-        case types::Type::None:
-            return args.empty() || args[0].type() == runtime::Value::Type::None
+        case runtime::types::Type::None:
+            return args.empty() || args[0].type() == runtime::types::Type::None
                    ? runtime::Value::none()
                    : throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("Cannot construct None from '{}'", args[0].type()));
-        case types::Type::String:
+        case runtime::types::Type::String:
             return args.empty() ? "" : args[0].toString();
-        case types::Type::Exception: {
+        case runtime::types::Type::Exception: {
             if (args.empty()) {
                 throw PoiseException(PoiseException::ExceptionType::IncorrectArgCount, "'Function' constructor takes 1 argument but was given none");
             }
 
             return runtime::Value::createObject<PoiseException>(args[0].toString());
         }
-        case types::Type::Function: {
+        case runtime::types::Type::Function: {
             if (args.empty()) {
                 throw PoiseException(PoiseException::ExceptionType::IncorrectArgCount, "'Function' constructor takes 1 argument but was given none");
             }
@@ -90,7 +95,7 @@ auto PoiseType::construct(std::span<const runtime::Value> args) const -> runtime
                 throw PoiseException(PoiseException::ExceptionType::InvalidType, "'Function' can only be constructed from Function or Lambda");
             }
         }
-        case types::Type::Type:
+        case runtime::types::Type::Type:
             throw PoiseException(PoiseException::ExceptionType::InvalidType, "Cannot construct Type");
         default:
             POISE_UNREACHABLE();

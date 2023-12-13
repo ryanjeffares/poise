@@ -3,6 +3,9 @@
 //
 
 #include "PoiseList.hpp"
+#include "../../runtime/Types.hpp"
+
+#include <ranges>
 
 namespace poise::objects::iterables {
 
@@ -31,12 +34,47 @@ auto PoiseList::isAtEnd(const PoiseIterable::IteratorType& iterator) noexcept ->
     return iterator == m_data.end();
 }
 
+auto PoiseList::asList() noexcept -> iterables::PoiseList*
+{
+    return this;
+}
+
+auto PoiseList::toString() const noexcept -> std::string
+{
+    std::string res = "[";
+    for (const auto [index, value] : m_data | std::views::enumerate) {
+        // TODO - check this recursively
+        if (value.object() == this) {
+            res.append("...");
+        } else {
+            res.append(value.toString());
+        }
+
+        if (static_cast<usize>(index) < m_data.size() - 1_uz) {
+            res.append(", ");
+        }
+    }
+
+    res.append("]");
+    return res;
+}
+
+auto PoiseList::type() const noexcept -> runtime::types::Type
+{
+    return runtime::types::Type::List;
+}
+
+auto PoiseList::typeValue() const noexcept -> const runtime::Value&
+{
+    return runtime::types::typeValue(runtime::types::Type::List);
+}
+
 auto PoiseList::append(runtime::Value value) noexcept -> void
 {
     m_data.emplace_back(std::move(value));
 }
 
-auto PoiseList::insert(runtime::Value value, usize index) noexcept -> bool
+auto PoiseList::insert(usize index, runtime::Value value) noexcept -> bool
 {
     if (index >= m_data.size()) {
         return false;

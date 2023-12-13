@@ -25,6 +25,7 @@ public:
     [[nodiscard]] auto asIterator() noexcept -> PoiseIterator* override;
 
     [[nodiscard]] auto toString() const noexcept -> std::string override;
+    [[nodiscard]] auto type() const noexcept -> runtime::types::Type override;
     [[nodiscard]] auto typeValue() const noexcept -> const runtime::Value& override;
 
     auto increment() -> void;
