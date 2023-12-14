@@ -27,6 +27,11 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * Compiler warnings
 * Optimisation
 
+## Code to clean-up when compiler support improves
+* `std::stacktrace`, `std::source_location`?
+* `cend()` and `cbegin()` on `std::span`
+* More use of `<ranges>`
+
 ## Roadmap to MVP
 * ~~Pop unused expression/return results~~
 * ~~Create values by calling type as a constructor, eg `Int()`, `Float(1.0)`~~
