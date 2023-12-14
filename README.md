@@ -86,3 +86,14 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * CL arg parsing
 * Standard Library
     * Precompile as bytecode files
+
+## Iterable Inheritance Diagram
+```
+PoiseObject
+    |
+    |   _______________________________________ PoiseIterable
+    |__|___________|      |           |
+    |  |       |   |      |   ________|________ PoiseHashable
+    |  |       |   |      |  |        |   |
+PoiseList   PoiseRange  PoiseDict   PoiseSet
+```

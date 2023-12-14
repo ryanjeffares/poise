@@ -1,0 +1,15 @@
+func then(this final Bool b, final f) {
+    if b {
+        return f();
+    } else {
+        return none;
+    }
+}
+
+func match(this final Bool b, final if_true, final if_false) {
+    if b {
+        return if_true();
+    } else {
+        return if_false();
+    }
+}
