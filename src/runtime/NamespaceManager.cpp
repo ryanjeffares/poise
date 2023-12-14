@@ -66,9 +66,9 @@ auto NamespaceManager::namespaceFunction(NamespaceHash namespaceHash, std::strin
 auto NamespaceManager::namespaceFunction(NamespaceHash namespaceHash, FunctionNameHash functionNameHash) const noexcept -> std::optional<runtime::Value>
 {
     const auto functions = namespaceFunctions(namespaceHash);
-    if (const auto it = std::find_if(functions.cbegin(), functions.cend(), [functionNameHash] (const Value& value) {
+    if (const auto it = std::find_if(functions.begin(), functions.end(), [functionNameHash] (const Value& value) {
         return value.object()->asFunction()->nameHash() == functionNameHash;
-    }); it != functions.cend()) {
+    }); it != functions.end()) {
         return (*it);
     } else {
         return {};
