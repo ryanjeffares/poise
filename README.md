@@ -72,6 +72,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
         * Index operator
     * Option and Result types?
 * For loops
+    * Pop locals!
 * Break statements
 * Classes
     * Member variable access as well as extension function access

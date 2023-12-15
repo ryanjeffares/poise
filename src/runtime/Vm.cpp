@@ -260,9 +260,7 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                 }
                 case Op::PopLocals: {
                     const auto numLocalsToPop = constantList[constantIndex++].value<usize>();
-                    for (auto i = 0_uz; i < numLocalsToPop; i++) {
-                        localVariables.pop_back();
-                    }
+                    localVariables.resize(localVariables.size() - numLocalsToPop);
                     break;
                 }
                 case Op::Pop: {
@@ -438,8 +436,8 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                 case Op::DotCall: {
                     const auto numArgs = constantList[constantIndex++].value<u8>();
                     auto args = popCallArgs(numArgs);
-                    auto [function, callee] = popTwo();
-                    args.insert(args.begin(), std::move(callee));
+                    auto [function, caller] = popTwo();
+                    args.insert(args.begin(), std::move(caller));
 
                     if (auto object = function.object()) {
                         if (auto calleeFunction = object->asFunction()) {
@@ -481,8 +479,20 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                     heldIterators.push(Value::createObject<objects::iterables::PoiseIterator>(value));
                     auto iteratorPtr = heldIterators.top().object()->asIterator();
 
-                    const auto localIndex = constantList[constantIndex++].value<usize>();
-                    localVariables[localIndex + localIndexOffset] = iteratorPtr->value();
+                    const auto firstIteratorLocalIndex = constantList[constantIndex++].value<usize>();
+                    const auto secondIteratorLocalIndex = constantList[constantIndex++].value<usize>();
+
+                    localVariables[firstIteratorLocalIndex + localIndexOffset] = iteratorPtr->value();
+                    if (secondIteratorLocalIndex > 0_uz) {
+                        // even if there are no local variables before the loop, the second iterator would have an index of 1
+                        // so, we can do this check instead of some extra bool flag
+                        if (value.type() == types::Type::List) {
+                            localVariables[secondIteratorLocalIndex + localIndexOffset] = 0_i64;
+                        } else {
+                            throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("{} cannot have two iterators", value.type()));
+                        }
+                    }
+
                     stack.emplace_back(iteratorPtr->isAtEnd());
                     break;
                 }
@@ -490,12 +500,18 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                     auto iterator = heldIterators.top().object()->asIterator();
                     iterator->increment();
                     stack.emplace_back(iterator->isAtEnd());
-                    const auto localIndex = constantList[constantIndex++].value<usize>();
+                    const auto firstIteratorLocalIndex = constantList[constantIndex++].value<usize>();
+                    const auto secondIteratorLocalIndex = constantList[constantIndex++].value<usize>();
                     if (iterator->isAtEnd()) {
-                        localVariables[localIndex + localIndexOffset] = Value::none();
+                        localVariables[firstIteratorLocalIndex + localIndexOffset] = Value::none();
                         heldIterators.pop();
                     } else {
-                        localVariables[localIndex + localIndexOffset] = iterator->value();
+                        localVariables[firstIteratorLocalIndex + localIndexOffset] = iterator->value();
+                    }
+
+                    if (secondIteratorLocalIndex > 0_uz) {
+                        auto& local = localVariables[secondIteratorLocalIndex + localIndexOffset];
+                        local = local.value<i64>() + 1_i64;
                     }
                     break;
                 }

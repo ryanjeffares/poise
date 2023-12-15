@@ -270,6 +270,7 @@ auto Compiler::whileStatement() -> void
 
     // pop locals at the end of each iteration
     emitConstant(m_localNames.size() - numLocalsStart);
+    m_localNames.resize(numLocalsStart);
     emitOp(runtime::Op::PopLocals, m_previous->line());
 
     // jump back to re-evaluate the condition
@@ -291,17 +292,31 @@ auto Compiler::forStatement() -> void
     }
 
     m_contextStack.push_back(Context::ForLoop);
-
     RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected identifier");
 
-    const auto text = m_previous->text();
-    if (hasLocal(text)) {
+    const auto firstIteratorName = m_previous->text();
+    if (hasLocal(firstIteratorName)) {
         errorAtPrevious("Local variable with the same name already declared");
         return;
     }
 
-    const auto iteratorLocalIndex = m_localNames.size();
+    const auto firstIteratorLocalIndex = m_localNames.size();
     m_localNames.push_back({m_previous->string(), false});
+
+    std::optional<usize> secondIteratorLocalIndex;
+    if (match(scanner::TokenType::Comma)) {
+        RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected identifier");
+        const auto secondIteratorName = m_previous->text();
+        if (hasLocal(secondIteratorName)) {
+            errorAtPrevious("Local variable with the same name already declared");
+            return;
+        }
+        secondIteratorLocalIndex = m_localNames.size();
+        m_localNames.push_back({m_previous->string(), false});
+    }
+
+    const auto numLocalsStart = m_localNames.size();
+
     emitConstant(runtime::Value::none());
     emitOp(runtime::Op::LoadConstant, m_previous->line());
     emitOp(runtime::Op::DeclareLocal, m_previous->line());
@@ -309,7 +324,8 @@ auto Compiler::forStatement() -> void
     RETURN_IF_NO_MATCH(scanner::TokenType::In, "Expected 'in'");
 
     expression(false);
-    emitConstant(iteratorLocalIndex);
+    emitConstant(firstIteratorLocalIndex);
+    emitConstant(secondIteratorLocalIndex ? *secondIteratorLocalIndex : 0_uz);
     emitOp(runtime::Op::InitIterator, m_previous->line());
 
     const auto function = m_vm->currentFunction();
@@ -326,8 +342,14 @@ auto Compiler::forStatement() -> void
         return;
     }
 
-    emitConstant(iteratorLocalIndex);
+    emitConstant(firstIteratorLocalIndex);
+    emitConstant(secondIteratorLocalIndex ? *secondIteratorLocalIndex : 0_uz);
     emitOp(runtime::Op::IncrementIterator, m_previous->line());
+
+    // pop locals at the end of each iteration
+    emitConstant(m_localNames.size() - numLocalsStart);
+    emitOp(runtime::Op::PopLocals, m_previous->line());
+    m_localNames.resize(numLocalsStart);
 
     // jump back to check the iterator
     emitConstant(constantIndex);
@@ -335,6 +357,10 @@ auto Compiler::forStatement() -> void
     emitOp(runtime::Op::Jump, m_previous->line());
 
     patchJump(jumpIndexes);
+
+    // finally, pop the iterators that were made as locals
+    emitConstant(secondIteratorLocalIndex ? 2 : 1);
+    emitOp(runtime::Op::PopLocals, m_previous->line());
 
     m_contextStack.pop_back();
 }

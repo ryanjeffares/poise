@@ -15,4 +15,9 @@ func main() {
         return item % 2 == 0;
     });
     println(list1.contains(5));
+
+    final names = ["Ryan", "Syl", "Hays", "Jamie", "Sonya"];
+    for name, index in names {
+        println("The name at " + index + " is " + name);
+    }
 }

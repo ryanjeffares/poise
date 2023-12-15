@@ -212,7 +212,7 @@ auto Compiler::call(bool canAssign) -> void
             emitOp(runtime::Op::LoadMember, m_previous->line());
 
             if (match(scanner::TokenType::OpenParen)) {
-                emitConstant(true);
+                emitConstant(true); // flag to dictate whether to push the parent back on the stack since this is a dot call
                 if (const auto numArgs = parseCallArgs(scanner::TokenType::CloseParen)) {
                     emitConstant(*numArgs);
                     emitOp(runtime::Op::DotCall, m_previous->line());
