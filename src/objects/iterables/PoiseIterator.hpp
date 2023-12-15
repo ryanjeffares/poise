@@ -20,6 +20,9 @@ public:
     using IteratorType = std::vector<runtime::Value>::iterator;
 
     explicit PoiseIterator(runtime::Value iterable);
+    // only for testing
+    explicit PoiseIterator(PoiseIterable* iterable);
+
     ~PoiseIterator() override;
 
     [[nodiscard]] auto asIterator() noexcept -> PoiseIterator* override;

@@ -3,6 +3,7 @@
 //
 
 #include "PoiseList.hpp"
+#include "../PoiseException.hpp"
 
 #include <ranges>
 
@@ -75,6 +76,34 @@ auto PoiseList::type() const noexcept -> runtime::types::Type
 auto PoiseList::iterable() const noexcept -> bool
 {
     return true;
+}
+
+auto PoiseList::empty() const noexcept -> bool
+{
+    return m_data.empty();
+}
+
+auto PoiseList::size() const noexcept -> usize
+{
+    return m_data.size();
+}
+
+auto PoiseList::at(usize index) const -> const runtime::Value&
+{
+    if (index >= size()) {
+        throw PoiseException(PoiseException::ExceptionType::IndexOutOfBounds, fmt::format("The index is {} but the size is {}", index, size()));
+    }
+
+    return m_data[index];
+}
+
+auto PoiseList::at(usize index) -> runtime::Value&
+{
+    if (index >= size()) {
+        throw PoiseException(PoiseException::ExceptionType::IndexOutOfBounds, fmt::format("The index is {} but the size is {}", index, size()));
+    }
+
+    return m_data[index];
 }
 
 auto PoiseList::append(runtime::Value value) noexcept -> void

@@ -26,6 +26,12 @@ public:
     [[nodiscard]] auto type() const noexcept -> runtime::types::Type override;
     [[nodiscard]] auto iterable() const noexcept -> bool override;
 
+    [[nodiscard]] auto empty() const noexcept -> bool;
+    [[nodiscard]] auto size() const noexcept -> usize;
+
+    [[nodiscard]] auto at(usize index) const -> const runtime::Value&;
+    [[nodiscard]] auto at(usize index) -> runtime::Value&;
+
     auto append(runtime::Value value) noexcept -> void;
     [[nodiscard]] auto insert(usize index, runtime::Value value) noexcept -> bool;
     [[nodiscard]] auto remove(const runtime::Value& value) noexcept -> i64;

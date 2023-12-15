@@ -1,6 +1,8 @@
 #include "../src/compiler/Compiler.hpp"
 #include "../src/objects/PoiseException.hpp"
 #include "../src/runtime/Value.hpp"
+#include "../src/objects/iterables/PoiseList.hpp"
+#include "../src/objects/iterables/PoiseIterator.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -130,5 +132,41 @@ TEST_CASE("Check some basic reference counting")
     }
 
     REQUIRE((function.object()->refCount() == 1_uz && exception.object()->refCount() == 2_uz));
+}
+
+TEST_CASE("PoiseList functions and iteration")
+{
+    using namespace poise::runtime;
+    using namespace poise::objects::iterables;
+
+    PoiseList list{{}};
+    REQUIRE(list.empty());
+
+    for (auto i = 0; i < 20; i++) {
+        list.append(i);
+    }
+
+    REQUIRE(list.size() == 20_uz);
+
+    REQUIRE(list.remove(10) == 1);
+    REQUIRE(list.size() == 19);
+
+    REQUIRE(list.at(10_uz) == 11);
+    list.at(0_uz) = "Hello";
+    REQUIRE(list.at(0_uz) == "Hello");
+
+    REQUIRE(list.removeFirst("Hello") == true);
+    REQUIRE(list.at(0_uz) == 1);
+    REQUIRE(list.removeAt(0) == true);
+    REQUIRE(list.at(0_uz) == 2);
+
+    PoiseIterator iterator{&list};
+    REQUIRE(iterator.value() == 2);
+
+    for (auto i = 0; i < 10; i++) {
+        iterator.increment();
+    }
+
+    REQUIRE(iterator.value() == 13);
 }
 }

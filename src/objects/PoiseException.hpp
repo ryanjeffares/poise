@@ -20,6 +20,7 @@ public:
         Exception,
         FunctionNotFound,
         IncorrectArgCount,
+        IndexOutOfBounds,
         InvalidIterator,
         InvalidOperand,
         InvalidType,

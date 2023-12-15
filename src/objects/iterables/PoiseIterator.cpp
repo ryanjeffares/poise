@@ -19,6 +19,14 @@ PoiseIterator::PoiseIterator(runtime::Value iterable)
     m_iterator = m_iterablePtr->begin();
 }
 
+PoiseIterator::PoiseIterator(PoiseIterable* iterable)
+    : m_iterablePtr{iterable}
+    , m_isValid{true}
+{
+    m_iterablePtr->addIterator(this);
+    m_iterator = m_iterablePtr->begin();
+}
+
 PoiseIterator::~PoiseIterator()
 {
     m_iterablePtr->removeIterator(this);
