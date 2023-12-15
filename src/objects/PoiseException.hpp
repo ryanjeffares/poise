@@ -17,7 +17,13 @@ class PoiseException : public PoiseObject, public std::exception
 public:
     enum class ExceptionType
     {
-        Exception, FunctionNotFound, IncorrectArgCount, InvalidIterator, InvalidOperand, InvalidType,
+        Exception,
+        FunctionNotFound,
+        IncorrectArgCount,
+        InvalidIterator,
+        InvalidOperand,
+        InvalidType,
+        IteratorOutOfBounds,
     };
 
     explicit PoiseException(std::string message);

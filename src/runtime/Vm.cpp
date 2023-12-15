@@ -100,6 +100,7 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
     };
 
     std::stack<TryBlockState> tryBlockStateStack;
+    std::stack<Value> heldIterators;
 
     auto pop = [&stack] -> Value {
         POISE_ASSERT(!stack.empty(), "Stack is empty, there has been an error in codegen");
@@ -470,6 +471,33 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                     POISE_ASSERT(stack.empty(), "Stack not empty after runtime, there has been an error in codegen");
                     POISE_ASSERT(localVariables.empty(), "Locals have not been popped, there has been an error in codegen");
                     return RunResult::Success;
+                }
+                case Op::InitIterator: {
+                    auto value = pop();
+                    if (value.object() == nullptr || !value.object()->iterable()) {
+                        throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("{} is not iterable", value.type()));
+                    }
+
+                    heldIterators.push(Value::createObject<objects::iterables::PoiseIterator>(value));
+                    auto iteratorPtr = heldIterators.top().object()->asIterator();
+
+                    const auto localIndex = constantList[constantIndex++].value<usize>();
+                    localVariables[localIndex + localIndexOffset] = iteratorPtr->value();
+                    stack.emplace_back(iteratorPtr->isAtEnd());
+                    break;
+                }
+                case Op::IncrementIterator: {
+                    auto iterator = heldIterators.top().object()->asIterator();
+                    iterator->increment();
+                    stack.emplace_back(iterator->isAtEnd());
+                    const auto localIndex = constantList[constantIndex++].value<usize>();
+                    if (iterator->isAtEnd()) {
+                        localVariables[localIndex + localIndexOffset] = Value::none();
+                        heldIterators.pop();
+                    } else {
+                        localVariables[localIndex + localIndexOffset] = iterator->value();
+                    }
+                    break;
                 }
                 case Op::Jump: {
                     const auto& jumpConstantIndex = constantList[constantIndex++];

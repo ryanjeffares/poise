@@ -34,6 +34,8 @@ public:
     [[nodiscard]] auto value() const -> const runtime::Value&;
 
 private:
+    auto throwIfInvalid() const -> void;
+
     runtime::Value m_iterableValue;
     PoiseIterable* m_iterablePtr;
     IteratorType m_iterator;

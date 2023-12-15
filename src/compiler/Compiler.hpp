@@ -30,7 +30,7 @@ public:
 private:
     enum class Context
     {
-        Function, TopLevel, TryCatch,
+        ForLoop, Function, IfStatement, TopLevel, TryCatch, WhileLoop,
     };
 
     auto emitOp(runtime::Op op, usize line) noexcept -> void;
@@ -67,6 +67,7 @@ private:
     auto catchStatement() -> void;
     auto ifStatement() -> void;
     auto whileStatement() -> void;
+    auto forStatement() -> void;
 
     auto expression(bool canAssign) -> void;
     auto logicOr(bool canAssign) -> void;

@@ -1,18 +1,21 @@
 program = { declaration } EOF ;
 
-declaration = importDecl | funcDecl | varDecl | statement ;
+declaration = importDecl | funcDecl | varDecl | finalDecl | statement ;
 
 importDecl = "import", NAMESPACE, ";" ;
-funcDecl = "func", IDENTIFIER, "(", [ FUNCTION_ARGS ], ")", ":", BLOCK, "end" ;
-varDecl = ("var" | "final") , IDENTIFIER, [ "=", expression ] ";" ;
+funcDecl = "func", IDENTIFIER, "(", [ FUNCTION_ARGS ], ")", BLOCK ;
+varDecl = "var", IDENTIFIER, [ "=", expression ], ";" ;
+finalDecl = "final", IDENTIFIER, "=", expression, ";" ;
 
-statement = assignmentStatement | expressionStatement | printlnStatement | returnStatement | tryCatchStatement ;
+statement = assignmentStatement | expressionStatement | printlnStatement | returnStatement | tryCatchStatement | whileStatement | forStatement ;
 
 expressionStatement = expression, [ "=", expression ], ";" ;
 printlnStatement = "println", "(", expression, ")" ;
 returnStatement = "return", [ expression ], ";" ;
-tryCatchStatement = "try", "{", BLOCK, "}", "catch", [ IDENTIFIER ], "{", BLOCK, "}" ;
-ifStatement = "if", expression, "{", BLOCK, [ { "else", "if", expression, "{", BLOCK, "}" } ], [ "else", "{", BLOCK, "}" ] ;
+tryCatchStatement = "try", "{", BLOCK, "}", "catch", [ IDENTIFIER ], BLOCK ;
+ifStatement = "if", expression, BLOCK, [ { "else", "if", expression, BLOCK } ], [ "else", BLOCK ] ;
+whileStatement = "while", expression, BLOCK ;
+forStatement = "for", IDENTIFIER, "in", expression, BLOCK ;
 
 expression = logic_or ;
 logic_or = logic_and, [ { "or", logic_and } ] ;
@@ -44,6 +47,6 @@ DIGIT = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 ;
 CAPTURE_LIST = IDENTIFIER, [ { ",", IDENTIFIER } ] ;
 CALL_ARGS = expression, [ { ",", expression } ] ;
 FUNCTION_ARGS = IDENTIFIER, [ { ",", IDENTIFIER } ] ;
-BLOCK = [ { declaration - funcDecl } ] ;
+BLOCK = "{", [ { declaration - funcDecl } ], "}" ;
 
-NAMESPACE = IDENTIFIER, [ { ".", IDENTIFIER } ] ;
+NAMESPACE = IDENTIFIER, [ { "::", IDENTIFIER } ] ;

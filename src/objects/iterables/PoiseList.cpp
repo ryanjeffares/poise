@@ -72,6 +72,11 @@ auto PoiseList::type() const noexcept -> runtime::types::Type
     return runtime::types::Type::List;
 }
 
+auto PoiseList::iterable() const noexcept -> bool
+{
+    return true;
+}
+
 auto PoiseList::append(runtime::Value value) noexcept -> void
 {
     m_data.emplace_back(std::move(value));

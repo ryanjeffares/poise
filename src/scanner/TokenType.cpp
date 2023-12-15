@@ -114,6 +114,9 @@ auto formatter<TokenType>::format(TokenType tokenType, format_context& context) 
         case TokenType::Final:
             result = "Final";
             break;
+        case TokenType::For:
+            result = "For";
+            break;
         case TokenType::Func:
             result = "Func";
             break;
@@ -122,6 +125,9 @@ auto formatter<TokenType>::format(TokenType tokenType, format_context& context) 
             break;
         case TokenType::Import:
             result = "Import";
+            break;
+        case TokenType::In:
+            result = "In";
             break;
         case TokenType::Or:
             result = "Or";

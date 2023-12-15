@@ -365,6 +365,8 @@ auto Compiler::statement() -> void
         ifStatement();
     } else if (match(scanner::TokenType::While)) {
         whileStatement();
+    } else if (match(scanner::TokenType::For)) {
+        forStatement();
     } else {
         expressionStatement();
     }
@@ -443,6 +445,8 @@ auto Compiler::tryStatement() -> void
         return;
     }
 
+    m_contextStack.push_back(Context::TryCatch);
+
     const auto numLocalsStart = m_localNames.size();
 
     const auto function = m_vm->currentFunction();
@@ -516,6 +520,8 @@ auto Compiler::catchStatement() -> void
     emitConstant(m_localNames.size() - numLocalsStart);
     emitOp(runtime::Op::PopLocals, m_previous->line());
     m_localNames.resize(numLocalsStart);
+
+    m_contextStack.pop_back();
 }
 
 auto Compiler::ifStatement() -> void
@@ -524,6 +530,8 @@ auto Compiler::ifStatement() -> void
         errorAtPrevious("'if' not allowed at top level");
         return;
     }
+
+    m_contextStack.push_back(Context::IfStatement);
 
     expression(false);
     RETURN_IF_NO_MATCH(scanner::TokenType::OpenBrace, "Expected '{'");
@@ -571,6 +579,8 @@ auto Compiler::ifStatement() -> void
         // no `else` block so no additional jumping, just patch up the false jump
         patchJump(falseJumpIndexes);
     }
+
+    m_contextStack.pop_back();
 }
 
 auto Compiler::whileStatement() -> void
@@ -579,6 +589,8 @@ auto Compiler::whileStatement() -> void
         errorAtPrevious("'while' not allowed at top level");
         return;
     }
+
+    m_contextStack.push_back(Context::WhileLoop);
 
     const auto function = m_vm->currentFunction();
     // need to jump here at the end of each iteration
@@ -608,6 +620,66 @@ auto Compiler::whileStatement() -> void
 
     // patch in the jump for failing the condition
     patchJump(jumpIndexes);
+
+    m_contextStack.pop_back();
+}
+
+auto Compiler::forStatement() -> void
+{
+    if (m_contextStack.back() == Context::TopLevel) {
+        errorAtPrevious("'for' not allowed at top level");
+        return;
+    }
+
+    m_contextStack.push_back(Context::ForLoop);
+
+    RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected identifier");
+
+    const auto text = m_previous->text();
+    if (std::find_if(m_localNames.begin(), m_localNames.end(), [text](const LocalVariable& local) {
+        return local.name == text;
+    }) != m_localNames.end()) {
+        errorAtPrevious("Local variable with the same name already declared");
+        return;
+    }
+
+    const auto iteratorLocalIndex = m_localNames.size();
+    m_localNames.push_back({m_previous->string(), false});
+    emitConstant(runtime::Value::none());
+    emitOp(runtime::Op::LoadConstant, m_previous->line());
+    emitOp(runtime::Op::DeclareLocal, m_previous->line());
+
+    RETURN_IF_NO_MATCH(scanner::TokenType::In, "Expected 'in'");
+
+    expression(false);
+    emitConstant(iteratorLocalIndex);
+    emitOp(runtime::Op::InitIterator, m_previous->line());
+
+    const auto function = m_vm->currentFunction();
+    // need to jump here at the end of each iteration
+    const auto constantIndex = function->numConstants();
+    const auto opIndex = function->numOps();
+
+    // after InitIterator and IncrementIterator, the value of Iterator::isAtEnd() is put onto the stack
+    const auto jumpIndexes = emitJump(JumpType::IfTrue, true);
+
+    RETURN_IF_NO_MATCH(scanner::TokenType::OpenBrace, "Expected '{'");
+
+    if (!parseBlock("for loop")) {
+        return;
+    }
+
+    emitConstant(iteratorLocalIndex);
+    emitOp(runtime::Op::IncrementIterator, m_previous->line());
+
+    // jump back to check the iterator
+    emitConstant(constantIndex);
+    emitConstant(opIndex);
+    emitOp(runtime::Op::Jump, m_previous->line());
+
+    patchJump(jumpIndexes);
+
+    m_contextStack.pop_back();
 }
 
 auto Compiler::expression(bool canAssign) -> void

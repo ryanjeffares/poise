@@ -43,6 +43,7 @@ public:
 
     [[nodiscard]] virtual auto toString() const noexcept -> std::string = 0;
     [[nodiscard]] virtual auto type() const noexcept -> runtime::types::Type = 0;
+    [[nodiscard]] virtual auto iterable() const -> bool;
 
 private:
     usize m_refCount{};

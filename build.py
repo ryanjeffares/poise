@@ -28,4 +28,4 @@ if __name__ == '__main__':
         ret_code = os.system(f'cmake -B build -S . -DCMAKE_BUILD_TYPE={config} -DCMAKE_EXPORT_COMPILE_COMMANDS=1')
 
     if ret_code == 0:
-        os.system('cmake --build build')
+        os.system(f'cmake --build build --config {config} -- -j')

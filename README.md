@@ -61,10 +61,10 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
         * ~~Types know what extension functions they have~~
         * ~~Check if that function's namespace has been imported to the namespace of the current function in the Vm~~
 * Builtin objects
-    * Use types::Type instead of Value::Type for type() 
+    * ~~Use types::Type instead of Value::Type for type()~~ 
     * Iterable collections
         * Tidy up access modifiers
-        * Lists
+        * ~~Lists~~
         * Ranges
         * Dicts
             * Pair

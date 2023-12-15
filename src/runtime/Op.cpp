@@ -134,6 +134,12 @@ auto formatter<Op>::format(poise::runtime::Op op, fmt::format_context& context) 
         case Op::DotCall:
             result = "DotCall";
             break;
+        case Op::IncrementIterator:
+            result = "IncrementIterator";
+            break;
+        case Op::InitIterator:
+            result = "InitIterator";
+            break;
         case Op::Jump:
             result = "Jump";
             break;

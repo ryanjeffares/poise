@@ -40,4 +40,9 @@ auto PoiseObject::asType() noexcept -> PoiseType*
 {
     return nullptr;
 }
+
+auto PoiseObject::iterable() const -> bool
+{
+    return false;
+}
 }   // namespace poise::objects

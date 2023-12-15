@@ -41,10 +41,7 @@ auto PoiseIterator::type() const noexcept -> runtime::types::Type
 
 auto PoiseIterator::increment() -> void
 {
-    if (!valid()) {
-        throw PoiseException(PoiseException::ExceptionType::InvalidIterator, "Iterator is no longer valid, due to being incremented past the end of the collection or the collection being destroyed");
-    }
-
+    throwIfInvalid();
     m_iterablePtr->incrementIterator(m_iterator);
 }
 
@@ -65,10 +62,18 @@ auto PoiseIterator::valid() const noexcept -> bool
 
 auto PoiseIterator::value() const -> const runtime::Value&
 {
+    throwIfInvalid();
+    return *m_iterator;
+}
+
+auto PoiseIterator::throwIfInvalid() const -> void
+{
     if (!valid()) {
-        throw PoiseException(PoiseException::ExceptionType::InvalidIterator, "Iterator is no longer valid, due to being incremented past the end of the collection or the collection being destroyed");
+        throw PoiseException(PoiseException::ExceptionType::InvalidIterator, "Iterator is no longer valid due to the collection being modified or destroyed");
     }
 
-    return *m_iterator;
+    if (isAtEnd()) {
+        throw PoiseException(PoiseException::ExceptionType::IteratorOutOfBounds, "Iterator has already been incremented past the end of the collection");
+    }
 }
 }   // namespace poise::objects::iterables

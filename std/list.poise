@@ -22,3 +22,24 @@ export func remove_at(this final List list, final index) {
     return __NATIVE_LIST_REMOVE_AT(list, index);
 }
 
+export func where(this final List list, final predicate) {
+    final res = [];
+
+    for item in list {
+        if predicate(item) {
+            res.append(item);
+        }
+    }
+
+    return res;
+}
+
+export func contains(this final List list, final value) {
+    for item in list {
+        if item == value {
+            return true;
+        }
+    }
+
+    return false;
+}

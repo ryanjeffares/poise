@@ -63,6 +63,8 @@ enum class Op : u8
     CallNative,
     DotCall,
     Exit,
+    IncrementIterator,
+    InitIterator,
     Jump,
     JumpIfFalse,
     JumpIfTrue,
