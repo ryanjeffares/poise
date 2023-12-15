@@ -77,6 +77,8 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
         usize opIndex;
         usize constantIndex;
 
+        usize heldIteratorsSize;
+
         usize callSiteLine;
 
         objects::PoiseFunction* callerFunction;
@@ -87,6 +89,7 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
         .localIndexOffset = 0_uz,
         .opIndex = 0_uz,
         .constantIndex = 0_uz,
+        .heldIteratorsSize = 0_uz,
         .callSiteLine = 0_uz,
         .callerFunction = nullptr,
         .calleeFunction = nullptr,
@@ -97,6 +100,7 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
         usize callStackSize;
         usize constantIndexToJumpTo;
         usize opIndexToJumpTo;
+        usize heldIteratorsSize;
     };
 
     std::stack<TryBlockState> tryBlockStateStack;
@@ -193,6 +197,7 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                         .callStackSize = callStack.size(),
                         .constantIndexToJumpTo = constantIndexToJumpTo,
                         .opIndexToJumpTo = opIndexToJumpTo,
+                        .heldIteratorsSize = heldIterators.size(),
                     });
                     break;
                 }
@@ -408,6 +413,7 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                                 .localIndexOffset = localVariables.size(),
                                 .opIndex = 0_uz,
                                 .constantIndex = 0_uz,
+                                .heldIteratorsSize = heldIterators.size(),
                                 .callSiteLine = line,
                                 .callerFunction = currentFunction,
                                 .calleeFunction = calleeFunction,
@@ -449,6 +455,7 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                                 .localIndexOffset = localVariables.size(),
                                 .opIndex = 0_uz,
                                 .constantIndex = 0_uz,
+                                .heldIteratorsSize = heldIterators.size(),
                                 .callSiteLine = line,
                                 .callerFunction = currentFunction,
                                 .calleeFunction = calleeFunction,
@@ -468,6 +475,9 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                 case Op::Exit: {
                     POISE_ASSERT(stack.empty(), "Stack not empty after runtime, there has been an error in codegen");
                     POISE_ASSERT(localVariables.empty(), "Locals have not been popped, there has been an error in codegen");
+                    POISE_ASSERT(heldIterators.empty(), "Held iterators not empty, there has been an error in codegen");
+                    POISE_ASSERT(tryBlockStateStack.empty(), "Try block state stack not empty, there has been an error in codegen");
+                    POISE_ASSERT(callStack.size() == 1_uz, "Call stack not empty, there has been an error in codegen");
                     return RunResult::Success;
                 }
                 case Op::InitIterator: {
@@ -562,6 +572,9 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                 }
                 case Op::Return: {
                     printMemory();
+                    while (heldIterators.size() != callStack.back().heldIteratorsSize) {
+                        heldIterators.pop();
+                    }
                     callStack.pop_back();
                     break;
                 }
@@ -570,11 +583,15 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
             const auto inTryBlock = !tryBlockStateStack.empty();
 
             if (inTryBlock) {
-                const auto [callStackSize, constantIndexToJumpTo, opIndexToJumpTo] = tryBlockStateStack.top();
+                const auto [callStackSize, constantIndexToJumpTo, opIndexToJumpTo, heldIteratorsSize] = tryBlockStateStack.top();
 
                 callStack.resize(callStackSize);
                 callStack.back().constantIndex = constantIndexToJumpTo;
                 callStack.back().opIndex = opIndexToJumpTo;
+
+                while (heldIterators.size() != heldIteratorsSize) {
+                    heldIterators.pop();
+                }
 
                 tryBlockStateStack.pop();
 

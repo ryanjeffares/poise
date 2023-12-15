@@ -25,7 +25,7 @@ if(MSVC)
     list(APPEND POISE_COMPILE_DEFINITIONS POISE_MSVC)
     set(POISE_COMPILE_OPTIONS /W4 /WX /external:templates- /external:W0 /std:c++latest)
 else()
-    list(APPEND POISE_COMPILE_DEFINITIONS POISE_UNIX)
+    list(APPEND POISE_COMPILE_DEFINITIONS POISE_GCC_CLANG)
     set(POISE_COMPILE_OPTIONS -Wall -Werror -Wpedantic -Wextra -Wconversion -std=gnu++2b)
 endif()
     

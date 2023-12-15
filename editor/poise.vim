@@ -5,7 +5,7 @@ endif
 syn keyword poiseBuiltinFunctions println print eprintln eprint typeof skipwhite
 syn keyword poiseBooleans true false skipwhite
 syn keyword poiseConditionals and or skipwhite
-syn keyword poiseKeywords return func var final import export if while as this none skipwhite
+syn keyword poiseKeywords return func var final import export if else while for in as this none skipwhite
 syn keyword poiseType Int Float Bool String None Function Exception skipwhite
 
 syn keyword poiseTodo TODO FIXME NOTE NOTES XXX contained

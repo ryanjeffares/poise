@@ -16,4 +16,8 @@ func main() {
     println(l2);
     l2.append(l2);
     println(l2);
+
+    println(l.map(|| (final value) {
+        return value *2 ;
+    }));
 }

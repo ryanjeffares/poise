@@ -78,6 +78,14 @@ TEST_CASE("Compile and run 009_imports.poise")
     REQUIRE(vm.run(compiler.scanner()) == runtime::Vm::RunResult::Success);
 }
 
+TEST_CASE("Compile and run 010_for_loops.poise")
+{
+    runtime::Vm vm{"tests/test_files/010_for_loops.poise"};
+    compiler::Compiler compiler{true, false, &vm, "tests/test_files/010_for_loops.poise"};
+    REQUIRE(compiler.compile() == compiler::Compiler::CompileResult::Success);
+    REQUIRE(vm.run(compiler.scanner()) == runtime::Vm::RunResult::Success);
+}
+
 TEST_CASE("Check binary operations on Value class")
 {
     using namespace poise::runtime;

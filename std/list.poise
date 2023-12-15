@@ -34,6 +34,16 @@ export func where(this final List list, final predicate) {
     return res;
 }
 
+export func map(this final List list, final fn) {
+    final res = [];
+
+    for item in list {
+        res.append(fn(item));
+    }
+
+    return res;
+}
+
 export func contains(this final List list, final value) {
     for item in list {
         if item == value {

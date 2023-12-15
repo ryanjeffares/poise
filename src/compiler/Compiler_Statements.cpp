@@ -301,6 +301,9 @@ auto Compiler::forStatement() -> void
     }
 
     const auto firstIteratorLocalIndex = m_localNames.size();
+    emitConstant(runtime::Value::none());
+    emitOp(runtime::Op::LoadConstant, m_previous->line());
+    emitOp(runtime::Op::DeclareLocal, m_previous->line());
     m_localNames.push_back({m_previous->string(), false});
 
     std::optional<usize> secondIteratorLocalIndex;
@@ -312,14 +315,13 @@ auto Compiler::forStatement() -> void
             return;
         }
         secondIteratorLocalIndex = m_localNames.size();
+        emitConstant(runtime::Value::none());
+        emitOp(runtime::Op::LoadConstant, m_previous->line());
+        emitOp(runtime::Op::DeclareLocal, m_previous->line());
         m_localNames.push_back({m_previous->string(), false});
     }
 
     const auto numLocalsStart = m_localNames.size();
-
-    emitConstant(runtime::Value::none());
-    emitOp(runtime::Op::LoadConstant, m_previous->line());
-    emitOp(runtime::Op::DeclareLocal, m_previous->line());
 
     RETURN_IF_NO_MATCH(scanner::TokenType::In, "Expected 'in'");
 
@@ -361,6 +363,7 @@ auto Compiler::forStatement() -> void
     // finally, pop the iterators that were made as locals
     emitConstant(secondIteratorLocalIndex ? 2 : 1);
     emitOp(runtime::Op::PopLocals, m_previous->line());
+    m_localNames.resize(m_localNames.size() - (secondIteratorLocalIndex ? 2_uz : 1_uz));
 
     m_contextStack.pop_back();
 }
