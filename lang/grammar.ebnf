@@ -15,7 +15,7 @@ returnStatement = "return", [ expression ], ";" ;
 tryCatchStatement = "try", "{", BLOCK, "}", "catch", [ IDENTIFIER ], BLOCK ;
 ifStatement = "if", expression, BLOCK, [ { "else", "if", expression, BLOCK } ], [ "else", BLOCK ] ;
 whileStatement = "while", expression, BLOCK ;
-forStatement = "for", IDENTIFIER, "in", expression, BLOCK ;
+forStatement = "for", IDENTIFIER, [",", IDENTIFIER], "in", expression, BLOCK ;
 
 expression = logic_or ;
 logic_or = logic_and, [ { "or", logic_and } ] ;

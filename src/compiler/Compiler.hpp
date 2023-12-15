@@ -33,8 +33,8 @@ private:
         ForLoop, Function, IfStatement, TopLevel, TryCatch, WhileLoop,
     };
 
-    auto emitOp(runtime::Op op, usize line) noexcept -> void;
-    auto emitConstant(runtime::Value value) noexcept -> void;
+    auto emitOp(runtime::Op op, usize line) const noexcept -> void;
+    auto emitConstant(runtime::Value value) const noexcept -> void;
 
     struct JumpIndexes
     {
@@ -46,13 +46,41 @@ private:
         IfFalse, IfTrue, None
     };
 
-    auto emitJump() noexcept -> JumpIndexes;
-    auto emitJump(JumpType jumpType, bool emitPop) noexcept -> JumpIndexes;
-    auto patchJump(JumpIndexes jumpIndexes) noexcept -> void;
+    auto emitJump() const noexcept -> JumpIndexes;
+    auto emitJump(JumpType jumpType, bool emitPop) const noexcept -> JumpIndexes;
+    auto patchJump(JumpIndexes jumpIndexes) const noexcept -> void;
 
     auto advance() -> void;
     [[nodiscard]] auto match(scanner::TokenType expected) -> bool;
-    [[nodiscard]] auto check(scanner::TokenType expected) -> bool;
+    [[nodiscard]] auto check(scanner::TokenType expected) const noexcept -> bool;
+
+    struct LocalVariable
+    {
+        std::string name;
+        bool isFinal;
+    };
+
+    [[nodiscard]] auto hasLocal(std::string_view localName) const noexcept -> bool;
+    [[nodiscard]] auto findLocal(std::string_view localName) const noexcept -> std::optional<LocalVariable>;
+    [[nodiscard]] auto indexOfLocal(std::string_view localName) const noexcept -> std::optional<usize>;
+
+    struct NamespaceParseResult
+    {
+        std::filesystem::path path;
+        std::string name;
+        bool isStdFile;
+    };
+
+    struct FunctionArgsParseResult
+    {
+        u8 numArgs;
+        std::optional<runtime::types::Type> extensionFunctionType;
+    };
+
+    [[nodiscard]] auto parseCallArgs(scanner::TokenType sentinel) -> std::optional<u8>;
+    [[nodiscard]] auto parseFunctionArgs(bool isLambda) -> std::optional<FunctionArgsParseResult>;
+    [[nodiscard]] auto parseNamespaceImport() -> std::optional<NamespaceParseResult>;
+    [[nodiscard]] auto parseBlock(std::string_view scopeType) -> bool;
 
     auto declaration() -> void;
     auto importDeclaration() -> void;
@@ -97,25 +125,6 @@ private:
     auto parseInt() -> void;
     auto parseFloat() -> void;
 
-
-    struct NamespaceParseResult
-    {
-        std::filesystem::path path;
-        std::string name;
-        bool isStdFile;
-    };
-
-    struct FunctionArgsParseResult
-    {
-        u8 numArgs;
-        std::optional<runtime::types::Type> extensionFunctionType;
-    };
-
-    [[nodiscard]] auto parseCallArgs(scanner::TokenType sentinel) -> std::optional<u8>;
-    [[nodiscard]] auto parseFunctionArgs(bool isLambda) -> std::optional<FunctionArgsParseResult>;
-    [[nodiscard]] auto parseNamespaceImport() -> std::optional<NamespaceParseResult>;
-    [[nodiscard]] auto parseBlock(std::string_view scopeType) -> bool;
-
     auto errorAtCurrent(std::string_view message) -> void;
     auto errorAtPrevious(std::string_view message) -> void;
     auto error(const scanner::Token& token, std::string_view message) -> void;
@@ -135,12 +144,6 @@ private:
     runtime::NamespaceManager::NamespaceHash m_filePathHash;
     std::optional<scanner::Token> m_previous, m_current;
     std::vector<Context> m_contextStack;
-
-    struct LocalVariable
-    {
-        std::string name;
-        bool isFinal;
-    };
 
     std::vector<LocalVariable> m_localNames;
 
