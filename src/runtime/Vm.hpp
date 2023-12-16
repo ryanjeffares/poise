@@ -49,6 +49,7 @@ private:
     auto registerIntNatives() noexcept -> void;
     auto registerFloatNatives() noexcept -> void;
     auto registerListNatives() noexcept -> void;
+    auto registerRangeNatives() noexcept -> void;
 
     std::hash<std::string_view> m_nativeNameHasher;
     NativeFunctionMap m_nativeFunctionLookup;

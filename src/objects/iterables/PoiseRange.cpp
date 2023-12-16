@@ -125,4 +125,19 @@ auto PoiseRange::isInfiniteLoop() const noexcept -> bool
 {
     return m_data.empty();
 }
+
+auto PoiseRange::rangeStart() const noexcept -> runtime::Value
+{
+    return m_start;
+}
+
+auto PoiseRange::rangeEnd() const noexcept -> runtime::Value
+{
+    return m_end;
+}
+
+auto PoiseRange::rangeIncrement() const noexcept -> runtime::Value
+{
+    return m_increment;
+}
 }   // namespace poise::objects::iterables

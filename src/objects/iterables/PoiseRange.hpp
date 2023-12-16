@@ -29,6 +29,10 @@ public:
 
     [[nodiscard]] auto isInfiniteLoop() const noexcept -> bool;
 
+    [[nodiscard]] auto rangeStart() const noexcept -> runtime::Value;
+    [[nodiscard]] auto rangeEnd() const noexcept -> runtime::Value;
+    [[nodiscard]] auto rangeIncrement() const noexcept -> runtime::Value;
+
 private:
     bool m_inclusive;
     runtime::Value m_start, m_end, m_increment;

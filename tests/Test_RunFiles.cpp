@@ -87,10 +87,10 @@ TEST_CASE("Compile and run 010_lists.poise")
     REQUIRE(vm.run(compiler.scanner()) == runtime::Vm::RunResult::Success);
 }
 
-TEST_CASE("Compile and run 011_for_loops.poise")
+TEST_CASE("Compile and run 011_ranges.poise")
 {
-    runtime::Vm vm{"tests/test_files/011_for_loops.poise"};
-    compiler::Compiler compiler{true, false, &vm, "tests/test_files/011_for_loops.poise"};
+    runtime::Vm vm{"tests/test_files/011_ranges.poise"};
+    compiler::Compiler compiler{true, false, &vm, "tests/test_files/011_ranges.poise"};
     REQUIRE(compiler.compile() == compiler::Compiler::CompileResult::Success);
     REQUIRE(vm.run(compiler.scanner()) == runtime::Vm::RunResult::Success);
 }
