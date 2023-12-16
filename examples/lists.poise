@@ -20,4 +20,7 @@ func main() {
     println(l.map(|| (final value) {
         return value *2 ;
     }));
+
+    final l3 = List(false, "Ryan", main);
+    println(l3);
 }

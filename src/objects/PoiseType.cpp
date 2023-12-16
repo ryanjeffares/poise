@@ -1,8 +1,7 @@
 #include "PoiseType.hpp"
 #include "PoiseException.hpp"
 #include "PoiseFunction.hpp"
-
-#include <boost/range.hpp>
+#include "iterables/PoiseList.hpp"
 
 #include <fmt/core.h>
 #include <fmt/format.h>
@@ -57,7 +56,7 @@ auto PoiseType::hasConstructor() const noexcept -> bool
     return m_constructorFunction.type() != runtime::types::Type::None;
 }
 
-auto PoiseType::construct(std::span<const runtime::Value> args) const -> runtime::Value
+auto PoiseType::construct(std::span<runtime::Value> args) const -> runtime::Value
 {
     switch (heldType()) {
         case runtime::types::Type::Bool:
@@ -93,6 +92,12 @@ auto PoiseType::construct(std::span<const runtime::Value> args) const -> runtime
             } else {
                 throw PoiseException(PoiseException::ExceptionType::InvalidType, "'Function' can only be constructed from Function or Lambda");
             }
+        }
+        case runtime::types::Type::List: {
+            return runtime::Value::createObject<iterables::PoiseList>(std::vector<runtime::Value>{
+                std::make_move_iterator(args.begin()),
+                std::make_move_iterator(args.end())
+            });
         }
         case runtime::types::Type::Type:
             throw PoiseException(PoiseException::ExceptionType::InvalidType, "Cannot construct Type");

@@ -462,10 +462,11 @@ auto Compiler::typeIdent() -> void
     if (match(scanner::TokenType::OpenParen)) {
         // constructing an instance of the type
         if (const auto numArgs = parseCallArgs(scanner::TokenType::CloseParen)) {
-            if (*numArgs > 1) {
-                // TODO: this will be different for collections
-                errorAtPrevious(fmt::format("'{}' can only be constructed from a single argument but was given {}", tokenType, *numArgs));
-                return;
+            if (tokenType < scanner::TokenType::ListIdent) {
+                if (*numArgs > 1) {
+                    errorAtPrevious(fmt::format("'{}' can only be constructed from a single argument but was given {}", static_cast<runtime::types::Type>(tokenType), *numArgs));
+                    return;
+                }
             }
 
             emitConstant(static_cast<u8>(tokenType));

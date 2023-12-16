@@ -25,7 +25,7 @@ public:
     [[nodiscard]] auto isPrimitiveType() const noexcept -> bool;
     [[nodiscard]] auto hasConstructor() const noexcept -> bool;
 
-    [[nodiscard]] auto construct(std::span<const runtime::Value>) const -> runtime::Value;
+    [[nodiscard]] auto construct(std::span<runtime::Value>) const -> runtime::Value;
 
     auto addExtensionFunction(runtime::Value extensionFunction) -> void;
     [[nodiscard]] auto findExtensionFunction(usize functionNameHash) const -> std::optional<runtime::Value>;
