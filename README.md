@@ -76,6 +76,8 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * For loops
     * Make sure everything's working fine for more collections we add
 * `Any` type keyword for implementing dot functions on any variable
+* Union type annotation so that we can implement functions on multiple collections
+    * If we're going to do this, maybe reverse the type -> function association so that we're not duplicating functions
 * Break statements
 * Classes
     * Member variable access as well as extension function access
