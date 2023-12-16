@@ -32,6 +32,7 @@ Scanner::Scanner(const std::filesystem::path& inFilePath)
     , m_keywordLookup{
         {"and", TokenType::And},
         {"as", TokenType::As},
+        {"by", TokenType::By},
         {"catch", TokenType::Catch},
         {"else", TokenType::Else},
         {"eprint", TokenType::EPrint},
@@ -135,10 +136,19 @@ auto Scanner::scanToken() noexcept -> Token
                 return multiCharSymbol({{'<', TokenType::ShiftLeft}, {'=', TokenType::LessEqual}}, TokenType::Less);
             case '>':
                 return multiCharSymbol({{'>', TokenType::ShiftRight}, {'=', TokenType::GreaterEqual}}, TokenType::Greater);
+            case '.': {
+                if (peek() == '.' && peekNext() == '=') {
+                    advance();
+                    advance();
+                    return makeToken(TokenType::DotDotEqual);
+                }
+
+                return multiCharSymbol({{'.', TokenType::DotDot}}, TokenType::Dot);
+            }
             case '"':
                 return string();
             case ':': {
-                if (peek().value_or(char{}) == ':') {
+                if (peek() == ':') {
                     advance();
                     return makeToken(TokenType::ColonColon);
                 } else {
@@ -173,8 +183,8 @@ auto Scanner::skipWhitespace() noexcept -> void
                 advance();
                 break;
             case '/': {
-                if (peekNext().value_or(char{}) == '/') {
-                    while (peek().value_or(char{}) != '\n') {
+                if (peekNext() == '/') {
+                    while (peek() != '\n') {
                         advance();
                     }
                 } else {
@@ -229,7 +239,7 @@ auto Scanner::peekPrevious() noexcept -> std::optional<char>
 auto Scanner::multiCharSymbol(const std::unordered_map<char, TokenType>& pairs, TokenType defaultType) noexcept -> Token
 {
     for (const auto& [c, t] : pairs) {
-        if (peek().value_or(char{}) == c) {
+        if (peek() == c) {
             advance();
             return makeToken(t);
         }
@@ -266,7 +276,7 @@ auto Scanner::number() noexcept -> Token
         }
     }
 
-    if (peek().value_or(char{}) == '.' && std::isdigit(peekNext().value_or(char{}))) {
+    if (peek() == '.' && peekNext() && std::isdigit(*peekNext())) {
         advance();
         while (const auto c = peek()) {
             if (std::isdigit(*c)) {
@@ -286,7 +296,7 @@ auto Scanner::string() noexcept -> Token
 {
     while (true) {
         if (const auto c = peek()) {
-            if (*c == '"' && peekPrevious().value_or(char{}) != '\\') {
+            if (*c == '"' && peekPrevious() != '\\') {
                 break;
             }
 

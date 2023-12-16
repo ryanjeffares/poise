@@ -98,6 +98,7 @@ private:
     auto forStatement() -> void;
 
     auto expression(bool canAssign) -> void;
+    auto range(bool canAssign) -> void;
     auto logicOr(bool canAssign) -> void;
     auto logicAnd(bool canAssign) -> void;
     auto bitwiseOr(bool canAssign) -> void;

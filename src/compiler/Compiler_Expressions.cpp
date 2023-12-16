@@ -12,9 +12,44 @@ auto Compiler::expression(bool canAssign) -> void
 {
     // expressions can only start with a literal, unary op, or identifier
     if (scanner::isValidStartOfExpression(m_current->tokenType())) {
-        logicOr(canAssign);
+        range(canAssign);
     } else {
         errorAtCurrent("Expected expression");
+    }
+}
+
+auto Compiler::range(bool canAssign) -> void
+{
+    logicOr(canAssign);
+
+    if (match(scanner::TokenType::DotDot)) {
+        logicOr(canAssign);
+
+        if (match(scanner::TokenType::By)) {
+            expression(false);
+        } else {
+            emitConstant(1);
+            emitOp(runtime::Op::LoadConstant, m_previous->line());
+        }
+
+        emitConstant(static_cast<u8>(runtime::types::Type::Range));
+        emitConstant(3);
+        emitConstant(false);
+        emitOp(runtime::Op::ConstructBuiltin, m_previous->line());
+    } else if (match(scanner::TokenType::DotDotEqual)) {
+        logicOr(canAssign);
+
+        if (match(scanner::TokenType::By)) {
+            expression(false);
+        } else {
+            emitConstant(1);
+            emitOp(runtime::Op::LoadConstant, m_previous->line());
+        }
+
+        emitConstant(static_cast<u8>(runtime::types::Type::Range));
+        emitConstant(3);
+        emitConstant(true);
+        emitOp(runtime::Op::ConstructBuiltin, m_previous->line());
     }
 }
 
@@ -471,6 +506,9 @@ auto Compiler::typeIdent() -> void
 
             emitConstant(static_cast<u8>(tokenType));
             emitConstant(*numArgs);
+            if (tokenType == scanner::TokenType::RangeIdent) {
+                emitConstant(false);
+            }
             emitOp(runtime::Op::ConstructBuiltin, m_previous->line());
         }
     } else {

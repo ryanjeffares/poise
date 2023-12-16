@@ -13,7 +13,7 @@ class PoiseRange : public PoiseObject, public PoiseIterable
 {
 public:
     // all values are required to be checked to be numbers before this is called
-    PoiseRange(runtime::Value start, runtime::Value end, runtime::Value increment);
+    PoiseRange(runtime::Value start, runtime::Value end, runtime::Value increment, bool inclusive);
     ~PoiseRange() override = default;
 
     [[nodiscard]] auto asRange() noexcept -> iterables::PoiseRange* override;
@@ -30,6 +30,7 @@ public:
     [[nodiscard]] auto isInfiniteLoop() const noexcept -> bool;
 
 private:
+    bool m_inclusive;
     runtime::Value m_start, m_end, m_increment;
 };
 }   // namespace poise::objects::iterables

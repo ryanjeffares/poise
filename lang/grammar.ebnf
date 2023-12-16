@@ -17,7 +17,8 @@ ifStatement = "if", expression, BLOCK, [ { "else", "if", expression, BLOCK } ], 
 whileStatement = "while", expression, BLOCK ;
 forStatement = "for", IDENTIFIER, [",", IDENTIFIER], "in", expression, BLOCK ;
 
-expression = logic_or ;
+expression = range ;
+range = logic_or, [ "..", logic_or, [ "by", expression ] ] ;
 logic_or = logic_and, [ { "or", logic_and } ] ;
 logic_and = bitwise_or, [ { "and", bitwise_or } ] ;
 bitwise_or = bitwise_xor, [ { "|", bitwise_xor } ] ;

@@ -180,7 +180,14 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                 case Op::ConstructBuiltin: {
                     const auto type = static_cast<types::Type>(constantList[constantIndex++].value<u8>());
                     const auto numArgs = constantList[constantIndex++].value<u8>();
+
                     auto args = popCallArgs(numArgs);
+
+                    if (type == types::Type::Range) {
+                        const auto inclusiveRange = constantList[constantIndex++].value<bool>();
+                        args.emplace_back(inclusiveRange);
+                    }
+
                     stack.emplace_back(types::typeValue(type).object()->asType()->construct(args));
                     break;
                 }

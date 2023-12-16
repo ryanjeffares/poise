@@ -22,6 +22,7 @@ enum class TokenType : u8
     // keywords
     And,
     As,
+    By,
     Catch,
     Else,
     EPrint,
@@ -52,6 +53,8 @@ enum class TokenType : u8
     ColonColon,
     Comma,
     Dot,
+    DotDot,
+    DotDotEqual,
     Equal,
     EqualEqual,
     Exclamation,

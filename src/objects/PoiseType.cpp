@@ -101,7 +101,8 @@ auto PoiseType::construct(std::span<runtime::Value> args) const -> runtime::Valu
             });
         }
         case runtime::types::Type::Range: {
-            if (args.size() < 2_uz || args.size() > 3_uz) {
+            // last arg is whether the range is inclusive or not which is handled internally, user side it's 2 or 3 args
+            if (args.size() < 3_uz || args.size() > 4_uz) {
                 throw PoiseException(PoiseException::ExceptionType::IncorrectArgCount, fmt::format("'Range' constructor takes 2 or 3 arguments but was given {}", args.size()));
             }
 
@@ -117,7 +118,11 @@ auto PoiseType::construct(std::span<runtime::Value> args) const -> runtime::Valu
                 throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("Expected Int or Float for range increment but got {}", args[2].type()));
             }
 
-            return runtime::Value::createObject<iterables::PoiseRange>(std::move(args[0]), std::move(args[1]), args.size() == 3_uz ? std::move(args[2]) : 1);
+            if (args.size() == 4_uz) {
+                return runtime::Value::createObject<iterables::PoiseRange>(std::move(args[0]), std::move(args[1]), std::move(args[2]), args[3].value<bool>());
+            } else {
+                return runtime::Value::createObject<iterables::PoiseRange>(std::move(args[0]), std::move(args[1]), 1, args[2].value<bool>());
+            }
         }
         case runtime::types::Type::Type:
             throw PoiseException(PoiseException::ExceptionType::InvalidType, "Cannot construct TypeInternal");

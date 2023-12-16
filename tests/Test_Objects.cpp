@@ -78,7 +78,7 @@ TEST_CASE("PoiseRange functions and iteration")
     using namespace poise::objects::iterables;
 
     {
-        PoiseRange range{0, 10, 1};
+        PoiseRange range{0, 10, 1, false};
         REQUIRE(!range.isInfiniteLoop());
 
         PoiseIterator iterator{&range};
@@ -100,11 +100,23 @@ TEST_CASE("PoiseRange functions and iteration")
     }
 
     {
-        PoiseRange range{0, -10, 1};
+        PoiseRange range{0, -10, 1, false};
         REQUIRE(range.isInfiniteLoop());
 
         PoiseIterator iterator{&range};
         REQUIRE(iterator.isAtEnd());
+    }
+
+    {
+        PoiseRange range{0, 10, 1, true};
+        PoiseIterator iterator{&range};
+
+        for (auto i = 0; i < 10; i++) {
+            iterator.increment();
+        }
+
+        REQUIRE(!iterator.isAtEnd());
+        REQUIRE(iterator.value() == 10);
     }
 }
 }

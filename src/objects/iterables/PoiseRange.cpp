@@ -8,8 +8,9 @@
 #include <fmt/format.h>
 
 namespace poise::objects::iterables {
-PoiseRange::PoiseRange(runtime::Value start, runtime::Value end, runtime::Value increment)
-    : m_start{std::move(start)}
+PoiseRange::PoiseRange(runtime::Value start, runtime::Value end, runtime::Value increment, bool inclusive)
+    : m_inclusive{inclusive}
+    , m_start{std::move(start)}
     , m_end{std::move(end)}
     , m_increment{std::move(increment)}
 {
@@ -24,13 +25,25 @@ PoiseRange::PoiseRange(runtime::Value start, runtime::Value end, runtime::Value 
 
         if ((s < e) && (i > 0.0)) {
             // normal type of loop, start < end, increment > 0
-            for (auto value = s; value < e; value += i) {
-                m_data.emplace_back(value);
+            if (m_inclusive) {
+                for (auto value = s; value <= e; value += i) {
+                    m_data.emplace_back(value);
+                }
+            } else {
+                for (auto value = s; value < e; value += i) {
+                    m_data.emplace_back(value);
+                }
             }
         } else if ((e < s) && (i < 0.0)) {
             // reverse loop, start > end, increment < 0
-            for (auto value = s; value > e; value += i) {
-                m_data.emplace_back(value);
+            if (m_inclusive) {
+                for (auto value = s; value >= e; value += i) {
+                    m_data.emplace_back(value);
+                }
+            } else {
+                for (auto value = s; value > e; value += i) {
+                    m_data.emplace_back(value);
+                }
             }
         }
         // otherwise this is basically a noop
@@ -43,13 +56,25 @@ PoiseRange::PoiseRange(runtime::Value start, runtime::Value end, runtime::Value 
 
         if ((s < e) && (i > 0)) {
             // normal type of loop, start < end, increment > 0
-            for (auto value = s; value < e; value += i) {
-                m_data.emplace_back(value);
+            if (m_inclusive) {
+                for (auto value = s; value <= e; value += i) {
+                    m_data.emplace_back(value);
+                }
+            } else {
+                for (auto value = s; value < e; value += i) {
+                    m_data.emplace_back(value);
+                }
             }
         } else if ((e < s) && (i < 0)) {
             // reverse loop, start > end, increment < 0
-            for (auto value = s; value > e; value += i) {
-                m_data.emplace_back(value);
+            if (m_inclusive) {
+                for (auto value = s; value >= e; value += i) {
+                    m_data.emplace_back(value);
+                }
+            } else {
+                for (auto value = s; value > e; value += i) {
+                    m_data.emplace_back(value);
+                }
             }
         }
         // same logic as above
@@ -63,7 +88,7 @@ auto PoiseRange::asRange() noexcept -> iterables::PoiseRange*
 
 auto PoiseRange::toString() const noexcept -> std::string
 {
-    return fmt::format("{}..{} by {}", m_start, m_end, m_increment);
+    return fmt::format("{}{}{} by {}", m_start, m_inclusive ? "..=" : "..", m_end, m_increment);
 }
 
 auto PoiseRange::type() const noexcept -> runtime::types::Type

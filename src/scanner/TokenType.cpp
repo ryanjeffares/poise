@@ -100,6 +100,9 @@ auto formatter<TokenType>::format(TokenType tokenType, format_context& context) 
         case TokenType::As:
             result = "As";
             break;
+        case TokenType::By:
+            result = "By";
+            break;
         case TokenType::Catch:
             result = "Catch";
             break;
@@ -183,6 +186,12 @@ auto formatter<TokenType>::format(TokenType tokenType, format_context& context) 
             break;
         case TokenType::Dot:
             result = "Dot";
+            break;
+        case TokenType::DotDot:
+            result = "DotDot";
+            break;
+        case TokenType::DotDotEqual:
+            result = "DotDotEqual";
             break;
         case TokenType::Equal:
             result = "Equal";
