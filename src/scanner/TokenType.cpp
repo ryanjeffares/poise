@@ -29,7 +29,8 @@ auto isTypeIdent(TokenType tokenType) noexcept -> bool
            tokenType == TokenType::StringIdent ||
            tokenType == TokenType::ExceptionIdent ||
            tokenType == TokenType::FunctionIdent ||
-           tokenType == TokenType::ListIdent;
+           tokenType == TokenType::ListIdent ||
+           tokenType == TokenType::RangeIdent;
 }
 
 auto isPrimitiveTypeIdent(TokenType tokenType) noexcept -> bool
@@ -89,6 +90,9 @@ auto formatter<TokenType>::format(TokenType tokenType, format_context& context) 
             break;
         case TokenType::ListIdent:
             result = "ListIdent";
+            break;
+        case TokenType::RangeIdent:
+            result = "RangeIdent";
             break;
         case TokenType::And:
             result = "And";

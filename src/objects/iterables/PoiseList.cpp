@@ -31,7 +31,7 @@ auto PoiseList::incrementIterator(PoiseIterable::IteratorType& iterator) noexcep
 
 auto PoiseList::isAtEnd(const PoiseIterable::IteratorType& iterator) noexcept -> bool
 {
-    return iterator == m_data.end();
+    return iterator == end();
 }
 
 auto PoiseList::asList() noexcept -> iterables::PoiseList*
@@ -52,7 +52,13 @@ auto PoiseList::toString() const noexcept -> std::string
         if (value.object() == this) {
             res.append("...");
         } else {
-            res.append(value.toString());
+            if (value.type() == runtime::types::Type::String) {
+                res.push_back('"');
+                res.append(value.string());
+                res.push_back('"');
+            } else {
+                res.append(value.toString());
+            }
         }
 
         if (static_cast<usize>(index) < m_data.size() - 1_uz) {
@@ -109,6 +115,7 @@ auto PoiseList::at(usize index) -> runtime::Value&
 auto PoiseList::append(runtime::Value value) noexcept -> void
 {
     m_data.emplace_back(std::move(value));
+    invalidateIterators();
 }
 
 auto PoiseList::insert(usize index, runtime::Value value) noexcept -> bool
@@ -118,12 +125,17 @@ auto PoiseList::insert(usize index, runtime::Value value) noexcept -> bool
     }
 
     m_data.insert(m_data.begin() + static_cast<DifferenceType>(index), std::move(value));
+    invalidateIterators();
     return true;
 }
 
 auto PoiseList::remove(const runtime::Value& value) noexcept -> i64
 {
-    return static_cast<i64>(std::erase(m_data, value));
+    const auto res = static_cast<i64>(std::erase(m_data, value));
+    if (res > 0) {
+        invalidateIterators();
+    }
+    return res;
 }
 
 auto PoiseList::removeFirst(const runtime::Value& value) noexcept -> bool
@@ -134,6 +146,7 @@ auto PoiseList::removeFirst(const runtime::Value& value) noexcept -> bool
     }
 
     m_data.erase(it);
+    invalidateIterators();
     return true;
 }
 
@@ -144,6 +157,13 @@ auto PoiseList::removeAt(usize index) noexcept -> bool
     }
 
     m_data.erase(m_data.begin() + static_cast<DifferenceType>(index));
+    invalidateIterators();
     return true;
+}
+
+auto PoiseList::clear() noexcept -> void
+{
+    m_data.clear();
+    invalidateIterators();
 }
 }   // namespace poise::objects::iterables

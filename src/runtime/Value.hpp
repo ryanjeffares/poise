@@ -46,19 +46,19 @@ public:
     /* implicit */ Value(T value)
     {
         if constexpr (IsString<T>) {
-            m_type = Type::String;
+            m_type = TypeInternal::String;
             m_data.string = new std::string{std::move(value)};
         } else if constexpr (IsNone<T>) {
-            m_type = Type::None;
+            m_type = TypeInternal::None;
             m_data.none = value;
         } else if constexpr (IsInteger<T>) {
-            m_type = Type::Int;
+            m_type = TypeInternal::Int;
             m_data.integer = static_cast<i64>(value);
         } else if constexpr (IsFloatingPoint<T>) {
-            m_type = Type::Float;
+            m_type = TypeInternal::Float;
             m_data.floating = static_cast<f64>(value);
         } else if constexpr (IsBool<T>) {
-            m_type = Type::Bool;
+            m_type = TypeInternal::Bool;
             m_data.boolean = value;
         }
     }
@@ -72,7 +72,7 @@ public:
     [[nodiscard]] static auto createObject(Args&& ... args) -> Value
     {
         Value value;
-        value.m_type = Type::Object;
+        value.m_type = TypeInternal::Object;
         value.m_data.object = new T(std::forward<Args>(args)...);
         value.object()->incrementRefCount();
         return value;
@@ -83,28 +83,28 @@ public:
     template<Primitive T>
     Value& operator=(T value)
     {
-        if (typeInternal() == Type::String) {
+        if (typeInternal() == TypeInternal::String) {
             delete m_data.string;
-        } else if (typeInternal() == Type::Object) {
+        } else if (typeInternal() == TypeInternal::Object) {
             if (object()->decrementRefCount() == 0_uz) {
                 delete m_data.object;
             }
         }
 
         if constexpr (IsString<T>) {
-            m_type = Type::String;
+            m_type = TypeInternal::String;
             m_data.string = new std::string{std::move(value)};
         } else if constexpr (IsNone<T>) {
-            m_type = Type::None;
+            m_type = TypeInternal::None;
             m_data.none = value;
         } else if constexpr (IsInteger<T>) {
-            m_type = Type::Int;
+            m_type = TypeInternal::Int;
             m_data.integer = static_cast<i64>(value);
         } else if constexpr (IsFloatingPoint<T>) {
-            m_type = Type::Float;
+            m_type = TypeInternal::Float;
             m_data.floating = static_cast<f64>(value);
         } else if constexpr (IsBool<T>) {
-            m_type = Type::Bool;
+            m_type = TypeInternal::Bool;
             m_data.boolean = value;
         }
 
@@ -128,7 +128,8 @@ public:
     [[nodiscard]] auto string() const noexcept -> const std::string&;
     [[nodiscard]] auto object() const noexcept -> objects::PoiseObject*;
     [[nodiscard]] auto type() const noexcept -> types::Type;
-    [[nodiscard]] auto typeValue() const -> const Value&;
+    [[nodiscard]] auto typeValue() const noexcept -> const Value&;
+    [[nodiscard]] auto isNumber() const noexcept -> bool;
 
     auto print(bool err, bool newLine) const -> void;
 
@@ -163,12 +164,12 @@ public:
     [[nodiscard]] auto operator&&(const Value& other) const noexcept -> bool;
 
 private:
-    enum class Type
+    enum class TypeInternal
     {
         Bool, Float, Int, None, String, Object,
     };
 
-    [[nodiscard]] auto typeInternal() const -> Type;
+    [[nodiscard]] auto typeInternal() const noexcept -> TypeInternal;
 
     union
     {
@@ -180,10 +181,10 @@ private:
         bool boolean;
     } m_data{};
 
-    Type m_type;
+    TypeInternal m_type;
 
-    [[nodiscard]] auto data() const -> decltype(m_data);
-    auto makeNone() -> void;
+    [[nodiscard]] auto data() const noexcept -> decltype(m_data);
+    auto makeNone() noexcept -> void;
 };  // class Value
 }   // namespace poise::runtime
 

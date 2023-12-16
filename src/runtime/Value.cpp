@@ -6,17 +6,17 @@
 
 namespace poise::runtime {
 Value::Value()
-    : m_type{Type::None}
+    : m_type{TypeInternal::None}
 {
     m_data.none = std::nullptr_t{};
 }
 
 Value::Value(const Value& other)
-    : m_type{other.m_type}
+    : m_type{other.typeInternal()}
 {
-    if (typeInternal() == Type::String) {
+    if (typeInternal() == TypeInternal::String) {
         m_data.string = new std::string{other.string()};
-    } else if (typeInternal() == Type::Object) {
+    } else if (typeInternal() == TypeInternal::Object) {
         m_data.object = other.object();
         object()->incrementRefCount();
     } else {
@@ -28,7 +28,7 @@ Value::Value(Value&& other) noexcept
     : m_data{other.data()}
     , m_type{other.typeInternal()}
 {
-    if (typeInternal() == Type::String || typeInternal() == Type::Object) {
+    if (typeInternal() == TypeInternal::String || typeInternal() == TypeInternal::Object) {
         other.makeNone();
     }
 }
@@ -36,9 +36,9 @@ Value::Value(Value&& other) noexcept
 Value& Value::operator=(const Value& other)
 {
     if (this != &other) {
-        if (typeInternal() == Type::String) {
+        if (typeInternal() == TypeInternal::String) {
             delete m_data.string;
-        } else if (typeInternal() == Type::Object) {
+        } else if (typeInternal() == TypeInternal::Object) {
             if (object()->decrementRefCount() == 0_uz) {
                 delete m_data.object;
             }
@@ -46,9 +46,9 @@ Value& Value::operator=(const Value& other)
 
         m_type = other.typeInternal();
 
-        if (typeInternal() == Type::String) {
+        if (typeInternal() == TypeInternal::String) {
             m_data.string = new std::string{other.toString()};
-        } else if (typeInternal() == Type::Object) {
+        } else if (typeInternal() == TypeInternal::Object) {
             m_data.object = other.object();
             object()->incrementRefCount();
         } else {
@@ -62,9 +62,9 @@ Value& Value::operator=(const Value& other)
 Value& Value::operator=(Value&& other) noexcept
 {
     if (this != &other) {
-        if (typeInternal() == Type::String) {
+        if (typeInternal() == TypeInternal::String) {
             delete m_data.string;
-        } else if (typeInternal() == Type::Object) {
+        } else if (typeInternal() == TypeInternal::Object) {
             if (object()->decrementRefCount() == 0_uz) {
                 delete m_data.object;
             }
@@ -73,7 +73,7 @@ Value& Value::operator=(Value&& other) noexcept
         m_type = other.typeInternal();
         m_data = other.data();
 
-        if (typeInternal() == Type::String || typeInternal() == Type::Object) {
+        if (typeInternal() == TypeInternal::String || typeInternal() == TypeInternal::Object) {
             other.makeNone();
         }
     }
@@ -83,9 +83,9 @@ Value& Value::operator=(Value&& other) noexcept
 
 Value::~Value()
 {
-    if (typeInternal() == Type::String) {
+    if (typeInternal() == TypeInternal::String) {
         delete m_data.string;
-    } else if (typeInternal() == Type::Object) {
+    } else if (typeInternal() == TypeInternal::Object) {
         if (object()->decrementRefCount() == 0_uz) {
             delete m_data.object;
         }
@@ -104,30 +104,35 @@ auto Value::string() const noexcept -> const std::string&
 
 auto Value::object() const noexcept -> objects::PoiseObject*
 {
-    return typeInternal() == Type::Object ? m_data.object : nullptr;
+    return typeInternal() == TypeInternal::Object ? m_data.object : nullptr;
 }
 
 auto Value::type() const noexcept -> types::Type
 {
-    if (typeInternal() == Type::Object) {
+    if (typeInternal() == TypeInternal::Object) {
         return object()->type();
     } else {
         return static_cast<types::Type>(typeInternal());
     }
 }
 
-auto Value::typeInternal() const -> Type
+auto Value::typeInternal() const noexcept -> TypeInternal
 {
     return m_type;
 }
 
-auto Value::typeValue() const -> const Value&
+auto Value::typeValue() const noexcept -> const Value&
 {
-    if (typeInternal() == Type::Object) {
+    if (typeInternal() == TypeInternal::Object) {
         return types::typeValue(object()->type());
     } else {
         return types::typeValue(static_cast<types::Type>(typeInternal()));
     }
+}
+
+auto Value::isNumber() const noexcept -> bool
+{
+    return typeInternal() == TypeInternal::Int || typeInternal() == TypeInternal::Float;
 }
 
 auto Value::print(bool err, bool newLine) const -> void
@@ -142,17 +147,17 @@ auto Value::print(bool err, bool newLine) const -> void
 auto Value::toBool() const noexcept -> bool
 {
     switch (typeInternal()) {
-        case Type::Bool:
+        case TypeInternal::Bool:
             return value<bool>();
-        case Type::Float:
+        case TypeInternal::Float:
             return value<f64>() != 0.0;
-        case Type::Int:
+        case TypeInternal::Int:
             return value<i64>() != 0;
-        case Type::None:
+        case TypeInternal::None:
             return false;
-        case Type::Object:
+        case TypeInternal::Object:
             return true;
-        case Type::String:
+        case TypeInternal::String:
             return !string().empty();
         default:
             POISE_UNREACHABLE();
@@ -163,13 +168,13 @@ auto Value::toBool() const noexcept -> bool
 auto Value::toFloat() const -> f64
 {
     switch (typeInternal()) {
-        case Type::Bool:
+        case TypeInternal::Bool:
             return value<bool>() ? 1.0 : 0.0;
-        case Type::Float:
+        case TypeInternal::Float:
             return value<f64>();
-        case Type::Int:
+        case TypeInternal::Int:
             return static_cast<f64>(value<i64>());
-        case Type::String:
+        case TypeInternal::String:
             return std::stod(string());
         default:
             throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidType, fmt::format("Cannot convert {} to Float", type()));
@@ -179,13 +184,13 @@ auto Value::toFloat() const -> f64
 auto Value::toInt() const -> i64
 {
     switch (typeInternal()) {
-        case Type::Bool:
+        case TypeInternal::Bool:
             return value<bool>() ? 1 : 0;
-        case Type::Float:
+        case TypeInternal::Float:
             return static_cast<i64>(value<f64>());
-        case Type::Int:
+        case TypeInternal::Int:
             return value<i64>();
-        case Type::String:
+        case TypeInternal::String:
             return std::stoi(string());
         default:
             throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidType, fmt::format("Cannot convert {} to Int", type()));
@@ -195,17 +200,17 @@ auto Value::toInt() const -> i64
 auto Value::toString() const noexcept -> std::string
 {
     switch (typeInternal()) {
-        case Type::Bool:
+        case TypeInternal::Bool:
             return fmt::format("{}", value<bool>());
-        case Type::Float:
+        case TypeInternal::Float:
             return fmt::format("{}", value<f64>());
-        case Type::Int:
+        case TypeInternal::Int:
             return fmt::format("{}", value<i64>());
-        case Type::None:
+        case TypeInternal::None:
             return "none";
-        case Type::Object:
+        case TypeInternal::Object:
             return object()->toString();
-        case Type::String:
+        case TypeInternal::String:
             return string();
         default:
             POISE_UNREACHABLE();
@@ -216,9 +221,9 @@ auto Value::toString() const noexcept -> std::string
 auto Value::operator|(const Value& other) const -> Value
 {
     switch (typeInternal()) {
-        case Type::Int: {
+        case TypeInternal::Int: {
             switch (other.typeInternal()) {
-                case Type::Int:
+                case TypeInternal::Int:
                     return value<i64>() | other.value<i64>();
                 default:
                     throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for |: '{}' and '{}'", type(), other.type()));
@@ -232,9 +237,9 @@ auto Value::operator|(const Value& other) const -> Value
 auto Value::operator^(const Value& other) const -> Value
 {
     switch (typeInternal()) {
-        case Type::Int: {
+        case TypeInternal::Int: {
             switch (other.typeInternal()) {
-                case Type::Int:
+                case TypeInternal::Int:
                     return value<i64>() ^ other.value<i64>();
                 default:
                     throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for ^: '{}' and '{}'", type(), other.type()));
@@ -248,9 +253,9 @@ auto Value::operator^(const Value& other) const -> Value
 auto Value::operator&(const Value& other) const -> Value
 {
     switch (typeInternal()) {
-        case Type::Int: {
+        case TypeInternal::Int: {
             switch (other.typeInternal()) {
-                case Type::Int:
+                case TypeInternal::Int:
                     return value<i64>() & other.value<i64>();
                 default:
                     throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for &: '{}' and '{}'", type(), other.type()));
@@ -264,9 +269,9 @@ auto Value::operator&(const Value& other) const -> Value
 auto Value::operator<<(const Value& other) const -> Value
 {
     switch (typeInternal()) {
-        case Type::Int: {
+        case TypeInternal::Int: {
             switch (other.typeInternal()) {
-                case Type::Int:
+                case TypeInternal::Int:
                     return value<i64>() << other.value<i64>();
                 default:
                     throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for <<: '{}' and '{}'", type(), other.type()));
@@ -280,9 +285,9 @@ auto Value::operator<<(const Value& other) const -> Value
 auto Value::operator>>(const Value& other) const -> Value
 {
     switch (typeInternal()) {
-        case Type::Int: {
+        case TypeInternal::Int: {
             switch (other.typeInternal()) {
-                case Type::Int:
+                case TypeInternal::Int:
                     return value<i64>() >> other.value<i64>();
                 default:
                     throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for >>: '{}' and '{}'", type(), other.type()));
@@ -296,27 +301,27 @@ auto Value::operator>>(const Value& other) const -> Value
 auto Value::operator+(const Value& other) const -> Value
 {
     switch (typeInternal()) {
-        case Type::Float: {
+        case TypeInternal::Float: {
             switch (other.typeInternal()) {
-                case Type::Float:
+                case TypeInternal::Float:
                     return value<f64>() + other.value<f64>();
-                case Type::Int:
+                case TypeInternal::Int:
                     return value<f64>() + static_cast<f64>(other.value<i64>());
                 default:
                     throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for +: '{}' and '{}'", type(), other.type()));
             }
         }
-        case Type::Int: {
+        case TypeInternal::Int: {
             switch (other.typeInternal()) {
-                case Type::Float:
+                case TypeInternal::Float:
                     return static_cast<f64>(value<i64>()) + other.value<f64>();
-                case Type::Int:
+                case TypeInternal::Int:
                     return value<i64>() + other.value<i64>();
                 default:
                     throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for +: '{}' and '{}'", type(), other.type()));
             }
         }
-        case Type::String:
+        case TypeInternal::String:
             return string() + other.toString();
         default:
             throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for +: '{}' and '{}'", type(), other.type()));
@@ -326,21 +331,21 @@ auto Value::operator+(const Value& other) const -> Value
 auto Value::operator-(const Value& other) const -> Value
 {
     switch (typeInternal()) {
-        case Type::Float: {
+        case TypeInternal::Float: {
             switch (other.typeInternal()) {
-                case Type::Float:
+                case TypeInternal::Float:
                     return value<f64>() - other.value<f64>();
-                case Type::Int:
+                case TypeInternal::Int:
                     return value<f64>() - static_cast<f64>(other.value<i64>());
                 default:
                     throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for -: '{}' and '{}'", type(), other.type()));
             }
         }
-        case Type::Int: {
+        case TypeInternal::Int: {
             switch (other.typeInternal()) {
-                case Type::Float:
+                case TypeInternal::Float:
                     return static_cast<f64>(value<i64>()) - other.value<f64>();
-                case Type::Int:
+                case TypeInternal::Int:
                     return value<i64>() - other.value<i64>();
                 default:
                     throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for -: '{}' and '{}'", type(), other.type()));
@@ -354,21 +359,21 @@ auto Value::operator-(const Value& other) const -> Value
 auto Value::operator/(const Value& other) const -> Value
 {
     switch (typeInternal()) {
-        case Type::Float: {
+        case TypeInternal::Float: {
             switch (other.typeInternal()) {
-                case Type::Float:
+                case TypeInternal::Float:
                     return value<f64>() / other.value<f64>();
-                case Type::Int:
+                case TypeInternal::Int:
                     return value<f64>() / static_cast<f64>(other.value<i64>());
                 default:
                     throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for /: '{}' and '{}'", type(), other.type()));
             }
         }
-        case Type::Int: {
+        case TypeInternal::Int: {
             switch (other.typeInternal()) {
-                case Type::Float:
+                case TypeInternal::Float:
                     return static_cast<f64>(value<i64>()) / other.value<f64>();
-                case Type::Int:
+                case TypeInternal::Int:
                     return value<i64>() / other.value<i64>();
                 default:
                     throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for /: '{}' and '{}'", type(), other.type()));
@@ -382,29 +387,29 @@ auto Value::operator/(const Value& other) const -> Value
 auto Value::operator*(const Value& other) const -> Value
 {
     switch (typeInternal()) {
-        case Type::Float: {
+        case TypeInternal::Float: {
             switch (other.typeInternal()) {
-                case Type::Float:
+                case TypeInternal::Float:
                     return value<f64>() * other.value<f64>();
-                case Type::Int:
+                case TypeInternal::Int:
                     return value<f64>() * static_cast<f64>(other.value<i64>());
                 default:
                     throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for *: '{}' and '{}'", type(), other.type()));
             }
         }
-        case Type::Int: {
+        case TypeInternal::Int: {
             switch (other.typeInternal()) {
-                case Type::Float:
+                case TypeInternal::Float:
                     return static_cast<f64>(value<i64>()) * other.value<f64>();
-                case Type::Int:
+                case TypeInternal::Int:
                     return value<i64>() * other.value<i64>();
                 default:
                     throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for *: '{}' and '{}'", type(), other.type()));
             }
         }
-        case Type::String: {
+        case TypeInternal::String: {
             switch (other.typeInternal()) {
-                case Type::Int: {
+                case TypeInternal::Int: {
                     if (other.value<i64>() < 0) {
                         throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, "Factor to repeat string cannot be type");
                     }
@@ -429,9 +434,9 @@ auto Value::operator*(const Value& other) const -> Value
 auto Value::operator%(const Value& other) const -> Value
 {
     switch (typeInternal()) {
-        case Type::Int: {
+        case TypeInternal::Int: {
             switch (other.typeInternal()) {
-                case Type::Int: {
+                case TypeInternal::Int: {
                     return value<i64>() % other.value<i64>();
                 }
                 default:
@@ -451,7 +456,7 @@ auto Value::operator!() const noexcept -> Value
 auto Value::operator~() const -> Value
 {
     switch (typeInternal()) {
-        case Type::Int:
+        case TypeInternal::Int:
             return ~value<i64>();
         default:
             throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand type for ~: '{}'", type()));
@@ -461,9 +466,9 @@ auto Value::operator~() const -> Value
 auto Value::operator-() const -> Value
 {
     switch (typeInternal()) {
-        case Type::Int:
+        case TypeInternal::Int:
             return -value<i64>();
-        case Type::Float:
+        case TypeInternal::Float:
             return -value<f64>();
         default:
             throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand type for -: '{}'", type()));
@@ -473,9 +478,9 @@ auto Value::operator-() const -> Value
 auto Value::operator+() const -> Value
 {
     switch (typeInternal()) {
-        case Type::Int:
+        case TypeInternal::Int:
             return +value<i64>();
-        case Type::Float:
+        case TypeInternal::Float:
             return +value<f64>();
         default:
             throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand type for +: '{}'", type()));
@@ -485,53 +490,53 @@ auto Value::operator+() const -> Value
 auto Value::operator==(const Value& other) const noexcept -> bool
 {
     switch (typeInternal()) {
-        case Type::Bool: {
+        case TypeInternal::Bool: {
             switch (other.typeInternal()) {
-                case Type::Bool: {
+                case TypeInternal::Bool: {
                     return value<bool>() == other.value<bool>();
                 }
                 default:
                     return false;
             }
         }
-        case Type::Float: {
+        case TypeInternal::Float: {
             switch (other.typeInternal()) {
-                case Type::Float: {
+                case TypeInternal::Float: {
                     return value<f64>() == other.value<f64>();
                 }
-                case Type::Int: {
+                case TypeInternal::Int: {
                     return value<f64>() == static_cast<f64>(other.value<i64>());
                 }
                 default:
                     return false;
             }
         }
-        case Type::Int: {
+        case TypeInternal::Int: {
             switch (other.typeInternal()) {
-                case Type::Float: {
+                case TypeInternal::Float: {
                     return value<i64>() == static_cast<i64>(other.value<f64>());
                 }
-                case Type::Int: {
+                case TypeInternal::Int: {
                     return value<i64>() == other.value<i64>();
                 }
                 default:
                     return false;
             }
         }
-        case Type::Object: {
+        case TypeInternal::Object: {
             switch (other.typeInternal()) {
-                case Type::Object: {
+                case TypeInternal::Object: {
                     return object() == other.object();
                 }
                 default:
                     return false;
             }
         }
-        case Type::None: {
-            return other.typeInternal() == Type::None;
+        case TypeInternal::None: {
+            return other.typeInternal() == TypeInternal::None;
         }
-        case Type::String: {
-            return other.typeInternal() == Type::String && string() == other.string();
+        case TypeInternal::String: {
+            return other.typeInternal() == TypeInternal::String && string() == other.string();
         }
         default:
             return false;
@@ -546,24 +551,24 @@ auto Value::operator!=(const Value& other) const noexcept -> bool
 auto Value::operator<(const Value& other) const -> bool
 {
     switch (typeInternal()) {
-        case Type::Float: {
+        case TypeInternal::Float: {
             switch (other.typeInternal()) {
-                case Type::Float: {
+                case TypeInternal::Float: {
                     return value<f64>() < other.value<f64>();
                 }
-                case Type::Int: {
+                case TypeInternal::Int: {
                     return value<f64>() < static_cast<f64>(other.value<i64>());
                 }
                 default:
                     throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand type for <: '{}' and '{}'", type(), other.type()));
             }
         }
-        case Type::Int: {
+        case TypeInternal::Int: {
             switch (other.typeInternal()) {
-                case Type::Float: {
+                case TypeInternal::Float: {
                     return value<i64>() < static_cast<i64>(other.value<f64>());
                 }
-                case Type::Int: {
+                case TypeInternal::Int: {
                     return value<i64>() < other.value<i64>();
                 }
                 default:
@@ -578,24 +583,24 @@ auto Value::operator<(const Value& other) const -> bool
 auto Value::operator<=(const Value& other) const -> bool
 {
     switch (typeInternal()) {
-        case Type::Float: {
+        case TypeInternal::Float: {
             switch (other.typeInternal()) {
-                case Type::Float: {
+                case TypeInternal::Float: {
                     return value<f64>() <= other.value<f64>();
                 }
-                case Type::Int: {
+                case TypeInternal::Int: {
                     return value<f64>() <= static_cast<f64>(other.value<i64>());
                 }
                 default:
                     throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand type for <=: '{}' and '{}'", type(), other.type()));
             }
         }
-        case Type::Int: {
+        case TypeInternal::Int: {
             switch (other.typeInternal()) {
-                case Type::Float: {
+                case TypeInternal::Float: {
                     return value<i64>() <= static_cast<i64>(other.value<f64>());
                 }
-                case Type::Int: {
+                case TypeInternal::Int: {
                     return value<i64>() <= other.value<i64>();
                 }
                 default:
@@ -627,15 +632,15 @@ auto Value::operator&&(const Value& other) const noexcept -> bool
     return toBool() && other.toBool();
 }
 
-auto Value::data() const -> decltype(m_data)
+auto Value::data() const noexcept -> decltype(m_data)
 {
     return m_data;
 }
 
-auto Value::makeNone() -> void
+auto Value::makeNone() noexcept -> void
 {
     m_data.none = std::nullptr_t{};
-    m_type = Type::None;
+    m_type = TypeInternal::None;
 }
 }   // namespace poise::runtime
 

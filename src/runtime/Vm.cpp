@@ -492,7 +492,7 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                     const auto firstIteratorLocalIndex = constantList[constantIndex++].value<usize>();
                     const auto secondIteratorLocalIndex = constantList[constantIndex++].value<usize>();
 
-                    localVariables[firstIteratorLocalIndex + localIndexOffset] = iteratorPtr->value();
+                    localVariables[firstIteratorLocalIndex + localIndexOffset] = iteratorPtr->isAtEnd() ? Value::none() : iteratorPtr->value();
                     if (secondIteratorLocalIndex > 0_uz) {
                         // even if there are no local variables before the loop, the second iterator would have an index of 1
                         // so, we can do this check instead of some extra bool flag

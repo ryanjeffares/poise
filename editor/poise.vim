@@ -23,6 +23,6 @@ hi def link poiseBooleans           Boolean
 hi def link poiseConditionals       Conditional
 hi def link poiseKeywords           Keyword
 hi def link poiseBuiltinFunctions   Function
-hi def link poiseType               Type
+hi def link poiseType               TypeInternal
 
 let b:current_syntax = "poise"

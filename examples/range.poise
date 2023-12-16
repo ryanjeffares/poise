@@ -1,0 +1,24 @@
+func main() {
+    final test_range = || (final range) {
+        println(range);
+        for value in range {
+            println(value);
+        }
+        println("====");
+    };
+
+    var range = Range(0, 10);
+    test_range(range);
+
+    range = Range(-10, 20, 2);
+    test_range(range);
+
+    range = Range(0, 5, 0.2);
+    test_range(range);
+
+//    range = Range("Hello", false, none);
+//    test_range(range);
+
+    range = Range(0, 10, -1);
+    test_range(range);
+}

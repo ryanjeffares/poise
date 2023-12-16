@@ -18,6 +18,7 @@ public:
     using DifferenceType = std::vector<runtime::Value>::difference_type;
     using IteratorType = PoiseIterator::IteratorType;
 
+    PoiseIterable() = default;
     explicit PoiseIterable(usize initialSize, const runtime::Value& defaultValue = runtime::Value::none());
     explicit PoiseIterable(std::vector<runtime::Value> data);
     virtual ~PoiseIterable();

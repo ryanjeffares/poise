@@ -14,7 +14,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * Test individual important functions
     * Fuzzing
 * Think about object -> bool conversion
-* Construct `Type` instance, `Type` ident
+* Construct `TypeInternal` instance, `TypeInternal` ident
 * Imports
     * The code is really messy
     * Give nicer compiler errors
@@ -23,7 +23,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * Function names, namespace lookups, etc
     * And maybe also in the compiler when we need to optimise that
 * Zig style try assignment
-* Type checker for those optional type hints
+* TypeInternal checker for those optional type hints
 * Compiler warnings
 * Optimisation
 
@@ -62,7 +62,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
         * ~~Check if that function's namespace has been imported to the namespace of the current function in the Vm~~
     * ~~Two functions with the same name in a different namespace will override each-other~~
 * Builtin objects
-    * ~~Use types::Type instead of Value::Type for type()~~ 
+    * ~~Use types::TypeInternal instead of Value::TypeInternal for type()~~ 
     * Iterable collections
         * Tidy up access modifiers
         * ~~Lists~~
@@ -90,7 +90,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * Pattern matching
 * Ifs as expressions
 * Single expression lambdas
-* Type hints
+* TypeInternal hints
 * CL arg parsing
 * Standard Library
     * Precompile as bytecode files

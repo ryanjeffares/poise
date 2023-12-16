@@ -102,7 +102,11 @@ auto Vm::registerListNatives() noexcept -> void
         throwIfWrongType(1, args[1], types::Type::Int);
         return args[0].object()->asList()->removeAt(args[1].value<usize>());
     }});
+
+    m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_LIST_CLEAR"), NativeFunction{1, [](std::span<Value> args) -> Value {
+        throwIfWrongType(0, args[0], types::Type::List);
+        args[0].object()->asList()->clear();
+        return Value::none();
+    }});
 }
 }   // namespace poise::runtime
-
-#undef THROW_IF_WRONG_TYPE

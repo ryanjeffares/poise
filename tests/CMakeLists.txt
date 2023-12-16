@@ -1,4 +1,4 @@
-add_executable(poise_tests PoiseTests.cpp)
+add_executable(poise_tests Test_Objects.cpp Test_RunFiles.cpp Test_Values.cpp)
 
 target_compile_definitions(poise_tests PRIVATE ${POISE_COMPILE_DEFINITIONS})
 target_compile_options(poise_tests PRIVATE ${POISE_COMPILE_OPTIONS})

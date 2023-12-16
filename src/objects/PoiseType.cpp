@@ -2,6 +2,7 @@
 #include "PoiseException.hpp"
 #include "PoiseFunction.hpp"
 #include "iterables/PoiseList.hpp"
+#include "iterables/PoiseRange.hpp"
 
 #include <fmt/core.h>
 #include <fmt/format.h>
@@ -99,8 +100,27 @@ auto PoiseType::construct(std::span<runtime::Value> args) const -> runtime::Valu
                 std::make_move_iterator(args.end())
             });
         }
+        case runtime::types::Type::Range: {
+            if (args.size() < 2_uz || args.size() > 3_uz) {
+                throw PoiseException(PoiseException::ExceptionType::IncorrectArgCount, fmt::format("'Range' constructor takes 2 or 3 arguments but was given {}", args.size()));
+            }
+
+            if (!args[0].isNumber()) {
+                throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("Expected Int or Float for range start but got {}", args[0].type()));
+            }
+
+            if (!args[1].isNumber()) {
+                throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("Expected Int or Float for range end but got {}", args[1].type()));
+            }
+
+            if (args.size() == 3_uz && !args[2].isNumber()) {
+                throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("Expected Int or Float for range increment but got {}", args[2].type()));
+            }
+
+            return runtime::Value::createObject<iterables::PoiseRange>(std::move(args[0]), std::move(args[1]), args.size() == 3_uz ? std::move(args[2]) : 1);
+        }
         case runtime::types::Type::Type:
-            throw PoiseException(PoiseException::ExceptionType::InvalidType, "Cannot construct Type");
+            throw PoiseException(PoiseException::ExceptionType::InvalidType, "Cannot construct TypeInternal");
         default:
             POISE_UNREACHABLE();
             return runtime::Value::none();
@@ -136,7 +156,7 @@ auto PoiseType::findExtensionFunction(usize functionNameHash) const -> std::opti
             }
 
             throw PoiseException(PoiseException::ExceptionType::AmbiguousCall,
-                fmt::format("Ambiguous extension function call: '{}()' defined in {}", functionName, fmt::join(filePaths.begin(), filePaths.end(), " and")));
+                fmt::format("Ambiguous extension function call: '{}()' defined in {}", functionName, fmt::join(filePaths.begin(), filePaths.end(), " and ")));
         }
     }
 }

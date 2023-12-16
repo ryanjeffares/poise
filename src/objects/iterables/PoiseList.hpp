@@ -37,6 +37,7 @@ public:
     [[nodiscard]] auto remove(const runtime::Value& value) noexcept -> i64;
     [[nodiscard]] auto removeFirst(const runtime::Value& value) noexcept -> bool;
     [[nodiscard]] auto removeAt(usize index) noexcept -> bool;
+    auto clear() noexcept -> void;
 };
 }   // namespace poise::objects::iterables
 

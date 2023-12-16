@@ -36,6 +36,11 @@ auto PoiseObject::asList() noexcept -> iterables::PoiseList*
     return nullptr;
 }
 
+auto PoiseObject::asRange() noexcept -> iterables::PoiseRange*
+{
+    return nullptr;
+}
+
 auto PoiseObject::asType() noexcept -> PoiseType*
 {
     return nullptr;

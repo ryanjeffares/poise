@@ -2,10 +2,11 @@ add_library(poise_objects
         iterables/PoiseIterable.cpp
         iterables/PoiseIterator.cpp
         iterables/PoiseList.cpp
+        iterables/PoiseRange.cpp
+        PoiseException.cpp
         PoiseFunction.cpp
         PoiseObject.cpp
         PoiseType.cpp
-        PoiseException.cpp
 )
 
 target_compile_definitions(poise_objects PRIVATE ${POISE_COMPILE_DEFINITIONS})

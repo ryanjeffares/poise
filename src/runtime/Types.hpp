@@ -15,7 +15,7 @@ enum class Type
 {
     // keep in alphabetical order - except Iterator should always be last
     // so that we match this to the TokenType
-    Bool, Float, Int, None, String, Exception, Function, List, Type, Iterator,
+    Bool, Float, Int, None, String, Exception, Function, List, Range, Type, Iterator,
 };
 
 auto typeValue(Type type) noexcept -> const runtime::Value&;

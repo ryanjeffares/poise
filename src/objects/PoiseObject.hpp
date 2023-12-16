@@ -19,6 +19,7 @@ class PoiseType;
 namespace iterables {
 class PoiseIterator;
 class PoiseList;
+class PoiseRange;
 }
 
 class PoiseObject
@@ -39,6 +40,7 @@ public:
     [[nodiscard]] virtual auto asFunction() noexcept -> PoiseFunction*;
     [[nodiscard]] virtual auto asIterator() noexcept -> iterables::PoiseIterator*;
     [[nodiscard]] virtual auto asList() noexcept -> iterables::PoiseList*;
+    [[nodiscard]] virtual auto asRange() noexcept -> iterables::PoiseRange*;
     [[nodiscard]] virtual auto asType() noexcept -> PoiseType*;
 
     [[nodiscard]] virtual auto toString() const noexcept -> std::string = 0;
