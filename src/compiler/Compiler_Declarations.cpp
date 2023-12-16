@@ -77,6 +77,11 @@ auto Compiler::funcDeclaration(bool isExported) -> void
     RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected function name");
     auto functionName = m_previous->string();
 
+    if (m_vm->namespaceManager()->namespaceFunction(m_filePathHash, functionName) != nullptr) {
+        errorAtPrevious("Function with the same name already defined in this scope");
+        return;
+    }
+
     if (functionName.starts_with("__")) {
         errorAtPrevious("Function names may not start with '__' as this is reserved for the standard library");
         return;

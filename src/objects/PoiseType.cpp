@@ -2,8 +2,12 @@
 #include "PoiseException.hpp"
 #include "PoiseFunction.hpp"
 
+#include <boost/range.hpp>
+
 #include <fmt/core.h>
 #include <fmt/format.h>
+
+#include <ranges>
 
 namespace poise::objects {
 PoiseType::PoiseType(runtime::types::Type type, std::string name, runtime::Value constructorFunction)
@@ -105,14 +109,31 @@ auto PoiseType::addExtensionFunction(runtime::Value extensionFunction) -> void
 
 auto PoiseType::findExtensionFunction(usize functionNameHash) const -> std::optional<runtime::Value>
 {
-    if (const auto it = std::find_if(m_extensionFunctions.cbegin(), m_extensionFunctions.cend(), [functionNameHash](const runtime::Value& value) {
+    const auto count = std::count_if(m_extensionFunctions.cbegin(), m_extensionFunctions.cend(), [functionNameHash] (const runtime::Value& value) {
         return value.object()->asFunction()->nameHash() == functionNameHash;
-    }); it != m_extensionFunctions.cend()) {
-        return *it;
+    });
+
+    switch (count) {
+        case 0:
+            return {};
+        case 1:
+            return *std::find_if(m_extensionFunctions.begin(), m_extensionFunctions.end(), [functionNameHash] (const runtime::Value& value) {
+                return value.object()->asFunction()->nameHash() == functionNameHash;
+            });
+        default: {
+            std::string_view functionName;
+            std::vector<std::string> filePaths;
+            for (const auto& value : m_extensionFunctions) {
+                if (value.object()->asFunction()->nameHash() == functionNameHash) {
+                    functionName = value.object()->asFunction()->name();
+                    filePaths.emplace_back(value.object()->asFunction()->filePath().string());
+                }
+            }
+
+            throw PoiseException(PoiseException::ExceptionType::AmbiguousCall,
+                fmt::format("Ambiguous extension function call: '{}()' defined in {}", functionName, fmt::join(filePaths.begin(), filePaths.end(), " and")));
+        }
     }
-
-    return {};
-
 }
 
 auto PoiseType::findExtensionFunction(std::string_view functionName) const -> std::optional<runtime::Value>

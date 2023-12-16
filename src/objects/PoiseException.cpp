@@ -59,6 +59,9 @@ auto formatter<PoiseException::ExceptionType>::format(PoiseException::ExceptionT
     string_view res = "unknown";
 
     switch (exceptionType) {
+        case PoiseException::ExceptionType::AmbiguousCall:
+            res = "AmbiguousCallException";
+            break;
         case PoiseException::ExceptionType::Exception:
             res = "Exception";
             break;

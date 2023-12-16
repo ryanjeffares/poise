@@ -17,6 +17,7 @@ class PoiseException : public PoiseObject, public std::exception
 public:
     enum class ExceptionType
     {
+        AmbiguousCall,
         Exception,
         FunctionNotFound,
         IncorrectArgCount,

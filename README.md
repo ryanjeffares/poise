@@ -60,7 +60,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
         * ~~Functions need to know what namespace they're in~~
         * ~~Types know what extension functions they have~~
         * ~~Check if that function's namespace has been imported to the namespace of the current function in the Vm~~
-    * Two functions with the same name in a different namespace will override each-other
+    * ~~Two functions with the same name in a different namespace will override each-other~~
 * Builtin objects
     * ~~Use types::Type instead of Value::Type for type()~~ 
     * Iterable collections
@@ -74,7 +74,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
         * Index operator
     * Option and Result types?
 * For loops
-  * Make sure everything's working fine for more collections we add
+    * Make sure everything's working fine for more collections we add
 * `Any` type keyword for implementing dot functions on any variable
 * Break statements
 * Classes
