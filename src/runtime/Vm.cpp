@@ -38,12 +38,17 @@ auto Vm::nativeFunctionArity(NativeNameHash hash) const noexcept -> u8
     return m_nativeFunctionLookup.at(hash).arity();
 }
 
-auto Vm::namespaceManager() const -> const NamespaceManager*
+auto Vm::types() const noexcept -> const types::Types*
+{
+    return &m_types;
+}
+
+auto Vm::namespaceManager() const noexcept -> const NamespaceManager*
 {
     return &m_namespaceManager;
 }
 
-auto Vm::namespaceManager() -> NamespaceManager*
+auto Vm::namespaceManager() noexcept -> NamespaceManager*
 {
     return &m_namespaceManager;
 }
@@ -188,7 +193,7 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                         args.emplace_back(inclusiveRange);
                     }
 
-                    stack.emplace_back(types::typeValue(type).object()->asType()->construct(args));
+                    stack.emplace_back(m_types.typeValue(type).object()->asType()->construct(args));
                     break;
                 }
                 case Op::DeclareLocal: {
@@ -244,7 +249,7 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                 case Op::LoadMember: {
                     // TODO: class member variables
                     auto value = pop();
-                    const auto type = value.typeValue().object()->asType();
+                    const auto type = m_types.typeValue(value.type()).object()->asType();
                     const auto& memberName = constantList[constantIndex++].string();
                     const auto& memberNameHash = constantList[constantIndex++].value<usize>();
                     const auto pushParentBack = constantList[constantIndex++].toBool();
@@ -267,7 +272,7 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                 }
                 case Op::LoadType: {
                     const auto type = static_cast<types::Type>(constantList[constantIndex++].value<u8>());
-                    stack.push_back(types::typeValue(type));
+                    stack.push_back(m_types.typeValue(type));
                     break;
                 }
                 case Op::PopLocals: {
@@ -280,7 +285,7 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                     break;
                 }
                 case Op::TypeOf: {
-                    stack.emplace_back(pop().typeValue());
+                    stack.emplace_back(m_types.typeValue(pop().type()));
                     break;
                 }
                 case Op::Print: {

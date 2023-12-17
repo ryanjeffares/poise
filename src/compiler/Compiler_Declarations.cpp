@@ -127,7 +127,7 @@ auto Compiler::funcDeclaration(bool isExported) -> void
 #endif
 
     if (extensionFunctionType) {
-        runtime::types::typeValue(*extensionFunctionType).object()->asType()->addExtensionFunction(function);
+        m_vm->types()->typeValue(*extensionFunctionType).object()->asType()->addExtensionFunction(function);
     }
 
     m_vm->namespaceManager()->addFunctionToNamespace(m_filePathHash, std::move(function));

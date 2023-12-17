@@ -121,15 +121,6 @@ auto Value::typeInternal() const noexcept -> TypeInternal
     return m_type;
 }
 
-auto Value::typeValue() const noexcept -> const Value&
-{
-    if (typeInternal() == TypeInternal::Object) {
-        return types::typeValue(object()->type());
-    } else {
-        return types::typeValue(static_cast<types::Type>(typeInternal()));
-    }
-}
-
 auto Value::isNumber() const noexcept -> bool
 {
     return typeInternal() == TypeInternal::Int || typeInternal() == TypeInternal::Float;

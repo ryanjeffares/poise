@@ -1,3 +1,11 @@
+export func empty(this final List list) {
+    return __NATIVE_LIST_EMPTY(list);
+}
+
+export func size(this final List list) {
+    return __NATIVE_LIST_SIZE(list);
+}
+
 export func append(this final List list, final value) {
     __NATIVE_LIST_APPEND(list, value);
 }
@@ -46,6 +54,12 @@ export func map(this final List list, final fn) {
     }
 
     return res;
+}
+
+export func for_each(this final List list, final fn) {
+    for item in list {
+        fn(item);
+    }
 }
 
 export func contains(this final List list, final value) {

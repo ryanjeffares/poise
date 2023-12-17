@@ -7,6 +7,8 @@
 
 #include <fmt/format.h>
 
+#include <unordered_map>
+
 namespace poise::runtime {
 class Value;
 
@@ -18,7 +20,15 @@ enum class Type
     Bool, Float, Int, None, String, Exception, Function, List, Range, Type, Iterator,
 };
 
-auto typeValue(Type type) noexcept -> const runtime::Value&;
+class Types
+{
+public:
+    Types();
+    [[nodiscard]] auto typeValue(Type type) const noexcept -> const runtime::Value&;
+
+private:
+    std::unordered_map<Type, runtime::Value> m_typeLookup;
+};
 }   // namespace types
 }   // namespace poise::runtime
 

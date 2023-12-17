@@ -8,6 +8,7 @@
 #include "NamespaceManager.hpp"
 #include "NativeFunction.hpp"
 #include "../scanner/Scanner.hpp"
+#include "Types.hpp"
 #include "Value.hpp"
 
 #include <unordered_map>
@@ -36,8 +37,9 @@ public:
     [[nodiscard]] auto nativeFunctionHash(std::string_view functionName) const noexcept -> std::optional<NativeNameHash>;
     [[nodiscard]] auto nativeFunctionArity(NativeNameHash hash) const noexcept -> u8;
 
-    [[nodiscard]] auto namespaceManager() const -> const NamespaceManager*;
-    [[nodiscard]] auto namespaceManager() -> NamespaceManager*;
+    [[nodiscard]] auto namespaceManager() const noexcept -> const NamespaceManager*;
+    [[nodiscard]] auto namespaceManager() noexcept -> NamespaceManager*;
+    [[nodiscard]] auto types() const noexcept -> const types::Types*;
 
     auto emitOp(Op op, usize line) noexcept -> void;
     auto emitConstant(Value value) noexcept -> void;
@@ -62,6 +64,7 @@ private:
     objects::PoiseFunction* m_currentFunction{nullptr};
 
     NamespaceManager m_namespaceManager;
+    types::Types m_types;
 };  // class Vm
 }   // namespace poise::runtime
 
