@@ -18,6 +18,7 @@ Types::Types()
         {types::Type::Function, Value::createObject<objects::PoiseType>(Type::Function, "Function")},
         {types::Type::Iterator, Value::createObject<objects::PoiseType>(Type::Iterator, "Iterator")},
         {types::Type::List, Value::createObject<objects::PoiseType>(Type::List, "List")},
+        {types::Type::Pack, Value::createObject<objects::PoiseType>(Type::Pack, "Pack")},
         {types::Type::Range, Value::createObject<objects::PoiseType>(Type::Range, "Range")},
         {types::Type::Type, Value::createObject<objects::PoiseType>(Type::Type, "TypeInternal")},
     }
@@ -65,6 +66,9 @@ auto formatter<Type>::format(Type type, format_context& context) const -> declty
             break;
         case Type::List:
             res = "List";
+            break;
+        case Type::Pack:
+            res = "Pack";
             break;
         case Type::Range:
             res = "Range";

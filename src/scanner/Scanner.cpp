@@ -101,7 +101,7 @@ auto Scanner::getCodeAtLine(usize line) const -> std::string_view
     return std::string_view{m_code.data() + strIndex, pos - strIndex};
 }
 
-auto Scanner::getNumLines() const noexcept  -> usize
+auto Scanner::getNumLines() const noexcept -> usize
 {
     auto count = 0_uz;
     for (const auto i : m_code) {
@@ -137,13 +137,11 @@ auto Scanner::scanToken() noexcept -> Token
             case '>':
                 return multiCharSymbol({{'>', TokenType::ShiftRight}, {'=', TokenType::GreaterEqual}}, TokenType::Greater);
             case '.': {
-                if (peek() == '.' && peekNext() == '=') {
-                    advance();
-                    advance();
-                    return makeToken(TokenType::DotDotEqual);
-                }
-
-                return multiCharSymbol({{'.', TokenType::DotDot}}, TokenType::Dot);
+                return multiCharSymbol({
+                    {std::make_pair('.', '.'), TokenType::DotDotDot},
+                    {std::make_pair('.', '='), TokenType::DotDotEqual},
+                    {'.', TokenType::DotDot},
+                }, TokenType::Dot);
             }
             case '"':
                 return string();
@@ -236,12 +234,22 @@ auto Scanner::peekPrevious() noexcept -> std::optional<char>
     }
 }
 
-auto Scanner::multiCharSymbol(const std::unordered_map<char, TokenType>& pairs, TokenType defaultType) noexcept -> Token
+auto Scanner::multiCharSymbol(std::initializer_list<const MultiCharMatch> matches, TokenType defaultType) noexcept -> Token
 {
-    for (const auto& [c, t] : pairs) {
-        if (peek() == c) {
-            advance();
-            return makeToken(t);
+    for (const auto& [match, tokenType] : matches) {
+        if (match.index() == 0) {
+            auto c = std::get<0>(match);
+            if (peek() == c) {
+                advance();
+                return makeToken(tokenType);
+            }
+        } else if (match.index() == 1) {
+            auto [c1, c2] = std::get<1>(match);
+            if (peek() == c1 && peekNext() == c2) {
+                advance();
+                advance();
+                return makeToken(tokenType);
+            }
         }
     }
 

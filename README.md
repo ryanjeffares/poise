@@ -26,6 +26,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * TypeInternal checker for those optional type hints
 * Compiler warnings
 * Optimisation
+* `getCodeAtLine()` for imported files
 
 ## Roadmap to MVP
 * ~~Pop unused expression/return results~~
@@ -72,9 +73,14 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
             * Pair
         * Sets
         * Index operator
+    * Special constructors for the above
+    * Binary ops for the above
+    * Could we do some kind of rust/c# linq/ranges style functor...
     * Option and Result types?
 * For loops
     * Make sure everything's working fine for more collections we add
+* Parameter packing and unpacking
+* Multiple assignments on one line (`a, b, = b, a`)
 * `Any` type keyword for implementing dot functions on any variable
 * Union type annotation so that we can implement functions on multiple collections
     * If we're going to do this, maybe reverse the type -> function association so that we're not duplicating functions

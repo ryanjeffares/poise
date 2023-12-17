@@ -4,8 +4,8 @@ declaration = importDecl | funcDecl | varDecl | finalDecl | statement ;
 
 importDecl = "import", NAMESPACE, ";" ;
 funcDecl = "func", IDENTIFIER, "(", [ FUNCTION_ARGS ], ")", BLOCK ;
-varDecl = "var", IDENTIFIER, [ "=", expression ], ";" ;
-finalDecl = "final", IDENTIFIER, "=", expression, ";" ;
+varDecl = "var", IDENTIFIER, [ { ",", IDENTIFIER } ], [ "=", (expression | UNPACK) ], ";" ;
+finalDecl = "final", IDENTIFIER, [ { ",", IDENTIFIER } ], "=", (expression | UNPACK), ";" ;
 
 statement = assignmentStatement | expressionStatement | printlnStatement | returnStatement | tryCatchStatement | whileStatement | forStatement ;
 
@@ -48,7 +48,9 @@ DIGIT = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 ;
 
 CAPTURE_LIST = IDENTIFIER, [ { ",", IDENTIFIER } ], [ "," ] ;
 CALL_ARGS = expression, [ { ",", expression } ], [ "," ] ;
-FUNCTION_ARGS = [ "final" ], IDENTIFIER, [ { ",", [ "final" ], IDENTIFIER } ], [ "," ] ;
+FUNCTION_ARGS = [ "final" ], IDENTIFIER, [ { ",", [ "final" ], IDENTIFIER } ], [ ",", PACK ], [ "," ] ;
 BLOCK = "{", [ { declaration - funcDecl } ], "}" ;
+PACK = IDENTIFIER, "..." ;
+UNPACK = "...", IDENTIFIER ;
 
 NAMESPACE = IDENTIFIER, [ { "::", IDENTIFIER } ] ;

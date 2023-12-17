@@ -190,6 +190,9 @@ auto formatter<TokenType>::format(TokenType tokenType, format_context& context) 
         case TokenType::DotDot:
             result = "DotDot";
             break;
+        case TokenType::DotDotDot:
+            result = "DotDotDot";
+            break;
         case TokenType::DotDotEqual:
             result = "DotDotEqual";
             break;

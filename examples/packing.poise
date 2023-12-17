@@ -1,0 +1,24 @@
+func bind(this final Function f, final args...) {
+    return |f, args| {
+        f(...args);
+    };
+}
+
+func print_one(final arg) {
+    println(arg);
+}
+
+func print_two(final arg1, final arg2) {
+    print(arg1);
+    print(", ");
+    print(arg2);
+}
+
+func main() {
+    final bind_one = print_one.bind("Hello");
+    final bind_two = print_two.bind("Hello", "World");
+
+    bind_one();
+    bind_two();
+}
+

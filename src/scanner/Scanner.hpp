@@ -7,10 +7,12 @@
 
 #include <cstdlib>
 #include <filesystem>
+#include <initializer_list>
 #include <optional>
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <variant>
 
 namespace poise::scanner {
 class Scanner
@@ -30,7 +32,14 @@ private:
     [[nodiscard]] auto peekNext() noexcept -> std::optional<char>;
     [[nodiscard]] auto peekPrevious() noexcept -> std::optional<char>;
 
-    [[nodiscard]] auto multiCharSymbol(const std::unordered_map<char, TokenType>& pairs, TokenType defaultType) noexcept -> Token;
+    struct MultiCharMatch
+    {
+        std::variant<char, std::pair<char, char>> matches;
+        TokenType tokenType;
+    };
+
+    [[nodiscard]] auto multiCharSymbol(std::initializer_list<const MultiCharMatch> matches, TokenType defaultType) noexcept -> Token;
+
     [[nodiscard]] auto identifier() noexcept -> Token;
     [[nodiscard]] auto number() noexcept -> Token;
     [[nodiscard]] auto string() noexcept -> Token;

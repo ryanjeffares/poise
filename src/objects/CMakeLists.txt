@@ -6,6 +6,7 @@ add_library(poise_objects
         PoiseException.cpp
         PoiseFunction.cpp
         PoiseObject.cpp
+        PoisePack.cpp
         PoiseType.cpp
 )
 

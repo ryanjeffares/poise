@@ -54,6 +54,7 @@ enum class TokenType : u8
     Comma,
     Dot,
     DotDot,
+    DotDotDot,
     DotDotEqual,
     Equal,
     EqualEqual,
