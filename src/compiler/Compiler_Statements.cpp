@@ -56,7 +56,7 @@ auto Compiler::expressionStatement() -> void
         in that case, nothing to pop if the last emitted op was assign local
     */
 
-    expression(true);
+    expression(true, false);
 
     if (m_vm->currentFunction()->opList().back().op != runtime::Op::AssignLocal) {
         emitOp(runtime::Op::Pop, m_previous->line());
@@ -69,7 +69,7 @@ auto Compiler::printStatement(bool err, bool newLine) -> void
 {
     RETURN_IF_NO_MATCH(scanner::TokenType::OpenParen, "Expected '(' after 'println'");
 
-    expression(false);
+    expression(false, false);
     emitConstant(err);
     emitConstant(newLine);
     emitOp(runtime::Op::Print, m_previous->line());
@@ -86,7 +86,7 @@ auto Compiler::returnStatement() -> void
         emitOp(runtime::Op::LoadConstant, m_previous->line());
     } else {
         // else the return value should be any expression
-        expression(false);
+        expression(false, false);
     }
 
     // pop local variables
@@ -192,7 +192,7 @@ auto Compiler::ifStatement() -> void
 
     m_contextStack.push_back(Context::IfStatement);
 
-    expression(false);
+    expression(false, false);
     RETURN_IF_NO_MATCH(scanner::TokenType::OpenBrace, "Expected '{'");
 
     const auto numLocalsStart = m_localNames.size();
@@ -256,7 +256,7 @@ auto Compiler::whileStatement() -> void
     const auto constantIndex = function->numConstants();
     const auto opIndex = function->numOps();
 
-    expression(false);
+    expression(false, false);
     // jump to after the loop when the condition is false
     const auto jumpIndexes = emitJump(JumpType::IfFalse, true);
 
@@ -325,7 +325,7 @@ auto Compiler::forStatement() -> void
 
     RETURN_IF_NO_MATCH(scanner::TokenType::In, "Expected 'in'");
 
-    expression(false);
+    expression(false, false);
     emitConstant(firstIteratorLocalIndex);
     emitConstant(secondIteratorLocalIndex ? *secondIteratorLocalIndex : 0_uz);
     emitOp(runtime::Op::InitIterator, m_previous->line());

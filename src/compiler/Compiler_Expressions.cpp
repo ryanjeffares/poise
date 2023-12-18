@@ -8,12 +8,16 @@
 #include <charconv>
 
 namespace poise::compiler {
-auto Compiler::expression(bool canAssign) -> void
+auto Compiler::expression(bool canAssign, bool canUnpack) -> void
 {
     // expressions can only start with a literal, unary op, or identifier
     if (scanner::isValidStartOfExpression(m_current->tokenType())) {
-        range(canAssign);
+        range(canAssign, canUnpack);
     } else if (match(scanner::TokenType::DotDotDot)) {
+        if (!canUnpack) {
+            errorAtPrevious("Unpacking is not allowed here");
+            return;
+        }
         unpack();
     } else {
         errorAtCurrent("Expected expression");
@@ -22,6 +26,7 @@ auto Compiler::expression(bool canAssign) -> void
 
 auto Compiler::unpack() -> void
 {
+    // TODO: unpack calls
     RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected identifier");
 
     const auto text = m_previous->text();
@@ -32,15 +37,15 @@ auto Compiler::unpack() -> void
     }
 }
 
-auto Compiler::range(bool canAssign) -> void
+auto Compiler::range(bool canAssign, bool canUnpack) -> void
 {
-    logicOr(canAssign);
+    logicOr(canAssign, canUnpack);
 
     if (match(scanner::TokenType::DotDot)) {
-        logicOr(canAssign);
+        logicOr(canAssign, canUnpack);
 
         if (match(scanner::TokenType::By)) {
-            expression(false);
+            expression(false, false);
         } else {
             emitConstant(1);
             emitOp(runtime::Op::LoadConstant, m_previous->line());
@@ -52,10 +57,10 @@ auto Compiler::range(bool canAssign) -> void
         emitConstant(false);
         emitOp(runtime::Op::ConstructBuiltin, m_previous->line());
     } else if (match(scanner::TokenType::DotDotEqual)) {
-        logicOr(canAssign);
+        logicOr(canAssign, canUnpack);
 
         if (match(scanner::TokenType::By)) {
-            expression(false);
+            expression(false, false);
         } else {
             emitConstant(1);
             emitOp(runtime::Op::LoadConstant, m_previous->line());
@@ -69,9 +74,9 @@ auto Compiler::range(bool canAssign) -> void
     }
 }
 
-auto Compiler::logicOr(bool canAssign) -> void
+auto Compiler::logicOr(bool canAssign, bool canUnpack) -> void
 {
-    logicAnd(canAssign);
+    logicAnd(canAssign, canUnpack);
 
     std::optional<JumpIndexes> jumpIndexes;
     if (check(scanner::TokenType::Or)) {
@@ -79,7 +84,7 @@ auto Compiler::logicOr(bool canAssign) -> void
     }
 
     while (match(scanner::TokenType::Or)) {
-        logicAnd(canAssign);
+        logicAnd(canAssign, canUnpack);
         emitOp(runtime::Op::LogicOr, m_previous->line());
     }
 
@@ -88,9 +93,9 @@ auto Compiler::logicOr(bool canAssign) -> void
     }
 }
 
-auto Compiler::logicAnd(bool canAssign) -> void
+auto Compiler::logicAnd(bool canAssign, bool canUnpack) -> void
 {
-    bitwiseOr(canAssign);
+    bitwiseOr(canAssign, canUnpack);
 
     std::optional<JumpIndexes> jumpIndexes;
     if (check(scanner::TokenType::And)) {
@@ -98,7 +103,7 @@ auto Compiler::logicAnd(bool canAssign) -> void
     }
 
     while (match(scanner::TokenType::And)) {
-        bitwiseOr(canAssign);
+        bitwiseOr(canAssign, canUnpack);
         emitOp(runtime::Op::LogicAnd, m_previous->line());
     }
 
@@ -107,78 +112,78 @@ auto Compiler::logicAnd(bool canAssign) -> void
     }
 }
 
-auto Compiler::bitwiseOr(bool canAssign) -> void
+auto Compiler::bitwiseOr(bool canAssign, bool canUnpack) -> void
 {
-    bitwiseXor(canAssign);
+    bitwiseXor(canAssign, canUnpack);
 
     while (match(scanner::TokenType::Pipe)) {
-        bitwiseXor(canAssign);
+        bitwiseXor(canAssign, canUnpack);
         emitOp(runtime::Op::BitwiseOr, m_previous->line());
     }
 }
 
-auto Compiler::bitwiseXor(bool canAssign) -> void
+auto Compiler::bitwiseXor(bool canAssign, bool canUnpack) -> void
 {
-    bitwiseAnd(canAssign);
+    bitwiseAnd(canAssign, canUnpack);
 
     while (match(scanner::TokenType::Caret)) {
-        bitwiseAnd(canAssign);
+        bitwiseAnd(canAssign, canUnpack);
         emitOp(runtime::Op::BitwiseXor, m_previous->line());
     }
 }
 
-auto Compiler::bitwiseAnd(bool canAssign) -> void
+auto Compiler::bitwiseAnd(bool canAssign, bool canUnpack) -> void
 {
-    equality(canAssign);
+    equality(canAssign, canUnpack);
 
     while (match(scanner::TokenType::Ampersand)) {
-        equality(canAssign);
+        equality(canAssign, canUnpack);
         emitOp(runtime::Op::BitwiseAnd, m_previous->line());
     }
 }
 
-auto Compiler::equality(bool canAssign) -> void
+auto Compiler::equality(bool canAssign, bool canUnpack) -> void
 {
-    comparison(canAssign);
+    comparison(canAssign, canUnpack);
 
     if (match(scanner::TokenType::EqualEqual)) {
-        comparison(canAssign);
+        comparison(canAssign, canUnpack);
         emitOp(runtime::Op::Equal, m_previous->line());
     } else if (match(scanner::TokenType::NotEqual)) {
-        comparison(canAssign);
+        comparison(canAssign, canUnpack);
         emitOp(runtime::Op::NotEqual, m_previous->line());
     }
 }
 
-auto Compiler::comparison(bool canAssign) -> void
+auto Compiler::comparison(bool canAssign, bool canUnpack) -> void
 {
-    shift(canAssign);
+    shift(canAssign, canUnpack);
 
     if (match(scanner::TokenType::Less)) {
-        shift(canAssign);
+        shift(canAssign, canUnpack);
         emitOp(runtime::Op::LessThan, m_previous->line());
     } else if (match(scanner::TokenType::LessEqual)) {
-        shift(canAssign);
+        shift(canAssign, canUnpack);
         emitOp(runtime::Op::LessEqual, m_previous->line());
     } else if (match(scanner::TokenType::Greater)) {
-        shift(canAssign);
+        shift(canAssign, canUnpack);
         emitOp(runtime::Op::GreaterThan, m_previous->line());
     } else if (match(scanner::TokenType::GreaterEqual)) {
-        shift(canAssign);
+        shift(canAssign, canUnpack);
         emitOp(runtime::Op::GreaterEqual, m_previous->line());
     }
 }
 
-auto Compiler::shift(bool canAssign) -> void
+auto Compiler::shift(bool canAssign, bool canUnpack) -> void
 {
-    term(canAssign);
+    term(canAssign, canUnpack);
 
     while (true) {
         if (match(scanner::TokenType::ShiftLeft)) {
-            term(canAssign);
+            term(canAssign, canUnpack);
             emitOp(runtime::Op::LeftShift, m_previous->line());
         } else if (match(scanner::TokenType::ShiftRight)) {
-            term(canAssign);
+            term(canAssign, canUnpack);
             emitOp(runtime::Op::RightShift, m_previous->line());
         } else {
             break;
@@ -186,16 +191,16 @@ auto Compiler::shift(bool canAssign) -> void
     }
 }
 
-auto Compiler::term(bool canAssign) -> void
+auto Compiler::term(bool canAssign, bool canUnpack) -> void
 {
-    factor(canAssign);
+    factor(canAssign, canUnpack);
 
     while (true) {
         if (match(scanner::TokenType::Plus)) {
-            factor(canAssign);
+            factor(canAssign, canUnpack);
             emitOp(runtime::Op::Addition, m_previous->line());
         } else if (match(scanner::TokenType::Minus)) {
-            factor(canAssign);
+            factor(canAssign, canUnpack);
             emitOp(runtime::Op::Subtraction, m_previous->line());
         } else {
             break;
@@ -203,19 +208,19 @@ auto Compiler::term(bool canAssign) -> void
     }
 }
 
-auto Compiler::factor(bool canAssign) -> void
+auto Compiler::factor(bool canAssign, bool canUnpack) -> void
 {
-    unary(canAssign);
+    unary(canAssign, canUnpack);
 
     while (true) {
         if (match(scanner::TokenType::Star)) {
-            unary(canAssign);
+            unary(canAssign, canUnpack);
             emitOp(runtime::Op::Multiply, m_previous->line());
         } else if (match(scanner::TokenType::Slash)) {
-            unary(canAssign);
+            unary(canAssign, canUnpack);
             emitOp(runtime::Op::Divide, m_previous->line());
         } else if (match(scanner::TokenType::Modulus)) {
-            unary(canAssign);
+            unary(canAssign, canUnpack);
             emitOp(runtime::Op::Modulus, m_previous->line());
         } else {
             break;
@@ -223,32 +228,32 @@ auto Compiler::factor(bool canAssign) -> void
     }
 }
 
-auto Compiler::unary(bool canAssign) -> void
+auto Compiler::unary(bool canAssign, bool canUnpack) -> void
 {
     if (match(scanner::TokenType::Minus)) {
         const auto line = m_previous->line();
-        unary(canAssign);
+        unary(canAssign, canUnpack);
         emitOp(runtime::Op::Negate, line);
     } else if (match(scanner::TokenType::Tilde)) {
         const auto line = m_previous->line();
-        unary(canAssign);
+        unary(canAssign, canUnpack);
         emitOp(runtime::Op::BitwiseNot, line);
     } else if (match(scanner::TokenType::Exclamation)) {
         const auto line = m_previous->line();
-        unary(canAssign);
+        unary(canAssign, canUnpack);
         emitOp(runtime::Op::LogicNot, line);
     } else if (match(scanner::TokenType::Plus)) {
         auto line = m_previous->line();
-        unary(canAssign);
+        unary(canAssign, canUnpack);
         emitOp(runtime::Op::Plus, line);
     } else {
-        call(canAssign);
+        call(canAssign, canUnpack);
     }
 }
 
-auto Compiler::call(bool canAssign) -> void
+auto Compiler::call(bool canAssign, bool canUnpack) -> void
 {
-    primary(canAssign);
+    primary(canAssign, canUnpack);
 
     while (true) {
         if (match(scanner::TokenType::OpenParen)) {
@@ -281,7 +286,7 @@ auto Compiler::call(bool canAssign) -> void
     }
 }
 
-auto Compiler::primary(bool canAssign) -> void
+auto Compiler::primary(bool canAssign, bool canUnpack) -> void
 {
     if (match(scanner::TokenType::False)) {
         emitConstant(false);
@@ -299,7 +304,7 @@ auto Compiler::primary(bool canAssign) -> void
     } else if (match(scanner::TokenType::String)) {
         parseString();
     } else if (match(scanner::TokenType::OpenParen)) {
-        expression(false);
+        expression(false, canUnpack);
         RETURN_IF_NO_MATCH(scanner::TokenType::CloseParen, "Expected ')'");
     } else if (match(scanner::TokenType::Identifier)) {
         identifier(canAssign);
@@ -340,7 +345,7 @@ auto Compiler::identifier(bool canAssign) -> void
                 return;
             }
 
-            expression(false);
+            expression(false, false);
             emitConstant(*localIndex);
             emitOp(runtime::Op::AssignLocal, m_previous->line());
         } else {
@@ -563,7 +568,7 @@ auto Compiler::typeIdent() -> void
 auto Compiler::typeOf() -> void
 {
     RETURN_IF_NO_MATCH(scanner::TokenType::OpenParen, "Expected '('");
-    expression(false);
+    expression(false, false);
     emitOp(runtime::Op::TypeOf, m_previous->line());
     RETURN_IF_NO_MATCH(scanner::TokenType::CloseParen, "Expected ')");
 }

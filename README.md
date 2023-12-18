@@ -27,6 +27,9 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * Compiler warnings
 * Optimisation
 * `getCodeAtLine()` for imported files
+* Think about whether you should be able to unpack anywhere
+    * How would we know what to pop off the stack, if only one of the values is used?
+    * Unpacking would need a different Vm implementation
 
 ## Roadmap to MVP
 * ~~Pop unused expression/return results~~
@@ -67,8 +70,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * Iterable collections
         * Tidy up access modifiers
         * ~~Lists~~
-        * Ranges
-            * Do a really rich syntax here
+        * ~~Ranges~~
         * Dicts
             * Pair
         * Sets
@@ -83,7 +85,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * ~~Expand unpacking to collections~~
         * Remember this when we add Dicts and Sets...
     * Return multiple values, this is a pack
-    * Multiple assignments on one line (`a, b, = b, a`), this is a pack
+    * Multiple assignments on one line (`a, b, = b, a`) or assigning an unpack (`a, b = ...pack`)
 * `Any` type keyword for implementing dot functions on any variable
 * Union type annotation so that we can implement functions on multiple collections
     * If we're going to do this, maybe reverse the type -> function association so that we're not duplicating functions

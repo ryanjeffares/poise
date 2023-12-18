@@ -161,7 +161,7 @@ auto Compiler::varDeclaration(bool isFinal) -> void
     m_localNames.push_back({std::move(varName), isFinal});
 
     if (match(scanner::TokenType::Equal)) {
-        expression(false);
+        expression(false, false);
     } else {
         if (isFinal) {
             errorAtCurrent("Expected assignment after 'final'");
