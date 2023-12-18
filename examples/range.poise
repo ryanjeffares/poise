@@ -27,4 +27,8 @@ func main() {
     for i in min or 5 ..= max * 100 by 2 {
         println(i);
     }
+
+    for i in 0..10000 {
+        println(i);
+    }
 }

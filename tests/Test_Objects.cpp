@@ -117,6 +117,10 @@ TEST_CASE("PoiseRange functions and iteration")
 
         REQUIRE(!iterator.isAtEnd());
         REQUIRE(iterator.value() == 10);
+
+        iterator.increment();
+
+        REQUIRE(iterator.isAtEnd());
     }
 }
 }

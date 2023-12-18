@@ -13,7 +13,7 @@ class PoiseRange : public PoiseObject, public PoiseIterable
 {
 public:
     // all values are required to be checked to be numbers before this is called
-    PoiseRange(runtime::Value start, runtime::Value end, runtime::Value increment, bool inclusive);
+    PoiseRange(runtime::Value value, runtime::Value end, runtime::Value increment, bool inclusive);
     ~PoiseRange() override = default;
 
     [[nodiscard]] auto asRange() noexcept -> iterables::PoiseRange* override;
@@ -34,8 +34,23 @@ public:
     [[nodiscard]] auto rangeIncrement() const noexcept -> runtime::Value;
 
 private:
+    static constexpr usize s_capacity = 8_uz;
+
+    template<typename T>
+    requires(std::is_same_v<T, f64> || std::is_same_v<T, i64>)
+    auto fillData(T value, T increment) -> void
+    {
+        m_data.resize(s_capacity);
+
+        for (auto i = 0_uz; i < m_data.size(); i++) {
+            m_data[i] = value;
+            value += increment;
+        }
+    }
+
     bool m_inclusive;
     runtime::Value m_start, m_end, m_increment;
+    bool m_useFloat;
 };
 }   // namespace poise::objects::iterables
 

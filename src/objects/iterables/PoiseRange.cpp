@@ -13,38 +13,19 @@ PoiseRange::PoiseRange(runtime::Value start, runtime::Value end, runtime::Value 
     , m_start{std::move(start)}
     , m_end{std::move(end)}
     , m_increment{std::move(increment)}
-{
-    const auto useFloat = m_start.type() == runtime::types::Type::Float ||
+    , m_useFloat{
+        m_start.type() == runtime::types::Type::Float ||
         m_end.type() == runtime::types::Type::Float ||
-        m_increment.type() == runtime::types::Type::Float;
-
-    if (useFloat) {
+        m_increment.type() == runtime::types::Type::Float
+    }
+{
+    if (m_useFloat) {
         const auto s = m_start.toFloat();
         const auto e = m_end.toFloat();
         const auto i = m_increment.toFloat();
 
-        if ((s < e) && (i > 0.0)) {
-            // normal type of loop, start < end, increment > 0
-            if (m_inclusive) {
-                for (auto value = s; value <= e; value += i) {
-                    m_data.emplace_back(value);
-                }
-            } else {
-                for (auto value = s; value < e; value += i) {
-                    m_data.emplace_back(value);
-                }
-            }
-        } else if ((e < s) && (i < 0.0)) {
-            // reverse loop, start > end, increment < 0
-            if (m_inclusive) {
-                for (auto value = s; value >= e; value += i) {
-                    m_data.emplace_back(value);
-                }
-            } else {
-                for (auto value = s; value > e; value += i) {
-                    m_data.emplace_back(value);
-                }
-            }
+        if (((s < e) && (i > 0.0)) || ((e < s) && (i < 0.0))) {
+            fillData(s, i);
         }
         // otherwise this is basically a noop
         // either the increment is 0, or going in the other direction of start -> end
@@ -54,28 +35,8 @@ PoiseRange::PoiseRange(runtime::Value start, runtime::Value end, runtime::Value 
         const auto e = m_end.toInt();
         const auto i = m_increment.toInt();
 
-        if ((s < e) && (i > 0)) {
-            // normal type of loop, start < end, increment > 0
-            if (m_inclusive) {
-                for (auto value = s; value <= e; value += i) {
-                    m_data.emplace_back(value);
-                }
-            } else {
-                for (auto value = s; value < e; value += i) {
-                    m_data.emplace_back(value);
-                }
-            }
-        } else if ((e < s) && (i < 0)) {
-            // reverse loop, start > end, increment < 0
-            if (m_inclusive) {
-                for (auto value = s; value >= e; value += i) {
-                    m_data.emplace_back(value);
-                }
-            } else {
-                for (auto value = s; value > e; value += i) {
-                    m_data.emplace_back(value);
-                }
-            }
+        if (((s < e) && (i > 0)) || ((e < s) && (i < 0))) {
+            fillData(s, i);
         }
         // same logic as above
     }
@@ -114,6 +75,25 @@ auto PoiseRange::end() noexcept -> PoiseIterable::IteratorType
 auto PoiseRange::incrementIterator(PoiseIterable::IteratorType& iterator) noexcept -> void
 {
     iterator++;
+    if (isAtEnd(iterator)) {
+        // exhausted the current data, check if we need to refill
+        if ((m_inclusive && m_data.back() == m_end) || (!m_inclusive && m_data.back() == m_end - m_increment)) {
+            iterator = end();
+        } else {
+            if (m_useFloat) {
+                auto value = m_data.back().toFloat() + m_increment.toFloat();
+                fillData(value, m_increment.toFloat());
+            } else {
+                auto value = m_data.back().toInt() + m_increment.toInt();
+                fillData(value, m_increment.toInt());
+            }
+
+            iterator = begin();
+        }
+    } else if ((m_inclusive && *iterator > m_end) || (!m_inclusive && *iterator >= m_end)) {
+        // the actual value has gone past the end of the range, so make it as if we're at the end
+        iterator = end();
+    }
 }
 
 auto PoiseRange::isAtEnd(const PoiseIterable::IteratorType& iterator) noexcept -> bool
@@ -123,7 +103,19 @@ auto PoiseRange::isAtEnd(const PoiseIterable::IteratorType& iterator) noexcept -
 
 auto PoiseRange::isInfiniteLoop() const noexcept -> bool
 {
-    return m_data.empty();
+    if (m_useFloat) {
+        const auto s = m_start.toFloat();
+        const auto e = m_end.toFloat();
+        const auto i = m_increment.toFloat();
+
+        return i == 0.0 || (s < e && i < 0.0) || (s > e && i > 0.0);
+    } else {
+        const auto s = m_start.toInt();
+        const auto e = m_end.toInt();
+        const auto i = m_increment.toInt();
+
+        return i == 0 || (s < e && i < 0) || (s > e && i > 0);
+    }
 }
 
 auto PoiseRange::rangeStart() const noexcept -> runtime::Value
