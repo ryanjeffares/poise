@@ -5,6 +5,8 @@
 #include <sstream>
 
 namespace poise::scanner {
+static std::unordered_map<std::filesystem::path, std::string> s_fileContentLookup;
+
 Scanner::Scanner(const std::filesystem::path& inFilePath)
     : m_symbolLookup{
         {'&', TokenType::Ampersand},
@@ -70,35 +72,40 @@ Scanner::Scanner(const std::filesystem::path& inFilePath)
     std::ifstream inFileStream{inFilePath};
     std::stringstream inCodeStream;
     inCodeStream << inFileStream.rdbuf();
-    m_code = inCodeStream.str();
+    auto codeString = inCodeStream.str();
 
-    if (!m_code.empty() && m_code.back() != '\n') {
+    if (!codeString.empty() && codeString.back() != '\n') {
         // hack to make our compiler errors not throw assertion failures in fmt
         // if the error is on the last line of the file
         // and there's no trailing newline
-        m_code.push_back('\n');
+        codeString.push_back('\n');
     }
+
+    s_fileContentLookup[inFilePath] = std::move(codeString);
+    m_code = s_fileContentLookup[inFilePath];
+
 }
 
-auto Scanner::getCodeAtLine(usize line) const -> std::string_view
+auto Scanner::getCodeAtLine(const std::filesystem::path& filePath, usize line) const -> std::string_view
 {
     auto current = 1_uz;
     auto strIndex = 0_uz;
+    const auto codeString = s_fileContentLookup[filePath];
 
     while (current < line) {
-        if (strIndex > m_code.length()) {
+        if (strIndex > codeString.length()) {
             return "";
         }
 
         strIndex++;
 
-        if (m_code[strIndex - 1_uz] == '\n') {
+        if (codeString[strIndex - 1_uz] == '\n') {
             current++;
         }
     }
 
-    auto pos = m_code.find('\n', strIndex);
-    return std::string_view{m_code.data() + strIndex, pos - strIndex};
+    auto pos = codeString.find('\n', strIndex);
+    return std::string_view{codeString.data() + strIndex, pos - strIndex};
 }
 
 auto Scanner::getNumLines() const noexcept -> usize

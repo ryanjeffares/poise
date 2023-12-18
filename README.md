@@ -14,7 +14,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * Test individual important functions
     * Fuzzing
 * Think about object -> bool conversion
-* Construct `TypeInternal` instance, `TypeInternal` ident
+* Construct `Type` instance, `Type` ident
 * Imports
     * The code is really messy
     * Give nicer compiler errors
@@ -22,8 +22,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * Use hashes instead of strings in runtime
     * Function names, namespace lookups, etc
     * And maybe also in the compiler when we need to optimise that
-* Zig style try assignment
-* TypeInternal checker for those optional type hints
+* Type checker for those optional type hints
 * Compiler warnings
 * Optimisation
 * `getCodeAtLine()` for imported files
@@ -31,7 +30,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * How would we know what to pop off the stack, if only one of the values is used?
     * Unpacking would need a different Vm implementation
 
-## Roadmap to MVP
+## Feature Roadmap
 * ~~Pop unused expression/return results~~
 * ~~Create values by calling type as a constructor, eg `Int()`, `Float(1.0)`~~
 * ~~Implement types as first class objects - see below~~
@@ -66,7 +65,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
         * ~~Check if that function's namespace has been imported to the namespace of the current function in the Vm~~
     * ~~Two functions with the same name in a different namespace will override each-other~~
 * Builtin objects
-    * ~~Use types::TypeInternal instead of Value::TypeInternal for type()~~ 
+    * ~~Use types::Type instead of Value::TypeInternal for type()~~ 
     * Iterable collections
         * Tidy up access modifiers
         * ~~Lists~~
@@ -81,6 +80,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * Option and Result types?
 * For loops
     * Make sure everything's working fine for more collections we add
+* Zig style try assignment
 * Parameter packing and unpacking
     * ~~Expand unpacking to collections~~
         * Remember this when we add Dicts and Sets...

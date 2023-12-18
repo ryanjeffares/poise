@@ -1,25 +1,7 @@
-func foo(final param) {
-    println("Hello from foo(): " + param);
-}
+import std::list;
 
 func main() {
-    var param = "Ryan";
-
-    final call_foo = |param| {
-        foo(param);
-    };
-
-    call_foo();
-
-    |call_foo| {
-        call_foo();
-    }();
-
-    final foo_var = foo;
-    final foo_t = typeof(foo);
-
-    foo_var(21);
-    println(foo_t);
+    std::list::where(0, ||{});
 }
 
 

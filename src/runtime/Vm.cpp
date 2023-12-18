@@ -643,12 +643,12 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                 fmt::print(stderr, "{}\n", exception.toString());
 
                 fmt::print(stderr, "  At {}:{} in function '{}'\n", currentFunction->filePath().string(), line, currentFunction->name());
-                fmt::print(stderr, "    {}\n", scanner->getCodeAtLine(line));
+                fmt::print(stderr, "    {}\n", scanner->getCodeAtLine(currentFunction->filePath(), line));
 
                 for (const auto& entry : callStack | std::views::reverse) {
                     if (const auto caller = entry.callerFunction) {
                         fmt::print(stderr, "  At {}:{} in function '{}'\n", caller->filePath().string(), entry.callSiteLine, caller->name());
-                        fmt::print(stderr, "    {}\n", scanner->getCodeAtLine(entry.callSiteLine));
+                        fmt::print(stderr, "    {}\n", scanner->getCodeAtLine(caller->filePath(), entry.callSiteLine));
                     }
                 }
 

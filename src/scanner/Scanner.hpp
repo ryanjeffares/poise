@@ -20,7 +20,7 @@ class Scanner
 public:
     explicit Scanner(const std::filesystem::path& inFilePath);
 
-    [[nodiscard]] auto getCodeAtLine(usize line) const -> std::string_view;
+    [[nodiscard]] auto getCodeAtLine(const std::filesystem::path& filePath, usize line) const -> std::string_view;
     [[nodiscard]] auto getNumLines() const noexcept -> usize;
     [[nodiscard]] auto scanToken() noexcept -> Token;
 
@@ -47,7 +47,7 @@ private:
     [[nodiscard]] auto makeToken(TokenType tokenType) noexcept -> Token;
 
 private:
-    std::string m_code;
+    std::string_view m_code;
 
     usize m_start{}, m_current{};
     usize m_line{1_uz}, m_column{0_uz};

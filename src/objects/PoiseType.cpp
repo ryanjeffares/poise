@@ -129,7 +129,7 @@ auto PoiseType::construct(std::span<runtime::Value> args) const -> runtime::Valu
             }
         }
         case runtime::types::Type::Type:
-            throw PoiseException(PoiseException::ExceptionType::InvalidType, "Cannot construct TypeInternal");
+            throw PoiseException(PoiseException::ExceptionType::InvalidType, "Cannot construct Type");
         default:
             POISE_UNREACHABLE();
             return runtime::Value::none();

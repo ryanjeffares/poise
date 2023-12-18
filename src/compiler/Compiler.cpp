@@ -101,10 +101,10 @@ auto Compiler::error(const scanner::Token& token, std::string_view message) -> v
     fmt::print(stderr, "        |\n");
 
     if (token.line() > 1_uz) {
-        fmt::print(stderr, "{:>7} | {}\n", token.line() - 1_uz, m_scanner.getCodeAtLine(token.line() - 1_uz));
+        fmt::print(stderr, "{:>7} | {}\n", token.line() - 1_uz, m_scanner.getCodeAtLine(m_filePath, token.line() - 1_uz));
     }
 
-    fmt::print(stderr, "{:>7} | {}\n", token.line(), m_scanner.getCodeAtLine(token.line()));
+    fmt::print(stderr, "{:>7} | {}\n", token.line(), m_scanner.getCodeAtLine(m_filePath, token.line()));
     fmt::print(stderr, "        | ");
     for (auto i = 1_uz; i < token.column(); i++) {
         fmt::print(stderr, " ");
@@ -115,7 +115,7 @@ auto Compiler::error(const scanner::Token& token, std::string_view message) -> v
     }
 
     if (token.line() < m_scanner.getNumLines()) {
-        fmt::print(stderr, "\n{:>7} | {}\n", token.line() + 1_uz, m_scanner.getCodeAtLine(token.line() + 1_uz));
+        fmt::print(stderr, "\n{:>7} | {}\n", token.line() + 1_uz, m_scanner.getCodeAtLine(m_filePath, token.line() + 1_uz));
     }
 
     fmt::print(stderr, "        |\n");
