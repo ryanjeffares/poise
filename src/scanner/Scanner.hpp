@@ -20,8 +20,8 @@ class Scanner
 public:
     explicit Scanner(const std::filesystem::path& inFilePath);
 
-    [[nodiscard]] auto getCodeAtLine(const std::filesystem::path& filePath, usize line) const -> std::string_view;
-    [[nodiscard]] auto getNumLines() const noexcept -> usize;
+    [[nodiscard]] static auto getCodeAtLine(const std::filesystem::path& filePath, usize line) -> std::string;
+    [[nodiscard]] static auto getNumLines(const std::filesystem::path& filePath) noexcept -> usize;
     [[nodiscard]] auto scanToken() noexcept -> Token;
 
 private:

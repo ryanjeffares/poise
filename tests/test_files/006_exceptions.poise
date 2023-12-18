@@ -1,3 +1,7 @@
+func throw_exception() {
+    throw Exception("Oops");
+}
+
 func main() {
     try {
         println(foo());
@@ -11,6 +15,12 @@ func main() {
         }
     } catch error {
         println(error);
+    }
+
+    try {
+        throw_exception();
+    } catch e {
+        println(e);
     }
 }
 

@@ -7,7 +7,6 @@
 #include "Op.hpp"
 #include "NamespaceManager.hpp"
 #include "NativeFunction.hpp"
-#include "../scanner/Scanner.hpp"
 #include "Types.hpp"
 #include "Value.hpp"
 
@@ -44,7 +43,7 @@ public:
     auto emitOp(Op op, usize line) noexcept -> void;
     auto emitConstant(Value value) noexcept -> void;
 
-    [[nodiscard]] auto run(const scanner::Scanner* scanner) noexcept -> RunResult;
+    [[nodiscard]] auto run() noexcept -> RunResult;
 
 private:
     auto registerNatives() noexcept -> void;

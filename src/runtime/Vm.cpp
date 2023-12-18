@@ -3,6 +3,7 @@
 #include "../objects/PoiseException.hpp"
 #include "../objects/PoisePack.hpp"
 #include "../objects/PoiseType.hpp"
+#include "../scanner/Scanner.hpp"
 
 #include <fmt/color.h>
 #include <fmt/core.h>
@@ -72,7 +73,7 @@ auto Vm::emitConstant(Value value) noexcept -> void
     }
 }
 
-auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
+auto Vm::run() noexcept -> RunResult
 {
     std::vector<Value> stack;
     std::vector<Value> localVariables;
@@ -289,6 +290,15 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                 case Op::Pop: {
                     pop();
                     break;
+                }
+                case Op::Throw: {
+                    auto value = pop();
+                    if (value.type() != types::Type::Exception) {
+                        throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("Only Exceptions can be thrown"));
+                    }
+
+                    const auto exception = value.object()->asException();
+                    throw PoiseException(exception->exceptionType(), std::string{exception->message()});
                 }
                 case Op::Unpack: {
                     auto pack = pop();
@@ -643,12 +653,12 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                 fmt::print(stderr, "{}\n", exception.toString());
 
                 fmt::print(stderr, "  At {}:{} in function '{}'\n", currentFunction->filePath().string(), line, currentFunction->name());
-                fmt::print(stderr, "    {}\n", scanner->getCodeAtLine(currentFunction->filePath(), line));
+                fmt::print(stderr, "    {}\n", scanner::Scanner::getCodeAtLine(currentFunction->filePath(), line));
 
                 for (const auto& entry : callStack | std::views::reverse) {
                     if (const auto caller = entry.callerFunction) {
                         fmt::print(stderr, "  At {}:{} in function '{}'\n", caller->filePath().string(), entry.callSiteLine, caller->name());
-                        fmt::print(stderr, "    {}\n", scanner->getCodeAtLine(caller->filePath(), entry.callSiteLine));
+                        fmt::print(stderr, "    {}\n", scanner::Scanner::getCodeAtLine(caller->filePath(), entry.callSiteLine));
                     }
                 }
 

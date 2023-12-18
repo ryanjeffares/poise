@@ -148,6 +148,9 @@ auto formatter<TokenType>::format(TokenType tokenType, format_context& context) 
         case TokenType::Return:
             result = "Return";
             break;
+        case TokenType::Throw:
+            result = "Throw";
+            break;
         case TokenType::This:
             result = "This";
             break;

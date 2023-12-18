@@ -25,7 +25,6 @@ public:
     Compiler(bool mainFile, bool stdFile, runtime::Vm* vm, std::filesystem::path inFilePath);
 
     [[nodiscard]] auto compile() -> CompileResult;
-    [[nodiscard]] auto scanner() const noexcept -> const scanner::Scanner*;
 
 private:
     enum class Context
@@ -100,6 +99,7 @@ private:
     auto returnStatement() -> void;
     auto tryStatement() -> void;
     auto catchStatement() -> void;
+    auto throwStatement() -> void;
     auto ifStatement() -> void;
     auto whileStatement() -> void;
     auto forStatement() -> void;

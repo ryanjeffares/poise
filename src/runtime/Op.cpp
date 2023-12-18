@@ -50,6 +50,9 @@ auto formatter<Op>::format(poise::runtime::Op op, fmt::format_context& context) 
         case Op::PopLocals:
             result = "PopLocals";
             break;
+        case Op::Throw:
+            result = "Throw";
+            break;
         case Op::Unpack:
             result = "Unpack";
             break;

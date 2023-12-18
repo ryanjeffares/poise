@@ -26,6 +26,7 @@ enum class Op : u8
     LoadType,
     Pop,
     PopLocals,
+    Throw,
     Unpack,
 
     // builtin functions

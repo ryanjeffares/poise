@@ -54,7 +54,7 @@ int main(int argc, const char* argv[])
 
     {
         const auto start = std::chrono::steady_clock::now();
-        const auto res = static_cast<int>(vm.run(compiler.scanner()));
+        const auto res = static_cast<int>(vm.run());
         const auto end = std::chrono::steady_clock::now();
 
         if (verbose) {

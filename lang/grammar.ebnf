@@ -7,7 +7,8 @@ funcDecl = "func", IDENTIFIER, "(", [ FUNCTION_ARGS ], ")", BLOCK ;
 varDecl = "var", IDENTIFIER, [ { ",", IDENTIFIER } ], [ "=", expression ], ";" ;
 finalDecl = "final", IDENTIFIER, [ { ",", IDENTIFIER } ], "=", expression, ";" ;
 
-statement = assignmentStatement | expressionStatement | printlnStatement | returnStatement | tryCatchStatement | whileStatement | forStatement ;
+statement = assignmentStatement | expressionStatement | printlnStatement | returnStatement | tryCatchStatement
+    | throwStatement | whileStatement | forStatement ;
 
 expressionStatement = expression, [ "=", expression ], ";" ;
 printlnStatement = "println", "(", expression, ")" ;

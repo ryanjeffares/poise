@@ -60,7 +60,7 @@ auto Compiler::compile() -> CompileResult
             emitConstant(false);
             emitOp(runtime::Op::Call, 0_uz);
             emitOp(runtime::Op::Pop, 0_uz);
-            emitOp(runtime::Op::Exit, m_scanner.getNumLines());
+            emitOp(runtime::Op::Exit, scanner::Scanner::getNumLines(m_filePath));
         } else {
             errorAtPrevious("No main function declared");
             return CompileResult::CompileError;
@@ -68,11 +68,6 @@ auto Compiler::compile() -> CompileResult
     }
 
     return CompileResult::Success;
-}
-
-auto Compiler::scanner() const noexcept -> const scanner::Scanner*
-{
-    return &m_scanner;
 }
 
 auto Compiler::errorAtCurrent(std::string_view message) -> void
@@ -100,11 +95,14 @@ auto Compiler::error(const scanner::Token& token, std::string_view message) -> v
     fmt::print(stderr, "       --> {}:{}:{}\n", m_filePath.string(), token.line(), token.column());
     fmt::print(stderr, "        |\n");
 
+
     if (token.line() > 1_uz) {
-        fmt::print(stderr, "{:>7} | {}\n", token.line() - 1_uz, m_scanner.getCodeAtLine(m_filePath, token.line() - 1_uz));
+        const auto previousLine = scanner::Scanner::getCodeAtLine(m_filePath, token.line() - 1_uz);
+        fmt::print(stderr, "{:>7} | {}\n", token.line() - 1_uz, previousLine);
     }
 
-    fmt::print(stderr, "{:>7} | {}\n", token.line(), m_scanner.getCodeAtLine(m_filePath, token.line()));
+    const auto currentLine = scanner::Scanner::getCodeAtLine(m_filePath, token.line());
+    fmt::print(stderr, "{:>7} | {}\n", token.line(), currentLine);
     fmt::print(stderr, "        | ");
     for (auto i = 1_uz; i < token.column(); i++) {
         fmt::print(stderr, " ");
@@ -114,8 +112,9 @@ auto Compiler::error(const scanner::Token& token, std::string_view message) -> v
         fmt::print(stderr, fmt::fg(fmt::color::red), "^");
     }
 
-    if (token.line() < m_scanner.getNumLines()) {
-        fmt::print(stderr, "\n{:>7} | {}\n", token.line() + 1_uz, m_scanner.getCodeAtLine(m_filePath, token.line() + 1_uz));
+    if (token.line() < scanner::Scanner::getNumLines(m_filePath)) {
+        const auto nextLine = scanner::Scanner::getCodeAtLine(m_filePath, token.line() + 1_uz);
+        fmt::print(stderr, "\n{:>7} | {}\n", token.line() + 1_uz, nextLine);
     }
 
     fmt::print(stderr, "        |\n");

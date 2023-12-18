@@ -39,6 +39,7 @@ enum class TokenType : u8
     PrintLn,
     Return,
     This,
+    Throw,
     Try,
     TypeOf,
     Var,

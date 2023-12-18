@@ -1,15 +1,19 @@
+func throw() {
+
+}
+
 func main() {
     final foo = "main";
     try {
-        println(foo());
-        //try {
-        //} catch error1 {
-        //    try {
-        //        println(foo());
-        //    } catch error2 {
-        //        println(foo());
-        //    }
-        //}
+        try {
+            println(foo());
+        } catch error1 {
+            try {
+                println(foo());
+            } catch error2 {
+                println(foo());
+            }
+        }
     } catch error {
         println(error);
     }

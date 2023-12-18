@@ -53,6 +53,7 @@ Scanner::Scanner(const std::filesystem::path& inFilePath)
         {"println", TokenType::PrintLn},
         {"return", TokenType::Return},
         {"this", TokenType::This},
+        {"throw", TokenType::Throw},
         {"true", TokenType::True},
         {"try", TokenType::Try},
         {"typeof", TokenType::TypeOf},
@@ -86,8 +87,9 @@ Scanner::Scanner(const std::filesystem::path& inFilePath)
 
 }
 
-auto Scanner::getCodeAtLine(const std::filesystem::path& filePath, usize line) const -> std::string_view
+auto Scanner::getCodeAtLine(const std::filesystem::path& filePath, usize line) -> std::string
 {
+    // why doesn't this work if I return a string_view?
     auto current = 1_uz;
     auto strIndex = 0_uz;
     const auto codeString = s_fileContentLookup[filePath];
@@ -105,13 +107,14 @@ auto Scanner::getCodeAtLine(const std::filesystem::path& filePath, usize line) c
     }
 
     auto pos = codeString.find('\n', strIndex);
-    return std::string_view{codeString.data() + strIndex, pos - strIndex};
+    return {codeString.data() + strIndex, pos - strIndex};
 }
 
-auto Scanner::getNumLines() const noexcept -> usize
+auto Scanner::getNumLines(const std::filesystem::path& filePath) noexcept -> usize
 {
     auto count = 0_uz;
-    for (const auto i : m_code) {
+    const auto codeString = s_fileContentLookup[filePath];
+    for (const auto i : codeString) {
         if (i == '\n') {
             count++;
         }

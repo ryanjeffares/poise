@@ -22,6 +22,8 @@ auto Compiler::statement() -> void
         returnStatement();
     } else if (match(scanner::TokenType::Try)) {
         tryStatement();
+    } else if (match(scanner::TokenType::Throw)) {
+        throwStatement();
     } else if (match(scanner::TokenType::If)) {
         ifStatement();
     } else if (match(scanner::TokenType::While)) {
@@ -181,6 +183,19 @@ auto Compiler::catchStatement() -> void
     m_localNames.resize(numLocalsStart);
 
     m_contextStack.pop_back();
+}
+
+auto Compiler::throwStatement() -> void
+{
+    if (m_contextStack.back() == Context::TopLevel) {
+        errorAtPrevious("'throw' not allowed at top level");
+        return;
+    }
+
+    expression(false, false);
+    emitOp(runtime::Op::Throw, m_previous->line());
+
+    EXPECT_SEMICOLON();
 }
 
 auto Compiler::ifStatement() -> void
