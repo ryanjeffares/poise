@@ -345,9 +345,7 @@ auto Compiler::identifier(bool canAssign) -> void
                 return;
             }
 
-            expression(false, false);
-            emitConstant(*localIndex);
-            emitOp(runtime::Op::AssignLocal, m_previous->line());
+            parseAssignment(*localIndex);
         } else {
             // just loading the value
             emitConstant(*localIndex);
@@ -651,7 +649,7 @@ auto Compiler::lambda() -> void
 
     if (functionPtr->opList().empty() || functionPtr->opList().back().op != runtime::Op::Return) {
         // if no return statement, make sure we pop locals and implicitly return none
-        emitConstant(m_localNames.size());
+        emitConstant(0);
         emitOp(runtime::Op::PopLocals, m_previous->line());
         emitConstant(runtime::Value::none());
         emitOp(runtime::Op::LoadConstant, m_previous->line());

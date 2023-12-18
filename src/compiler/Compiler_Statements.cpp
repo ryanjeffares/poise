@@ -58,7 +58,7 @@ auto Compiler::expressionStatement() -> void
         in that case, nothing to pop if the last emitted op was assign local
     */
 
-    expression(true, false);
+    call(true, false);
 
     if (m_vm->currentFunction()->opList().back().op != runtime::Op::AssignLocal) {
         emitOp(runtime::Op::Pop, m_previous->line());
@@ -92,7 +92,7 @@ auto Compiler::returnStatement() -> void
     }
 
     // pop local variables
-    emitConstant(m_localNames.size());
+    emitConstant(0);
     emitOp(runtime::Op::PopLocals, m_previous->line());
 
     // expression above is still on the stack
@@ -130,7 +130,7 @@ auto Compiler::tryStatement() -> void
     // exception thrown - PopLocals
 
     // these instructions are in the case of no exception thrown - need to pop locals, exit the try, and jump to after the catch block
-    emitConstant(m_localNames.size() - numLocalsStart);
+    emitConstant(numLocalsStart);
     emitOp(runtime::Op::PopLocals, m_previous->line());
     emitOp(runtime::Op::ExitTry, m_previous->line());
     const auto jumpIndexes = emitJump();
@@ -141,7 +141,7 @@ auto Compiler::tryStatement() -> void
     function->setConstant(numConstants, jumpConstantIndex);
     function->setConstant(numOps, jumpOpIndex);
 
-    emitConstant(m_localNames.size() - numLocalsStart);
+    emitConstant(numLocalsStart);
     emitOp(runtime::Op::PopLocals, m_previous->line());
 
     m_localNames.resize(numLocalsStart);
@@ -178,7 +178,7 @@ auto Compiler::catchStatement() -> void
         return;
     }
 
-    emitConstant(m_localNames.size() - numLocalsStart);
+    emitConstant(numLocalsStart);
     emitOp(runtime::Op::PopLocals, m_previous->line());
     m_localNames.resize(numLocalsStart);
 
@@ -219,7 +219,7 @@ auto Compiler::ifStatement() -> void
         return;
     }
 
-    emitConstant(m_localNames.size() - numLocalsStart);
+    emitConstant(numLocalsStart);
     emitOp(runtime::Op::PopLocals, m_previous->line());
     m_localNames.resize(numLocalsStart);
 
@@ -231,15 +231,13 @@ auto Compiler::ifStatement() -> void
         patchJump(falseJumpIndexes);
 
         if (match(scanner::TokenType::OpenBrace)) {
-            const auto elseNumLocalsStart = m_localNames.size();
-
             if (!parseBlock("else block")) {
                 return;
             }
 
-            emitConstant(m_localNames.size() - elseNumLocalsStart);
+            emitConstant(numLocalsStart);
             emitOp(runtime::Op::PopLocals, m_previous->line());
-            m_localNames.resize(elseNumLocalsStart);
+            m_localNames.resize(numLocalsStart);
         } else if (match(scanner::TokenType::If)) {
             ifStatement();
         } else {
@@ -284,7 +282,7 @@ auto Compiler::whileStatement() -> void
     }
 
     // pop locals at the end of each iteration
-    emitConstant(m_localNames.size() - numLocalsStart);
+    emitConstant(numLocalsStart);
     m_localNames.resize(numLocalsStart);
     emitOp(runtime::Op::PopLocals, m_previous->line());
 
@@ -336,6 +334,7 @@ auto Compiler::forStatement() -> void
         m_localNames.push_back({m_previous->string(), false});
     }
 
+    // includes all iterators
     const auto numLocalsStart = m_localNames.size();
 
     RETURN_IF_NO_MATCH(scanner::TokenType::In, "Expected 'in'");
@@ -364,7 +363,7 @@ auto Compiler::forStatement() -> void
     emitOp(runtime::Op::IncrementIterator, m_previous->line());
 
     // pop locals at the end of each iteration
-    emitConstant(m_localNames.size() - numLocalsStart);
+    emitConstant(numLocalsStart);
     emitOp(runtime::Op::PopLocals, m_previous->line());
     m_localNames.resize(numLocalsStart);
 
@@ -376,7 +375,7 @@ auto Compiler::forStatement() -> void
     patchJump(jumpIndexes);
 
     // finally, pop the iterators that were made as locals
-    emitConstant(secondIteratorLocalIndex ? 2 : 1);
+    emitConstant(numLocalsStart - (secondIteratorLocalIndex ? 2 : 1));
     emitOp(runtime::Op::PopLocals, m_previous->line());
     m_localNames.resize(m_localNames.size() - (secondIteratorLocalIndex ? 2_uz : 1_uz));
 

@@ -4,13 +4,13 @@ declaration = importDecl | funcDecl | varDecl | finalDecl | statement ;
 
 importDecl = "import", NAMESPACE, ";" ;
 funcDecl = "func", IDENTIFIER, "(", [ FUNCTION_ARGS ], ")", BLOCK ;
-varDecl = "var", IDENTIFIER, [ { ",", IDENTIFIER } ], [ "=", expression ], ";" ;
-finalDecl = "final", IDENTIFIER, [ { ",", IDENTIFIER } ], "=", expression, ";" ;
+varDecl = "var", IDENTIFIER, [ { ",", IDENTIFIER } ], [ "=", [ "try" ], expression ], ";" ;
+finalDecl = "final", IDENTIFIER, [ { ",", IDENTIFIER } ], "=", [ "try" ], expression, ";" ;
 
 statement = assignmentStatement | expressionStatement | printlnStatement | returnStatement | tryCatchStatement
     | throwStatement | whileStatement | forStatement ;
 
-expressionStatement = expression, [ "=", expression ], ";" ;
+expressionStatement = call, [ "=", [ "try" ], expression ], ";" ;
 printlnStatement = "println", "(", expression, ")" ;
 returnStatement = "return", [ expression ], ";" ;
 tryCatchStatement = "try", "{", BLOCK, "}", "catch", [ IDENTIFIER ], BLOCK ;

@@ -25,7 +25,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * Type checker for those optional type hints
 * Compiler warnings
 * Optimisation
-* `getCodeAtLine()` for imported files
+* ~~`getCodeAtLine()` for imported files~~
 * Think about whether you should be able to unpack anywhere
     * How would we know what to pop off the stack, if only one of the values is used?
     * Unpacking would need a different Vm implementation
@@ -48,7 +48,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * ~~Error handling~~
     * When we do constants, handle a constant value for construction Exceptions
     * Print only the first few call stack entries on error
-    * `throw` statement
+    * ~~`throw` statement~~
 * ~~If statements~~
 * ~~While loops~~
 * ~~Native functions~~
@@ -80,7 +80,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * Option and Result types?
 * For loops
     * Make sure everything's working fine for more collections we add
-* Zig style try assignment
+* ~~Zig style try assignment~~
 * Parameter packing and unpacking
     * ~~Expand unpacking to collections~~
         * Remember this when we add Dicts and Sets...

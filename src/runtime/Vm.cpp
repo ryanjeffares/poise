@@ -265,7 +265,7 @@ auto Vm::run() noexcept -> RunResult
                         const auto p = function->object()->asFunction();
                         if (currentFunction->namespaceHash() != p->namespaceHash()) {
                             if (!m_namespaceManager.namespaceHasImportedNamespace(currentFunction->namespaceHash(), p->namespaceHash())) {
-                                throw PoiseException(PoiseException::ExceptionType::FunctionNotFound, fmt::format("Extension function '{}' not found for type '{}' - are you missing an import?", p->name(), type->type()));
+                                throw PoiseException(PoiseException::ExceptionType::FunctionNotFound, fmt::format("Extension function '{}' not found for type '{}' - are you missing an import?", p->name(), type->typeName()));
                             }
                         }
                         stack.push_back(std::move(*function));
@@ -273,7 +273,7 @@ auto Vm::run() noexcept -> RunResult
                             stack.push_back(std::move(value));
                         }
                     } else {
-                        throw PoiseException(PoiseException::ExceptionType::FunctionNotFound, fmt::format("Function '{}' not defined for type '{}'", memberName, type->type()));
+                        throw PoiseException(PoiseException::ExceptionType::FunctionNotFound, fmt::format("Function '{}' not defined for type '{}'", memberName, type->typeName()));
                     }
                     break;
                 }
@@ -283,8 +283,8 @@ auto Vm::run() noexcept -> RunResult
                     break;
                 }
                 case Op::PopLocals: {
-                    const auto numLocalsToPop = constantList[constantIndex++].value<usize>();
-                    localVariables.resize(localVariables.size() - numLocalsToPop);
+                    const auto numLocalsToRemain = constantList[constantIndex++].value<usize>();
+                    localVariables.resize(numLocalsToRemain + localIndexOffset);
                     break;
                 }
                 case Op::Pop: {
@@ -647,6 +647,7 @@ auto Vm::run() noexcept -> RunResult
 
                 tryBlockStateStack.pop();
 
+                stack.clear();  // TODO: is this right?
                 stack.push_back(Value::createObject<PoiseException>(exception.exceptionType(), std::string{exception.message()}));
             } else {
                 fmt::print(stderr, fmt::emphasis::bold | fmt::fg(fmt::color::red), "Runtime Error: ");
@@ -666,12 +667,12 @@ auto Vm::run() noexcept -> RunResult
                 fmt::print(stderr, "Consider reviewing your code or catching this exception with a `try/catch` statement.\n");
                 return RunResult::RuntimeError;
             }
-        } catch (const std::exception& exception) {
+        }/* catch (const std::exception& exception) {
             fmt::print(stderr, fmt::emphasis::bold | fmt::fg(fmt::color::red), "PANIC: ");
             fmt::print(stderr, "{}\n", exception.what());
             fmt::print(stderr, "This is an error that cannot be recovered from or caught, and is likely a bug in the interpreter.\n");
             return RunResult::RuntimeError;
-        }
+        }*/
     }
 #undef PRINT_MEMORY
 }

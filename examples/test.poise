@@ -1,7 +1,10 @@
-import std::list;
 
 func main() {
-    std::list::where(0, ||{});
+    final a = try "Hello" + "World";
+    println(a);
+
+    final b = try a / 2;
+    println(b);
 }
 
 

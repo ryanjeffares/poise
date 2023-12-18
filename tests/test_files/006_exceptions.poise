@@ -18,7 +18,8 @@ func main() {
     }
 
     try {
-        throw_exception();
+        var a = try 2 * 10;
+        a = try throw_exception();
     } catch e {
         println(e);
     }

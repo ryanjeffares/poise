@@ -109,7 +109,7 @@ auto Compiler::funcDeclaration(bool isExported) -> void
 
     if (functionPtr->opList().empty() || functionPtr->opList().back().op != runtime::Op::Return) {
         // if no return statement, make sure we pop locals and implicitly return none
-        emitConstant(m_localNames.size());
+        emitConstant(0);
         emitOp(runtime::Op::PopLocals, m_previous->line());
         emitConstant(runtime::Value::none());
         emitOp(runtime::Op::LoadConstant, m_previous->line());
@@ -161,7 +161,7 @@ auto Compiler::varDeclaration(bool isFinal) -> void
     m_localNames.push_back({std::move(varName), isFinal});
 
     if (match(scanner::TokenType::Equal)) {
-        expression(false, false);
+        parseAssignment(std::nullopt);
     } else {
         if (isFinal) {
             errorAtCurrent("Expected assignment after 'final'");
@@ -170,9 +170,8 @@ auto Compiler::varDeclaration(bool isFinal) -> void
 
         emitConstant(runtime::Value::none());
         emitOp(runtime::Op::LoadConstant, m_previous->line());
+        emitOp(runtime::Op::DeclareLocal, m_previous->line());
     }
-
-    emitOp(runtime::Op::DeclareLocal, m_previous->line());
 
     EXPECT_SEMICOLON();
 }
