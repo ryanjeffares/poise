@@ -25,6 +25,7 @@ class Types
 {
 public:
     Types();
+
     [[nodiscard]] auto typeValue(Type type) const noexcept -> const runtime::Value&;
 
 private:

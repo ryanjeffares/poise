@@ -14,7 +14,6 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * Test individual important functions
     * Fuzzing
 * Think about object -> bool conversion
-* Construct `Type` instance, `Type` ident
 * Imports
     * The code is really messy
     * Give nicer compiler errors
@@ -29,6 +28,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * Think about whether you should be able to unpack anywhere
     * How would we know what to pop off the stack, if only one of the values is used?
     * Unpacking would need a different Vm implementation
+* Vectors instead of maps!
 
 ## Feature Roadmap
 * ~~Pop unused expression/return results~~
@@ -70,22 +70,25 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
         * Tidy up access modifiers
         * ~~Lists~~
         * ~~Ranges~~
+        * Tuple
         * Dicts
-            * Pair
         * Sets
         * Index operator
     * Special constructors for the above
     * Binary ops for the above
     * Could we do some kind of rust/c# linq/ranges style functor...
     * Option and Result types?
+        * No need, `try` assignments work like Results, everything is an option because anything can be `none` - implement `is_none()` and `is_some()` on `Any`
 * For loops
     * Make sure everything's working fine for more collections we add
 * ~~Zig style try assignment~~
 * Parameter packing and unpacking
-    * ~~Expand unpacking to collections~~
+    * ~~Expand unpacking into collections~~
         * Remember this when we add Dicts and Sets...
+    * Unpack a collection
     * Return multiple values, this is a pack
     * Multiple assignments on one line (`a, b, = b, a`) or assigning an unpack (`a, b = ...pack`)
+* Construct `Type` instance, `Type` ident
 * `Any` type keyword for implementing dot functions on any variable
 * Union type annotation so that we can implement functions on multiple collections
     * If we're going to do this, maybe reverse the type -> function association so that we're not duplicating functions
@@ -102,7 +105,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * Pattern matching
 * Ifs as expressions
 * Single expression lambdas
-* TypeInternal hints
+* Type hints
 * CL arg parsing
 * Standard Library
     * Precompile as bytecode files
