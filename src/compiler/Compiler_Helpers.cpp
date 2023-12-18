@@ -119,18 +119,28 @@ auto Compiler::indexOfLocal(std::string_view localName) const noexcept -> std::o
     }
 }
 
-auto Compiler::parseCallArgs(scanner::TokenType sentinel) -> std::optional<u8>
+auto Compiler::parseCallArgs(scanner::TokenType sentinel) -> std::optional<CallArgsParseResult>
 {
     auto numArgs = 0_u8;
+    auto hasUnpack = false;
 
     while (!match(sentinel)) {
         if (numArgs == std::numeric_limits<u8>::max()) {
-            errorAtCurrent("Maximum function parameters of 255 exceeded");
+            errorAtCurrent("Maximum function arguments of 255 exceeded");
+            return {};
+        }
+
+        if (hasUnpack) {
+            errorAtCurrent("Unpacking must be the last argument");
             return {};
         }
 
         expression(false);
         numArgs++;
+
+        if (m_vm->currentFunction()->opList().back().op == runtime::Op::Unpack) {
+            hasUnpack = true;
+        }
 
         // trailing commas are allowed but all arguments must be comma separated
         // so here, if the next token is not a comma or a close paren, it's invalid
@@ -144,23 +154,28 @@ auto Compiler::parseCallArgs(scanner::TokenType sentinel) -> std::optional<u8>
         }
     }
 
-    return numArgs;
+    return {{numArgs, hasUnpack}};
 }
 
-auto Compiler::parseFunctionArgs(bool isLambda) -> std::optional<FunctionArgsParseResult>
+auto Compiler::parseFunctionParams(bool isLambda) -> std::optional<FunctionParamsParseResult>
 {
     auto hasThisArg = false;
-    auto numArgs = 0_u8;
+    auto hasPack = false;
+    auto numParams = 0_u8;
     std::optional<runtime::types::Type> extensionFunctionType;
 
     while (!match(scanner::TokenType::CloseParen)) {
-        if (numArgs == std::numeric_limits<u8>::max()) {
+        if (numParams == std::numeric_limits<u8>::max()) {
             errorAtCurrent("Maximum function parameters of 255 exceeded");
             return {};
         }
 
+        if (hasPack) {
+            errorAtCurrent("Pack must be the last function parameter");
+        }
+
         if (match(scanner::TokenType::This)) {
-            if (numArgs > 0) {
+            if (numParams > 0) {
                 errorAtPrevious("'this' only allowed on first parameter");
                 return {};
             }
@@ -196,12 +211,16 @@ auto Compiler::parseFunctionArgs(bool isLambda) -> std::optional<FunctionArgsPar
         if (std::find_if(m_localNames.cbegin(), m_localNames.cend(), [&argName](const LocalVariable& local) {
             return local.name == argName;
         }) != m_localNames.cend()) {
-            errorAtPrevious("Function argument with the same name already declared");
+            errorAtPrevious("Function parameter with the same name already declared");
             return {};
         }
 
         m_localNames.push_back({std::move(argName), isFinal});
-        numArgs++;
+        numParams++;
+
+        if (match(scanner::TokenType::DotDotDot)) {
+            hasPack = true;
+        }
 
         // trailing commas are allowed but all arguments must be comma separated
         // so here, if the next token is not a comma or a close paren, it's invalid
@@ -215,7 +234,7 @@ auto Compiler::parseFunctionArgs(bool isLambda) -> std::optional<FunctionArgsPar
         }
     }
 
-    return {{numArgs, extensionFunctionType}};
+    return {{numParams, hasPack, extensionFunctionType}};
 }
 
 auto Compiler::parseNamespaceImport() -> std::optional<NamespaceParseResult>

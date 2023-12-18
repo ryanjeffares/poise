@@ -64,6 +64,19 @@ private:
     [[nodiscard]] auto findLocal(std::string_view localName) const noexcept -> std::optional<LocalVariable>;
     [[nodiscard]] auto indexOfLocal(std::string_view localName) const noexcept -> std::optional<usize>;
 
+    struct CallArgsParseResult
+    {
+        u8 numArgs;
+        bool hasUnpack;
+    };
+
+    struct FunctionParamsParseResult
+    {
+        u8 numParams;
+        bool hasPack;
+        std::optional<runtime::types::Type> extensionFunctionType;
+    };
+
     struct NamespaceParseResult
     {
         std::filesystem::path path;
@@ -71,14 +84,8 @@ private:
         bool isStdFile;
     };
 
-    struct FunctionArgsParseResult
-    {
-        u8 numArgs;
-        std::optional<runtime::types::Type> extensionFunctionType;
-    };
-
-    [[nodiscard]] auto parseCallArgs(scanner::TokenType sentinel) -> std::optional<u8>;
-    [[nodiscard]] auto parseFunctionArgs(bool isLambda) -> std::optional<FunctionArgsParseResult>;
+    [[nodiscard]] auto parseCallArgs(scanner::TokenType sentinel) -> std::optional<CallArgsParseResult>;
+    [[nodiscard]] auto parseFunctionParams(bool isLambda) -> std::optional<FunctionParamsParseResult>;
     [[nodiscard]] auto parseNamespaceImport() -> std::optional<NamespaceParseResult>;
     [[nodiscard]] auto parseBlock(std::string_view scopeType) -> bool;
 
@@ -98,6 +105,7 @@ private:
     auto forStatement() -> void;
 
     auto expression(bool canAssign) -> void;
+    auto unpack() -> void;
     auto range(bool canAssign) -> void;
     auto logicOr(bool canAssign) -> void;
     auto logicAnd(bool canAssign) -> void;

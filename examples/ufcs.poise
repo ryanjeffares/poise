@@ -5,11 +5,11 @@ func is_none(this None n) {
 }
 
 func main() {
-    final make_type = || (final value) {
-        return typeof(value);
-    };
-
-    println(make_type(typeof(None())())().is_none());
+    //final make_type = || (final value) {
+    //    return typeof(value);
+    //};
+//
+    //println(make_type(typeof(None())())().is_none());
 
     final f = 10.0;
     println(f);

@@ -1,0 +1,5 @@
+export func bind(this final Function function, final args...) {
+    return |function, args| {
+        return function(...args);
+    };
+}

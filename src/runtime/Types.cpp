@@ -20,7 +20,7 @@ Types::Types()
         {types::Type::List, Value::createObject<objects::PoiseType>(Type::List, "List")},
         {types::Type::Pack, Value::createObject<objects::PoiseType>(Type::Pack, "Pack")},
         {types::Type::Range, Value::createObject<objects::PoiseType>(Type::Range, "Range")},
-        {types::Type::Type, Value::createObject<objects::PoiseType>(Type::Type, "TypeInternal")},
+        {types::Type::Type, Value::createObject<objects::PoiseType>(Type::Type, "Type")},
     }
 {
 
@@ -74,7 +74,7 @@ auto formatter<Type>::format(Type type, format_context& context) const -> declty
             res = "Range";
             break;
         case Type::Type:
-            res = "TypeInternal";
+            res = "Type";
             break;
     }
 

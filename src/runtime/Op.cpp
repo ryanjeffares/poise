@@ -50,6 +50,9 @@ auto formatter<Op>::format(poise::runtime::Op op, fmt::format_context& context) 
         case Op::PopLocals:
             result = "PopLocals";
             break;
+        case Op::Unpack:
+            result = "Unpack";
+            break;
         case Op::TypeOf:
             result = "TypeOf";
             break;
@@ -125,14 +128,14 @@ auto formatter<Op>::format(poise::runtime::Op op, fmt::format_context& context) 
         case Op::MakeList:
             result = "MakeList";
             break;
+        case Op::MakeLambda:
+            result = "MakeLambda";
+            break;
         case Op::Call:
             result = "Call";
             break;
         case Op::CallNative:
             result = "CallNative";
-            break;
-        case Op::DotCall:
-            result = "DotCall";
             break;
         case Op::IncrementIterator:
             result = "IncrementIterator";

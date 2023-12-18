@@ -25,6 +25,7 @@ public:
 
     [[nodiscard]] auto values() const noexcept -> std::span<const runtime::Value>;
     [[nodiscard]] auto values() noexcept -> std::span<runtime::Value>;
+    [[nodiscard]] auto size() noexcept -> usize;
 
 private:
     std::vector<runtime::Value> m_values;

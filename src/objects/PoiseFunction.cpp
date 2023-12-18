@@ -6,13 +6,14 @@
 namespace poise::objects {
 static std::hash<std::string> s_hasher;
 
-PoiseFunction::PoiseFunction(std::string name, std::filesystem::path filePath, usize namespaceHash, u8 arity, bool isExported)
+PoiseFunction::PoiseFunction(std::string name, std::filesystem::path filePath, usize namespaceHash, u8 arity, bool isExported, bool hasPack)
     : m_name{std::move(name)}
     , m_filePath{std::move(filePath)}
     , m_arity{arity}
     , m_nameHash{s_hasher(m_name)}
     , m_namespaceHash{namespaceHash}
     , m_isExported{isExported}
+    , m_hasPack{hasPack}
 {
 
 }
@@ -97,6 +98,11 @@ auto PoiseFunction::exported() const noexcept -> bool
     return m_isExported;
 }
 
+auto PoiseFunction::hasPack() const noexcept -> bool
+{
+    return m_hasPack;
+}
+
 auto PoiseFunction::numLambdas() const noexcept -> u32
 {
     return m_numLambdas;
@@ -130,5 +136,20 @@ auto PoiseFunction::printOps() const -> void
     for (auto i = 0_uz; i < m_constants.size(); i++) {
         fmt::print("\t{}: {}\n", i, m_constants[i]);
     }
+}
+
+auto PoiseFunction::shallowClone() const noexcept -> runtime::Value
+{
+    auto value = runtime::Value::createObject<PoiseFunction>(m_name, m_filePath, m_namespaceHash, m_arity, m_isExported, m_hasPack);
+    auto function = value.object()->asFunction();
+    function->copyData(*this);
+    return value;
+}
+
+auto PoiseFunction::copyData(const PoiseFunction& other) -> void
+{
+    m_numLambdas = other.numLambdas();
+    m_ops = other.m_ops;
+    m_constants = other.m_constants;
 }
 }   // namespace poise::objects

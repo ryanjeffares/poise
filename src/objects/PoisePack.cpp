@@ -41,4 +41,9 @@ auto PoisePack::values() noexcept -> std::span<runtime::Value>
 {
     return m_values;
 }
+
+auto PoisePack::size() noexcept -> usize
+{
+    return m_values.size();
+}
 }

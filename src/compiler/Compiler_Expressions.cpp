@@ -13,8 +13,22 @@ auto Compiler::expression(bool canAssign) -> void
     // expressions can only start with a literal, unary op, or identifier
     if (scanner::isValidStartOfExpression(m_current->tokenType())) {
         range(canAssign);
+    } else if (match(scanner::TokenType::DotDotDot)) {
+        unpack();
     } else {
         errorAtCurrent("Expected expression");
+    }
+}
+
+auto Compiler::unpack() -> void
+{
+    RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected identifier");
+
+    const auto text = m_previous->text();
+    if (const auto index = indexOfLocal(text)) {
+        emitConstant(*index);
+        emitOp(runtime::Op::LoadLocal, m_previous->line());
+        emitOp(runtime::Op::Unpack, m_previous->line());
     }
 }
 
@@ -35,6 +49,7 @@ auto Compiler::range(bool canAssign) -> void
         emitConstant(static_cast<u8>(runtime::types::Type::Range));
         emitConstant(3);
         emitConstant(false);
+        emitConstant(false);
         emitOp(runtime::Op::ConstructBuiltin, m_previous->line());
     } else if (match(scanner::TokenType::DotDotEqual)) {
         logicOr(canAssign);
@@ -48,6 +63,7 @@ auto Compiler::range(bool canAssign) -> void
 
         emitConstant(static_cast<u8>(runtime::types::Type::Range));
         emitConstant(3);
+        emitConstant(false);
         emitConstant(true);
         emitOp(runtime::Op::ConstructBuiltin, m_previous->line());
     }
@@ -236,8 +252,11 @@ auto Compiler::call(bool canAssign) -> void
 
     while (true) {
         if (match(scanner::TokenType::OpenParen)) {
-            if (const auto numArgs = parseCallArgs(scanner::TokenType::CloseParen)) {
-                emitConstant(*numArgs);
+            if (const auto args = parseCallArgs(scanner::TokenType::CloseParen)) {
+                const auto [numArgs, hasUnpack] = *args;
+                emitConstant(numArgs);
+                emitConstant(hasUnpack);
+                emitConstant(false);
                 emitOp(runtime::Op::Call, m_previous->line());
             }
         } else if (match(scanner::TokenType::Dot)) {
@@ -248,9 +267,12 @@ auto Compiler::call(bool canAssign) -> void
 
             if (match(scanner::TokenType::OpenParen)) {
                 emitConstant(true); // flag to dictate whether to push the parent back on the stack since this is a dot call
-                if (const auto numArgs = parseCallArgs(scanner::TokenType::CloseParen)) {
-                    emitConstant(*numArgs);
-                    emitOp(runtime::Op::DotCall, m_previous->line());
+                if (const auto args = parseCallArgs(scanner::TokenType::CloseParen)) {
+                    const auto [numArgs, hasUnpack] = *args;
+                    emitConstant(numArgs);
+                    emitConstant(hasUnpack);
+                    emitConstant(true);
+                    emitOp(runtime::Op::Call, m_previous->line());
                 }
             }
         } else {
@@ -361,10 +383,17 @@ auto Compiler::nativeCall() -> void
             return;
         }
 
-        if (const auto numArgs = parseCallArgs(scanner::TokenType::CloseParen)) {
+        if (const auto args = parseCallArgs(scanner::TokenType::CloseParen)) {
             const auto arity = m_vm->nativeFunctionArity(*hash);
-            if (*numArgs != arity) {
-                errorAtPrevious(fmt::format("Expected {} arguments to native function {} but got {}", arity, identifier, *numArgs));
+            const auto [numArgs, hasUnpack] = *args;
+
+            if (hasUnpack) {
+                errorAtPrevious("Unpacking not allowed in native function calls");
+                return;
+            }
+
+            if (numArgs != arity) {
+                errorAtPrevious(fmt::format("Expected {} arguments to native function {} but got {}", arity, identifier, numArgs));
                 return;
             }
 
@@ -463,14 +492,25 @@ auto Compiler::namespaceQualifiedCall() -> void
         emitConstant(functionName);
         emitOp(runtime::Op::LoadFunction, m_previous->line());
 
-        if (const auto numArgs = parseCallArgs(scanner::TokenType::CloseParen)) {
+        if (const auto args = parseCallArgs(scanner::TokenType::CloseParen)) {
             const auto function = namespaceManager->namespaceFunction(namespaceHash, functionName);
-            if (*numArgs != function->arity()) {
-                errorAtPrevious(fmt::format("Expected {} args to '{}::{}()' but got {}", function->arity(), namespaceText, functionName, *numArgs));
-                return;
+            const auto [numArgs, hasUnpack] = *args;
+
+            if (hasUnpack || function->hasPack()) {
+                if (numArgs < function->arity()) {
+                    errorAtPrevious(fmt::format("Expected >={} args to '{}::{}()' but got {}", function->arity(), namespaceText, functionName, numArgs));
+                    return;
+                }
+            } else {
+                if (numArgs != function->arity()) {
+                    errorAtPrevious(fmt::format("Expected {} args to '{}::{}()' but got {}", function->arity(), namespaceText, functionName, numArgs));
+                    return;
+                }
             }
 
-            emitConstant(*numArgs);
+            emitConstant(numArgs);
+            emitConstant(hasUnpack);
+            emitConstant(false);
             emitOp(runtime::Op::Call, m_previous->line());
         }
     } else {
@@ -496,16 +536,18 @@ auto Compiler::typeIdent() -> void
 
     if (match(scanner::TokenType::OpenParen)) {
         // constructing an instance of the type
-        if (const auto numArgs = parseCallArgs(scanner::TokenType::CloseParen)) {
+        if (const auto args = parseCallArgs(scanner::TokenType::CloseParen)) {
+            const auto [numArgs, hasUnpack] = *args;
             if (tokenType < scanner::TokenType::ListIdent) {
-                if (*numArgs > 1) {
-                    errorAtPrevious(fmt::format("'{}' can only be constructed from a single argument but was given {}", static_cast<runtime::types::Type>(tokenType), *numArgs));
+                if (numArgs > 1) {
+                    errorAtPrevious(fmt::format("'{}' can only be constructed from a single argument but was given {}", static_cast<runtime::types::Type>(tokenType), numArgs));
                     return;
                 }
             }
 
             emitConstant(static_cast<u8>(tokenType));
-            emitConstant(*numArgs);
+            emitConstant(numArgs);
+            emitConstant(hasUnpack);
             if (tokenType == scanner::TokenType::RangeIdent) {
                 emitConstant(false);
             }
@@ -571,15 +613,15 @@ auto Compiler::lambda() -> void
     auto oldLocals = std::move(m_localNames);
     m_localNames = std::move(captures);
 
-    std::optional<FunctionArgsParseResult> args;
+    std::optional<FunctionParamsParseResult> args;
     if (match(scanner::TokenType::OpenParen)) {
-        args = parseFunctionArgs(true);
+        args = parseFunctionParams(true);
         if (!args) {
             return;
         }
     }
 
-    const auto [numArgs, extensionFunctionType] = *args;
+    const auto [numArgs, hasPack, extensionFunctionType] = *args;
 
     RETURN_IF_NO_MATCH(scanner::TokenType::OpenBrace, "Expected '{");
 
@@ -588,7 +630,7 @@ auto Compiler::lambda() -> void
     m_contextStack.push_back(Context::Function);
 
     auto lambdaName = fmt::format("{}_lambda{}", prevFunction->name(), prevFunction->numLambdas());
-    auto lambda = runtime::Value::createObject<objects::PoiseFunction>(std::move(lambdaName), m_filePath, m_filePathHash, numArgs, false);
+    auto lambda = runtime::Value::createObject<objects::PoiseFunction>(std::move(lambdaName), m_filePath, m_filePathHash, numArgs, false, hasPack);
     auto functionPtr = lambda.object()->asFunction();
 
     m_vm->setCurrentFunction(functionPtr);
@@ -622,7 +664,7 @@ auto Compiler::lambda() -> void
     prevFunction->lamdaAdded();
 
     emitConstant(std::move(lambda));
-    emitOp(runtime::Op::LoadConstant, m_previous->line());
+    emitOp(runtime::Op::MakeLambda, m_previous->line());
     for (const auto index : captureIndexes) {
         emitConstant(index);
         emitOp(runtime::Op::CaptureLocal, m_previous->line());
@@ -636,7 +678,9 @@ auto Compiler::list() -> void
         return;
     }
 
-    emitConstant(*args);
+    const auto [numArgs, hasUnpack] = *args;
+    emitConstant(numArgs);
+    emitConstant(hasUnpack);
     emitOp(runtime::Op::MakeList, m_previous->line());
 }
 

@@ -1,6 +1,7 @@
 #include "Vm.hpp"
 #include "../objects/iterables/PoiseList.hpp"
 #include "../objects/PoiseException.hpp"
+#include "../objects/PoisePack.hpp"
 #include "../objects/PoiseType.hpp"
 
 #include <fmt/color.h>
@@ -127,7 +128,7 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
         return {std::move(value2), std::move(value1)};
     };
 
-    auto popCallArgs = [&pop] [[nodiscard]](u8 numArgs) -> std::vector<Value> {
+    auto popCallArgs = [&pop] [[nodiscard]](usize numArgs) -> std::vector<Value> {
         std::vector<Value> args;
         args.resize(numArgs);
 
@@ -184,7 +185,12 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                 }
                 case Op::ConstructBuiltin: {
                     const auto type = static_cast<types::Type>(constantList[constantIndex++].value<u8>());
-                    const auto numArgs = constantList[constantIndex++].value<u8>();
+                    auto numArgs = constantList[constantIndex++].value<usize>();
+                    const auto hasUnpack = constantList[constantIndex++].value<bool>();
+
+                    if (hasUnpack) {
+                        numArgs += pop().value<usize>() - 1_uz; // -1 for the pack, replace it with the size of the pack
+                    }
 
                     auto args = popCallArgs(numArgs);
 
@@ -258,7 +264,7 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                         const auto p = function->object()->asFunction();
                         if (currentFunction->namespaceHash() != p->namespaceHash()) {
                             if (!m_namespaceManager.namespaceHasImportedNamespace(currentFunction->namespaceHash(), p->namespaceHash())) {
-                                throw PoiseException(PoiseException::ExceptionType::FunctionNotFound, fmt::format("Extension function '{}' not found for type '{}' - are you missing an import?", p->name(), type->typeName()));
+                                throw PoiseException(PoiseException::ExceptionType::FunctionNotFound, fmt::format("Extension function '{}' not found for type '{}' - are you missing an import?", p->name(), type->type()));
                             }
                         }
                         stack.push_back(std::move(*function));
@@ -266,7 +272,7 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                             stack.push_back(std::move(value));
                         }
                     } else {
-                        throw PoiseException(PoiseException::ExceptionType::FunctionNotFound, fmt::format("Function '{}' not defined for type '{}'", memberName, type->typeName()));
+                        throw PoiseException(PoiseException::ExceptionType::FunctionNotFound, fmt::format("Function '{}' not defined for type '{}'", memberName, type->type()));
                     }
                     break;
                 }
@@ -282,6 +288,20 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                 }
                 case Op::Pop: {
                     pop();
+                    break;
+                }
+                case Op::Unpack: {
+                    auto pack = pop();
+                    if (pack.type() != types::Type::Pack) {
+                        throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("{} cannot be unpacked", pack.type()));
+                    }
+
+                    auto packObj = pack.object()->asPack();
+                    for (auto values = packObj->values(); auto& value : values) {
+                        stack.emplace_back(std::move(value));
+                    }
+
+                    stack.emplace_back(packObj->size());
                     break;
                 }
                 case Op::TypeOf: {
@@ -406,61 +426,52 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                     break;
                 }
                 case Op::MakeList: {
-                    const auto numArgs = constantList[constantIndex++].value<u8>();
+                    auto numArgs = constantList[constantIndex++].value<usize>();
+                    const auto hasUnpack = constantList[constantIndex++].value<bool>();
+
+                    if (hasUnpack) {
+                        numArgs += pop().value<usize>() - 1_uz; // -1 for the pack, replace it with the size of the pack
+                    }
+
                     stack.emplace_back(Value::createObject<objects::iterables::PoiseList>(popCallArgs(numArgs)));
                     break;
                 }
+                case Op::MakeLambda: {
+                    const auto lambda = constantList[constantIndex++].object()->asFunction();
+                    stack.emplace_back(lambda->shallowClone());
+                    break;
+                }
                 case Op::Call: {
-                    const auto numArgs = constantList[constantIndex++].value<u8>();
-                    auto args = popCallArgs(numArgs);   // not const so we can move into local vars if needed
-                    const auto value = pop();
+                    auto numArgs = constantList[constantIndex++].value<usize>();
+                    const auto hasUnpack = constantList[constantIndex++].value<bool>();
 
-                    if (auto object = value.object()) {
-                        if (auto calleeFunction = object->asFunction()) {
-                            if (calleeFunction->arity() != numArgs) {
-                                throw PoiseException(PoiseException::ExceptionType::IncorrectArgCount, fmt::format("Function '{}' takes {} args but was given {}", calleeFunction->name(), calleeFunction->arity(), numArgs));
-                            }
-
-                            callStack.push_back({
-                                .localIndexOffset = localVariables.size(),
-                                .opIndex = 0_uz,
-                                .constantIndex = 0_uz,
-                                .heldIteratorsSize = heldIterators.size(),
-                                .callSiteLine = line,
-                                .callerFunction = currentFunction,
-                                .calleeFunction = calleeFunction,
-                            });
-
-                            localVariables.insert(localVariables.end(), std::make_move_iterator(args.begin()), std::make_move_iterator(args.end()));
-                        } else if (auto type = object->asType()) {
-                            stack.emplace_back(type->construct(args));
-                        } else {
-                            throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("{} is not callable", value));
-                        }
-                    } else {
-                        throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("{} is not callable", value.type()));
+                    if (hasUnpack) {
+                        numArgs += pop().value<usize>() - 1_uz; // -1 for the pack, replace it with the size of the pack
                     }
 
-                    break;
-                }
-                case Op::CallNative: {
-                    const auto hash = constantList[constantIndex++].value<NativeNameHash>();
-                    const auto function = m_nativeFunctionLookup.at(hash);
-                    const auto arity = function.arity();
-                    auto args = popCallArgs(arity); // number of call args is checked at compile time
-                    stack.emplace_back(function(args));
-                    break;
-                }
-                case Op::DotCall: {
-                    const auto numArgs = constantList[constantIndex++].value<u8>();
-                    auto args = popCallArgs(numArgs);
-                    auto [function, caller] = popTwo();
-                    args.insert(args.begin(), std::move(caller));
+                    auto args = popCallArgs(numArgs);   // not const so we can move into local vars if needed
+
+                    const auto isDotCall = constantList[constantIndex++].value<bool>();
+                    if (isDotCall) {
+                        args.insert(args.begin(), pop());
+                    }
+
+                    const auto function = pop();
 
                     if (auto object = function.object()) {
                         if (auto calleeFunction = object->asFunction()) {
-                            if (calleeFunction->arity() != numArgs + 1) {
-                                throw PoiseException(PoiseException::ExceptionType::IncorrectArgCount, fmt::format("Function '{}' takes {} args but was given {}", calleeFunction->name(), calleeFunction->arity(), numArgs + 1));
+                            const auto hasPack = calleeFunction->hasPack();
+
+                            // if the function has a pack, numParams can be >= arity
+                            numArgs = isDotCall ? numArgs + 1_u8 : numArgs;
+                            if (hasPack) {
+                                if (numArgs < calleeFunction->arity()) {
+                                    throw PoiseException(PoiseException::ExceptionType::IncorrectArgCount, fmt::format("Function '{}' takes >={} args but was given {}", calleeFunction->name(), calleeFunction->arity(), numArgs));
+                                }
+                            } else {
+                                if (numArgs != calleeFunction->arity()) {
+                                    throw PoiseException(PoiseException::ExceptionType::IncorrectArgCount, fmt::format("Function '{}' takes {} args but was given {}", calleeFunction->name(), calleeFunction->arity(), numArgs));
+                                }
                             }
 
                             callStack.push_back({
@@ -472,6 +483,16 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                                 .callerFunction = currentFunction,
                                 .calleeFunction = calleeFunction,
                             });
+
+                            if (hasPack) {
+                                std::vector<Value> packArgs;
+                                for (auto i = calleeFunction->arity() - 1_uz; i < numArgs; i++) {
+                                    packArgs.emplace_back(std::move(args[i]));
+                                }
+                                args.resize(args.size() - packArgs.size());
+                                auto pack = Value::createObject<objects::PoisePack>(std::move(packArgs));
+                                args.emplace_back(std::move(pack));
+                            }
 
                             localVariables.insert(localVariables.end(), std::make_move_iterator(args.begin()), std::make_move_iterator(args.end()));
                         } else if (auto type = object->asType()) {
@@ -482,6 +503,15 @@ auto Vm::run(const scanner::Scanner* const scanner) noexcept -> RunResult
                     } else {
                         throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("{} is not callable", function.type()));
                     }
+
+                    break;
+                }
+                case Op::CallNative: {
+                    const auto hash = constantList[constantIndex++].value<NativeNameHash>();
+                    const auto function = m_nativeFunctionLookup.at(hash);
+                    const auto arity = function.arity();
+                    auto args = popCallArgs(arity); // number of call args is checked at compile time
+                    stack.emplace_back(function(args));
                     break;
                 }
                 case Op::Exit: {

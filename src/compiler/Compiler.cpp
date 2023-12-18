@@ -56,6 +56,8 @@ auto Compiler::compile() -> CompileResult
             emitConstant("main");
             emitOp(runtime::Op::LoadFunction, 0_uz);
             emitConstant(0);
+            emitConstant(false);
+            emitConstant(false);
             emitOp(runtime::Op::Call, 0_uz);
             emitOp(runtime::Op::Pop, 0_uz);
             emitOp(runtime::Op::Exit, m_scanner.getNumLines());

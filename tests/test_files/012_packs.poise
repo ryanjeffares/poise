@@ -35,7 +35,6 @@ func main() {
     final make_list = || (final args...) {
         return [...args];
     };
-    
+
     println(make_list("Hello", "My", "Name", "Is", "Ryan"));
 }
-

@@ -26,6 +26,7 @@ enum class Op : u8
     LoadType,
     Pop,
     PopLocals,
+    Unpack,
 
     // builtin functions
     TypeOf,
@@ -57,11 +58,11 @@ enum class Op : u8
     Negate,
     Plus,
     MakeList,
+    MakeLambda,
 
     // jumping/control flow
     Call,
     CallNative,
-    DotCall,
     Exit,
     IncrementIterator,
     InitIterator,

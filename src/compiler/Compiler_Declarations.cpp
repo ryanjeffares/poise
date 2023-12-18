@@ -88,18 +88,18 @@ auto Compiler::funcDeclaration(bool isExported) -> void
     }
 
     RETURN_IF_NO_MATCH(scanner::TokenType::OpenParen, "Expected '(' after function name");
-    const auto args = parseFunctionArgs(false);
-    if (!args) {
+    const auto params = parseFunctionParams(false);
+    if (!params) {
         return;
     }
 
-    const auto [numArgs, extensionFunctionType] = *args;
+    const auto [numParams, hasPack, extensionFunctionType] = *params;
 
     RETURN_IF_NO_MATCH(scanner::TokenType::OpenBrace, "Expected '{' after function signature");
 
     auto prevFunction = m_vm->currentFunction();
 
-    auto function = runtime::Value::createObject<objects::PoiseFunction>(std::move(functionName), m_filePath.string(), m_filePathHash, numArgs, isExported);
+    auto function = runtime::Value::createObject<objects::PoiseFunction>(std::move(functionName), m_filePath.string(), m_filePathHash, numParams, isExported, hasPack);
     auto functionPtr = function.object()->asFunction();
     m_vm->setCurrentFunction(functionPtr);
 
