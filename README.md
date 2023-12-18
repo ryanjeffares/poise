@@ -80,9 +80,10 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * For loops
     * Make sure everything's working fine for more collections we add
 * Parameter packing and unpacking
-    * Expand unpacking to collections
+    * ~~Expand unpacking to collections~~
+        * Remember this when we add Dicts and Sets...
     * Return multiple values, this is a pack
-* Multiple assignments on one line (`a, b, = b, a`)
+    * Multiple assignments on one line (`a, b, = b, a`), this is a pack
 * `Any` type keyword for implementing dot functions on any variable
 * Union type annotation so that we can implement functions on multiple collections
     * If we're going to do this, maybe reverse the type -> function association so that we're not duplicating functions

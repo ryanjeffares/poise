@@ -1,0 +1,8 @@
+
+func foo(args...) {
+    for i in ...args {}
+}
+
+func main() {
+    foo(Range(0, 10));
+}

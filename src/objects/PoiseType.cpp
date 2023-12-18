@@ -118,7 +118,7 @@ auto PoiseType::construct(std::span<runtime::Value> args) const -> runtime::Valu
                 throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("Expected Int or Float for range end but got {}", args[1].type()));
             }
 
-            if (args.size() == 3_uz && !args[2].isNumber()) {
+            if (args.size() == 4_uz && !args[2].isNumber()) {
                 throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("Expected Int or Float for range increment but got {}", args[2].type()));
             }
 
