@@ -125,11 +125,6 @@ auto Value::typeInternal() const noexcept -> TypeInternal
     return m_type;
 }
 
-auto Value::isNumber() const noexcept -> bool
-{
-    return typeInternal() == TypeInternal::Int || typeInternal() == TypeInternal::Float;
-}
-
 auto Value::print(bool err, bool newLine) const -> void
 {
     if (newLine) {

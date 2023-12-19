@@ -34,23 +34,13 @@ public:
     [[nodiscard]] auto rangeIncrement() const noexcept -> runtime::Value;
 
 private:
-    static constexpr usize s_capacity = 8_uz;
+    static constexpr usize s_chunkSize = 8_uz;
 
-    template<typename T>
-    requires(std::is_same_v<T, f64> || std::is_same_v<T, i64>)
-    auto fillData(T value, T increment) -> void
-    {
-        m_data.resize(s_capacity);
-
-        for (auto i = 0_uz; i < m_data.size(); i++) {
-            m_data[i] = value;
-            value += increment;
-        }
-    }
+    auto fillData(i64 value, i64 increment) -> void;
 
     bool m_inclusive;
     runtime::Value m_start, m_end, m_increment;
-    bool m_useFloat;
+    bool m_isInfiniteLoop{};
 };
 }   // namespace poise::objects::iterables
 

@@ -13,32 +13,18 @@ PoiseRange::PoiseRange(runtime::Value start, runtime::Value end, runtime::Value 
     , m_start{std::move(start)}
     , m_end{std::move(end)}
     , m_increment{std::move(increment)}
-    , m_useFloat{
-        m_start.type() == runtime::types::Type::Float ||
-        m_end.type() == runtime::types::Type::Float ||
-        m_increment.type() == runtime::types::Type::Float
-    }
 {
-    if (m_useFloat) {
-        const auto s = m_start.toFloat();
-        const auto e = m_end.toFloat();
-        const auto i = m_increment.toFloat();
+    const auto s = m_start.toInt();
+    const auto e = m_end.toInt();
+    const auto i = m_increment.toInt();
 
-        if (((s < e) && (i > 0.0)) || ((e < s) && (i < 0.0))) {
-            fillData(s, i);
-        }
-        // otherwise this is basically a noop
+    if (((s < e) && (i > 0)) || ((e < s) && (i < 0))) {
+        fillData(s, i);
+    } else {
+        // otherwise no iteration is possible
         // either the increment is 0, or going in the other direction of start -> end
         // so just don't fill the vector at all, begin == end, no iteration will happen if you try
-    } else {
-        const auto s = m_start.toInt();
-        const auto e = m_end.toInt();
-        const auto i = m_increment.toInt();
-
-        if (((s < e) && (i > 0)) || ((e < s) && (i < 0))) {
-            fillData(s, i);
-        }
-        // same logic as above
+        m_isInfiniteLoop = true;
     }
 }
 
@@ -75,20 +61,22 @@ auto PoiseRange::end() noexcept -> PoiseIterable::IteratorType
 auto PoiseRange::incrementIterator(PoiseIterable::IteratorType& iterator) noexcept -> void
 {
     iterator++;
+
     if (isAtEnd(iterator)) {
         // exhausted the current data, check if we need to refill
-        if ((m_inclusive && m_data.back() == m_end) || (!m_inclusive && m_data.back() == m_end - m_increment)) {
-            iterator = end();
-        } else {
-            if (m_useFloat) {
-                auto value = m_data.back().toFloat() + m_increment.toFloat();
-                fillData(value, m_increment.toFloat());
-            } else {
-                auto value = m_data.back().toInt() + m_increment.toInt();
-                fillData(value, m_increment.toInt());
+        if (!(m_inclusive && m_data.back() == m_end) && !(!m_inclusive && m_data.back() == m_end - m_increment)) {
+            std::vector<DifferenceType> iteratorIndexes;
+            iteratorIndexes.reserve(m_activeIterators.size());
+            for (auto i = 0_uz; i < m_activeIterators.size(); i++) {
+                iteratorIndexes.push_back(std::distance(m_data.begin(), m_activeIterators[i]->iterator()));
             }
 
-            iterator = begin();
+            auto value = m_data.back().toInt() + m_increment.toInt();
+            fillData(value, m_increment.toInt());
+
+            for (auto i = 0_uz; i < m_activeIterators.size(); i++) {
+                m_activeIterators[i]->iterator() = m_data.begin() + iteratorIndexes[i];
+            }
         }
     } else if ((m_inclusive && *iterator > m_end) || (!m_inclusive && *iterator >= m_end)) {
         // the actual value has gone past the end of the range, so make it as if we're at the end
@@ -103,19 +91,7 @@ auto PoiseRange::isAtEnd(const PoiseIterable::IteratorType& iterator) noexcept -
 
 auto PoiseRange::isInfiniteLoop() const noexcept -> bool
 {
-    if (m_useFloat) {
-        const auto s = m_start.toFloat();
-        const auto e = m_end.toFloat();
-        const auto i = m_increment.toFloat();
-
-        return i == 0.0 || (s < e && i < 0.0) || (s > e && i > 0.0);
-    } else {
-        const auto s = m_start.toInt();
-        const auto e = m_end.toInt();
-        const auto i = m_increment.toInt();
-
-        return i == 0 || (s < e && i < 0) || (s > e && i > 0);
-    }
+    return m_isInfiniteLoop;
 }
 
 auto PoiseRange::rangeStart() const noexcept -> runtime::Value
@@ -131,5 +107,16 @@ auto PoiseRange::rangeEnd() const noexcept -> runtime::Value
 auto PoiseRange::rangeIncrement() const noexcept -> runtime::Value
 {
     return m_increment;
+}
+
+auto PoiseRange::fillData(i64 value, i64 increment) -> void
+{
+    const auto size = m_data.size();
+    m_data.resize(size + s_chunkSize);
+
+    for (auto i = size; i < m_data.size(); i++) {
+        m_data[i] = value;
+        value += increment;
+    }
 }
 }   // namespace poise::objects::iterables

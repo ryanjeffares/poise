@@ -74,6 +74,16 @@ auto PoiseIterator::value() const -> const runtime::Value&
     return *m_iterator;
 }
 
+auto PoiseIterator::iterator() const -> const IteratorType&
+{
+    return m_iterator;
+}
+
+auto PoiseIterator::iterator() -> PoiseIterator::IteratorType&
+{
+    return m_iterator;
+}
+
 auto PoiseIterator::throwIfInvalid() const -> void
 {
     if (!valid()) {

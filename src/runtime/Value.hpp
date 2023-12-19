@@ -128,7 +128,6 @@ public:
     [[nodiscard]] auto string() const noexcept -> const std::string&;
     [[nodiscard]] auto object() const noexcept -> objects::PoiseObject*;
     [[nodiscard]] auto type() const noexcept -> types::Type;
-    [[nodiscard]] auto isNumber() const noexcept -> bool;
 
     auto print(bool err, bool newLine) const -> void;
 

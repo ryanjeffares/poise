@@ -1,0 +1,11 @@
+func main() {
+    final r = 0..100;
+    println(r);
+
+    for value in r {
+        println(value);
+        for value2 in r {
+            println(value2);
+        }
+    }
+}

@@ -18,6 +18,7 @@ class PoiseIterator : public PoiseObject
 {
 public:
     using IteratorType = std::vector<runtime::Value>::iterator;
+    using DifferenceType = IteratorType::difference_type;
 
     explicit PoiseIterator(runtime::Value iterable);
     // only for testing
@@ -34,6 +35,8 @@ public:
     auto invalidate() noexcept -> void;
     [[nodiscard]] auto isAtEnd() const noexcept -> bool;
     [[nodiscard]] auto valid() const noexcept -> bool;
+    [[nodiscard]] auto iterator() const -> const IteratorType&;
+    [[nodiscard]] auto iterator() -> IteratorType&;
     [[nodiscard]] auto value() const -> const runtime::Value&;
 
 private:

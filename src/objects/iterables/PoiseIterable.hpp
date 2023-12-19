@@ -15,8 +15,8 @@ namespace poise::objects::iterables {
 class PoiseIterable
 {
 public:
-    using DifferenceType = std::vector<runtime::Value>::difference_type;
     using IteratorType = PoiseIterator::IteratorType;
+    using DifferenceType = std::vector<runtime::Value>::difference_type;
 
     PoiseIterable() = default;
     explicit PoiseIterable(usize initialSize, const runtime::Value& defaultValue = runtime::Value::none());

@@ -110,16 +110,16 @@ auto PoiseType::construct(std::span<runtime::Value> args) const -> runtime::Valu
                 throw PoiseException(PoiseException::ExceptionType::IncorrectArgCount, fmt::format("'Range' constructor takes 2 or 3 arguments but was given {}", args.size()));
             }
 
-            if (!args[0].isNumber()) {
-                throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("Expected Int or Float for range start but got {}", args[0].type()));
+            if (args[0].type() != runtime::types::Type::Int) {
+                throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("Expected Int for range start but got {}", args[0].type()));
             }
 
-            if (!args[1].isNumber()) {
-                throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("Expected Int or Float for range end but got {}", args[1].type()));
+            if (args[1].type() != runtime::types::Type::Int) {
+                throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("Expected Int for range end but got {}", args[1].type()));
             }
 
-            if (args.size() == 4_uz && !args[2].isNumber()) {
-                throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("Expected Int or Float for range increment but got {}", args[2].type()));
+            if (args.size() == 4_uz && args[2].type() != runtime::types::Type::Int) {
+                throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("Expected Int for range increment but got {}", args[2].type()));
             }
 
             if (args.size() == 4_uz) {
