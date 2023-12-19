@@ -74,6 +74,9 @@ auto formatter<PoiseException::ExceptionType>::format(PoiseException::ExceptionT
         case PoiseException::ExceptionType::IndexOutOfBounds:
             res = "IndexOutOfBoundsException";
             break;
+        case PoiseException::ExceptionType::InvalidCast:
+            res = "InvalidCastException";
+            break;
         case PoiseException::ExceptionType::InvalidIterator:
             res = "InvalidIteratorException";
             break;

@@ -13,6 +13,7 @@ func main() {
 
     println(String("Hello!"));
     println(String(Int("5")));
+    println(Float("3.14"));
 
     println(t_int(69));
 

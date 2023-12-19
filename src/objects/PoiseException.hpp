@@ -22,6 +22,7 @@ public:
         FunctionNotFound,
         IncorrectArgCount,
         IndexOutOfBounds,
+        InvalidCast,
         InvalidIterator,
         InvalidOperand,
         InvalidType,

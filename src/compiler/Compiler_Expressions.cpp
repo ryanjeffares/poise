@@ -746,26 +746,29 @@ auto Compiler::parseInt() -> void
         emitConstant(result);
         emitOp(runtime::Op::LoadConstant, m_previous->line());
     } else if (ec == std::errc::invalid_argument) {
-        errorAtPrevious(fmt::format("Unable to parse integer '{}'", text));
+        errorAtPrevious(fmt::format("Unable to parse Int '{}'", text));
         return;
     } else if (ec == std::errc::result_out_of_range) {
-        errorAtPrevious(fmt::format("Integer out of range '{}'", text));
+        errorAtPrevious(fmt::format("Int out of range '{}'", text));
         return;
     }
 }
 
 auto Compiler::parseFloat() -> void
 {
+    auto result{0.0};
     const auto text = m_previous->string();
+    const auto [ptr, ec] = std::from_chars(text.data(), text.data() + text.length(), result);
 
-    try {
-        const auto result = std::stod(text);
+    if (ec == std::errc{}) {
         emitConstant(result);
         emitOp(runtime::Op::LoadConstant, m_previous->line());
-    } catch (const std::invalid_argument&) {
-        errorAtPrevious(fmt::format("Unable to parse float '{}'", text));
-    } catch (const std::out_of_range&) {
+    } else if (ec == std::errc::invalid_argument) {
+        errorAtPrevious(fmt::format("Unable to parse Float '{}'", text));
+        return;
+    } else if (ec == std::errc::result_out_of_range) {
         errorAtPrevious(fmt::format("Float out of range '{}'", text));
+        return;
     }
 }
 }   // namespace poise::compiler

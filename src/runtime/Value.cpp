@@ -4,7 +4,11 @@
 
 #include <fmt/core.h>
 
+#include <charconv>
+
 namespace poise::runtime {
+using objects::PoiseException;
+
 Value::Value()
     : m_type{TypeInternal::None}
 {
@@ -165,10 +169,18 @@ auto Value::toFloat() const -> f64
             return value<f64>();
         case TypeInternal::Int:
             return static_cast<f64>(value<i64>());
-        case TypeInternal::String:
-            return std::stod(string());
+        case TypeInternal::String: {
+            auto res{0.0};
+            const auto [ptr, ec] = std::from_chars(string().data(), string().data() + string().length(), res);
+            if (ec == std::errc::invalid_argument) {
+                throw PoiseException(PoiseException::ExceptionType::InvalidCast, fmt::format("Cannot convert '{}' to Float", string()));
+            } else if (ec == std::errc::result_out_of_range) {
+                throw PoiseException(PoiseException::ExceptionType::InvalidCast, fmt::format("{} out of range for Float", string()));
+            }
+            return res;
+        }
         default:
-            throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidType, fmt::format("Cannot convert {} to Float", type()));
+            throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("Cannot convert {} to Float", type()));
     }
 }
 
@@ -181,10 +193,18 @@ auto Value::toInt() const -> i64
             return static_cast<i64>(value<f64>());
         case TypeInternal::Int:
             return value<i64>();
-        case TypeInternal::String:
-            return std::stoi(string());
+        case TypeInternal::String: {
+            auto res{0_i64};
+            const auto [ptr, ec] = std::from_chars(string().data(), string().data() + string().length(), res);
+            if (ec == std::errc::invalid_argument) {
+                throw PoiseException(PoiseException::ExceptionType::InvalidCast, fmt::format("Cannot convert '{}' to Int", string()));
+            } else if (ec == std::errc::result_out_of_range) {
+                throw PoiseException(PoiseException::ExceptionType::InvalidCast, fmt::format("{} out of range for Int", string()));
+            }
+            return res;
+        }
         default:
-            throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidType, fmt::format("Cannot convert {} to Int", type()));
+            throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("Cannot convert {} to Int", type()));
     }
 }
 
@@ -217,11 +237,11 @@ auto Value::operator|(const Value& other) const -> Value
                 case TypeInternal::Int:
                     return value<i64>() | other.value<i64>();
                 default:
-                    throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for |: '{}' and '{}'", type(), other.type()));
+                    throw PoiseException(PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for |: '{}' and '{}'", type(), other.type()));
             }
         }
         default:
-            throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for |: '{}' and '{}'", type(), other.type()));
+            throw PoiseException(PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for |: '{}' and '{}'", type(), other.type()));
     }
 }
 
@@ -233,11 +253,11 @@ auto Value::operator^(const Value& other) const -> Value
                 case TypeInternal::Int:
                     return value<i64>() ^ other.value<i64>();
                 default:
-                    throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for ^: '{}' and '{}'", type(), other.type()));
+                    throw PoiseException(PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for ^: '{}' and '{}'", type(), other.type()));
             }
         }
         default:
-            throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for ^: '{}' and '{}'", type(), other.type()));
+            throw PoiseException(PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for ^: '{}' and '{}'", type(), other.type()));
     }
 }
 
@@ -249,11 +269,11 @@ auto Value::operator&(const Value& other) const -> Value
                 case TypeInternal::Int:
                     return value<i64>() & other.value<i64>();
                 default:
-                    throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for &: '{}' and '{}'", type(), other.type()));
+                    throw PoiseException(PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for &: '{}' and '{}'", type(), other.type()));
             }
         }
         default:
-            throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for &: '{}' and '{}'", type(), other.type()));
+            throw PoiseException(PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for &: '{}' and '{}'", type(), other.type()));
     }
 }
 
@@ -265,11 +285,11 @@ auto Value::operator<<(const Value& other) const -> Value
                 case TypeInternal::Int:
                     return value<i64>() << other.value<i64>();
                 default:
-                    throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for <<: '{}' and '{}'", type(), other.type()));
+                    throw PoiseException(PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for <<: '{}' and '{}'", type(), other.type()));
             }
         }
         default:
-            throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for <<: '{}' and '{}'", type(), other.type()));
+            throw PoiseException(PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for <<: '{}' and '{}'", type(), other.type()));
     }
 }
 
@@ -281,11 +301,11 @@ auto Value::operator>>(const Value& other) const -> Value
                 case TypeInternal::Int:
                     return value<i64>() >> other.value<i64>();
                 default:
-                    throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for >>: '{}' and '{}'", type(), other.type()));
+                    throw PoiseException(PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for >>: '{}' and '{}'", type(), other.type()));
             }
         }
         default:
-            throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for >>: '{}' and '{}'", type(), other.type()));
+            throw PoiseException(PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for >>: '{}' and '{}'", type(), other.type()));
     }
 }
 
@@ -299,7 +319,7 @@ auto Value::operator+(const Value& other) const -> Value
                 case TypeInternal::Int:
                     return value<f64>() + static_cast<f64>(other.value<i64>());
                 default:
-                    throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for +: '{}' and '{}'", type(), other.type()));
+                    throw PoiseException(PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for +: '{}' and '{}'", type(), other.type()));
             }
         }
         case TypeInternal::Int: {
@@ -309,13 +329,13 @@ auto Value::operator+(const Value& other) const -> Value
                 case TypeInternal::Int:
                     return value<i64>() + other.value<i64>();
                 default:
-                    throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for +: '{}' and '{}'", type(), other.type()));
+                    throw PoiseException(PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for +: '{}' and '{}'", type(), other.type()));
             }
         }
         case TypeInternal::String:
             return string() + other.toString();
         default:
-            throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for +: '{}' and '{}'", type(), other.type()));
+            throw PoiseException(PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for +: '{}' and '{}'", type(), other.type()));
     }
 }
 
@@ -329,7 +349,7 @@ auto Value::operator-(const Value& other) const -> Value
                 case TypeInternal::Int:
                     return value<f64>() - static_cast<f64>(other.value<i64>());
                 default:
-                    throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for -: '{}' and '{}'", type(), other.type()));
+                    throw PoiseException(PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for -: '{}' and '{}'", type(), other.type()));
             }
         }
         case TypeInternal::Int: {
@@ -339,11 +359,11 @@ auto Value::operator-(const Value& other) const -> Value
                 case TypeInternal::Int:
                     return value<i64>() - other.value<i64>();
                 default:
-                    throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for -: '{}' and '{}'", type(), other.type()));
+                    throw PoiseException(PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for -: '{}' and '{}'", type(), other.type()));
             }
         }
         default:
-            throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for -: '{}' and '{}'", type(), other.type()));
+            throw PoiseException(PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for -: '{}' and '{}'", type(), other.type()));
     }
 }
 
@@ -357,7 +377,7 @@ auto Value::operator/(const Value& other) const -> Value
                 case TypeInternal::Int:
                     return value<f64>() / static_cast<f64>(other.value<i64>());
                 default:
-                    throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for /: '{}' and '{}'", type(), other.type()));
+                    throw PoiseException(PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for /: '{}' and '{}'", type(), other.type()));
             }
         }
         case TypeInternal::Int: {
@@ -367,11 +387,11 @@ auto Value::operator/(const Value& other) const -> Value
                 case TypeInternal::Int:
                     return value<i64>() / other.value<i64>();
                 default:
-                    throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for /: '{}' and '{}'", type(), other.type()));
+                    throw PoiseException(PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for /: '{}' and '{}'", type(), other.type()));
             }
         }
         default:
-            throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for /: '{}' and '{}'", type(), other.type()));
+            throw PoiseException(PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for /: '{}' and '{}'", type(), other.type()));
     }
 }
 
@@ -385,7 +405,7 @@ auto Value::operator*(const Value& other) const -> Value
                 case TypeInternal::Int:
                     return value<f64>() * static_cast<f64>(other.value<i64>());
                 default:
-                    throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for *: '{}' and '{}'", type(), other.type()));
+                    throw PoiseException(PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for *: '{}' and '{}'", type(), other.type()));
             }
         }
         case TypeInternal::Int: {
@@ -395,14 +415,14 @@ auto Value::operator*(const Value& other) const -> Value
                 case TypeInternal::Int:
                     return value<i64>() * other.value<i64>();
                 default:
-                    throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for *: '{}' and '{}'", type(), other.type()));
+                    throw PoiseException(PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for *: '{}' and '{}'", type(), other.type()));
             }
         }
         case TypeInternal::String: {
             switch (other.typeInternal()) {
                 case TypeInternal::Int: {
                     if (other.value<i64>() < 0) {
-                        throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, "Factor to repeat string cannot be type");
+                        throw PoiseException(PoiseException::ExceptionType::InvalidOperand, "Factor to repeat string cannot be type");
                     }
 
                     std::string res;
@@ -414,11 +434,11 @@ auto Value::operator*(const Value& other) const -> Value
                     return res;
                 }
                 default:
-                    throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for *: '{}' and '{}'", type(), other.type()));
+                    throw PoiseException(PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for *: '{}' and '{}'", type(), other.type()));
             }
         }
         default:
-            throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for *: '{}' and '{}'", type(), other.type()));
+            throw PoiseException(PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for *: '{}' and '{}'", type(), other.type()));
     }
 }
 
@@ -431,11 +451,11 @@ auto Value::operator%(const Value& other) const -> Value
                     return value<i64>() % other.value<i64>();
                 }
                 default:
-                    throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for %: '{}' and '{}'", type(), other.type()));
+                    throw PoiseException(PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for %: '{}' and '{}'", type(), other.type()));
             }
         }
         default:
-            throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for %: '{}' and '{}'", type(), other.type()));
+            throw PoiseException(PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for %: '{}' and '{}'", type(), other.type()));
     }
 }
 
@@ -450,7 +470,7 @@ auto Value::operator~() const -> Value
         case TypeInternal::Int:
             return ~value<i64>();
         default:
-            throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand type for ~: '{}'", type()));
+            throw PoiseException(PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand type for ~: '{}'", type()));
     }
 }
 
@@ -462,7 +482,7 @@ auto Value::operator-() const -> Value
         case TypeInternal::Float:
             return -value<f64>();
         default:
-            throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand type for -: '{}'", type()));
+            throw PoiseException(PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand type for -: '{}'", type()));
     }
 }
 
@@ -474,7 +494,7 @@ auto Value::operator+() const -> Value
         case TypeInternal::Float:
             return +value<f64>();
         default:
-            throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand type for +: '{}'", type()));
+            throw PoiseException(PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand type for +: '{}'", type()));
     }
 }
 
@@ -551,7 +571,7 @@ auto Value::operator<(const Value& other) const -> bool
                     return value<f64>() < static_cast<f64>(other.value<i64>());
                 }
                 default:
-                    throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand type for <: '{}' and '{}'", type(), other.type()));
+                    throw PoiseException(PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand type for <: '{}' and '{}'", type(), other.type()));
             }
         }
         case TypeInternal::Int: {
@@ -563,11 +583,11 @@ auto Value::operator<(const Value& other) const -> bool
                     return value<i64>() < other.value<i64>();
                 }
                 default:
-                    throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand type for <: '{}' and '{}'", type(), other.type()));
+                    throw PoiseException(PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand type for <: '{}' and '{}'", type(), other.type()));
             }
         }
         default:
-            throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand type for <: '{}' and '{}'", type(), other.type()));
+            throw PoiseException(PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand type for <: '{}' and '{}'", type(), other.type()));
     }
 }
 
@@ -583,7 +603,7 @@ auto Value::operator<=(const Value& other) const -> bool
                     return value<f64>() <= static_cast<f64>(other.value<i64>());
                 }
                 default:
-                    throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand type for <=: '{}' and '{}'", type(), other.type()));
+                    throw PoiseException(PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand type for <=: '{}' and '{}'", type(), other.type()));
             }
         }
         case TypeInternal::Int: {
@@ -595,11 +615,11 @@ auto Value::operator<=(const Value& other) const -> bool
                     return value<i64>() <= other.value<i64>();
                 }
                 default:
-                    throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand type for <=: '{}' and '{}'", type(), other.type()));
+                    throw PoiseException(PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand type for <=: '{}' and '{}'", type(), other.type()));
             }
         }
         default:
-            throw objects::PoiseException(objects::PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand type for <=: '{}' and '{}'", type(), other.type()));
+            throw PoiseException(PoiseException::ExceptionType::InvalidOperand, fmt::format("Invalid operand type for <=: '{}' and '{}'", type(), other.type()));
     }
 }
 

@@ -69,7 +69,8 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * Iterable collections
         * Tidy up access modifiers
         * ~~Lists~~
-        * ~~Ranges~~
+        * Ranges
+            * Can't change the internal state of the range so that you can iterate over it many times, or concurrently
         * Tuple
         * Dicts
         * Sets
