@@ -28,6 +28,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * Think about whether you should be able to unpack anywhere
     * How would we know what to pop off the stack, if only one of the values is used?
     * Unpacking would need a different Vm implementation
+    * What if packs were just lists...
 * Vectors instead of maps!
 
 ## Feature Roadmap
@@ -69,8 +70,8 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * Iterable collections
         * Tidy up access modifiers
         * ~~Lists~~
-        * Ranges
-            * Can't change the internal state of the range so that you can iterate over it many times, or concurrently
+        * ~~Ranges~~
+            * ~~Can't change the internal state of the range so that you can iterate over it many times, or concurrently~~
         * Tuple
         * Dicts
         * Sets

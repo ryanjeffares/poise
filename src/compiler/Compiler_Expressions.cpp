@@ -626,8 +626,6 @@ auto Compiler::lambda() -> void
 
     const auto [numArgs, hasPack, extensionFunctionType] = *args;
 
-    RETURN_IF_NO_MATCH(scanner::TokenType::OpenBrace, "Expected '{");
-
     const auto prevFunction = m_vm->currentFunction();
 
     m_contextStack.push_back(Context::Function);
@@ -643,18 +641,26 @@ auto Compiler::lambda() -> void
         emitOp(runtime::Op::LoadCapture, m_previous->line());
     }
 
-    if (!parseBlock("lambda")) {
-        return;
-    }
+    if (match(scanner::TokenType::OpenBrace)) {
+        if (!parseBlock("lambda")) {
+            return;
+        }
 
-    if (functionPtr->opList().empty() || functionPtr->opList().back().op != runtime::Op::Return) {
-        // if no return statement, make sure we pop locals and implicitly return none
+        if (functionPtr->opList().empty() || functionPtr->opList().back().op != runtime::Op::Return) {
+            // if no return statement, make sure we pop locals and implicitly return none
+            emitConstant(0);
+            emitOp(runtime::Op::PopLocals, m_previous->line());
+            emitConstant(runtime::Value::none());
+            emitOp(runtime::Op::LoadConstant, m_previous->line());
+            emitOp(runtime::Op::Return, m_previous->line());
+        }
+    } else {
+        expression(false, false);
         emitConstant(0);
         emitOp(runtime::Op::PopLocals, m_previous->line());
-        emitConstant(runtime::Value::none());
-        emitOp(runtime::Op::LoadConstant, m_previous->line());
         emitOp(runtime::Op::Return, m_previous->line());
     }
+
 
 #ifdef POISE_DEBUG
     functionPtr->printOps();

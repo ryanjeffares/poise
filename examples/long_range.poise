@@ -8,4 +8,8 @@ func main() {
             println(value2);
         }
     }
+
+    println("===");
+    
+    for value in r { println(value); }
 }

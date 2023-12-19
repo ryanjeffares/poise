@@ -81,12 +81,10 @@ TEST_CASE("Compile and run 009_imports.poise")
 
 TEST_CASE("Compile and run 010_lists.poise")
 {
-
     runtime::Vm vm{"tests/test_files/010_lists.poise"};
     compiler::Compiler compiler{true, false, &vm, "tests/test_files/010_lists.poise"};
     REQUIRE(compiler.compile() == compiler::Compiler::CompileResult::Success);
     REQUIRE(vm.run() == runtime::Vm::RunResult::Success);
-
 }
 
 TEST_CASE("Compile and run 011_ranges.poise")
