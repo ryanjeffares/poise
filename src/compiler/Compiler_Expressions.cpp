@@ -654,11 +654,15 @@ auto Compiler::lambda() -> void
             emitOp(runtime::Op::LoadConstant, m_previous->line());
             emitOp(runtime::Op::Return, m_previous->line());
         }
-    } else {
+    } else if (match(scanner::TokenType::Arrow)) {
         expression(false, false);
         emitConstant(0);
         emitOp(runtime::Op::PopLocals, m_previous->line());
         emitOp(runtime::Op::Return, m_previous->line());
+    } else {
+        m_vm->setCurrentFunction(prevFunction);
+        errorAtCurrent("Expected '{' or '=>'");
+        return;
     }
 
 

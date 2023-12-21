@@ -47,6 +47,7 @@ enum class TokenType : u8
 
     // symbols
     Ampersand,
+    Arrow,
     Caret,
     CloseBrace,
     CloseParen,

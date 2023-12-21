@@ -141,7 +141,7 @@ auto Scanner::scanToken() noexcept -> Token
             case '!':
                 return multiCharSymbol({{'=', TokenType::NotEqual}}, TokenType::Equal);
             case '=':
-                return multiCharSymbol({{'=', TokenType::EqualEqual}}, TokenType::Equal);
+                return multiCharSymbol({{'=', TokenType::EqualEqual}, {'>', TokenType::Arrow}}, TokenType::Equal);
             case '<':
                 return multiCharSymbol({{'<', TokenType::ShiftLeft}, {'=', TokenType::LessEqual}}, TokenType::Less);
             case '>':

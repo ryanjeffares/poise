@@ -169,6 +169,9 @@ auto formatter<TokenType>::format(TokenType tokenType, format_context& context) 
         case TokenType::Ampersand:
             result = "Ampersand";
             break;
+        case TokenType::Arrow:
+            result = "Arrow";
+            break;
         case TokenType::Caret:
             result = "Caret";
             break;

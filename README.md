@@ -106,7 +106,11 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * Constant expressions
 * Pattern matching
 * Ifs as expressions
-* Single expression lambdas
+* ~~Single expression lambdas~~
+    * We could do implicit captures and use a function declaration instead of alternative lambda syntax
+    * Nah, I like it the way it is.
+    * ~~But, perhaps we could do `|| => <expr>` and then also have single line functions like that too (`func foo() => <expr>`)~~
+    * Figure out how to compile this as a statement rather than an expression - need to return null in case of a print or loop statement etc.
 * Type hints
 * CL arg parsing
 * Standard Library

@@ -95,28 +95,35 @@ auto Compiler::funcDeclaration(bool isExported) -> void
 
     const auto [numParams, hasPack, extensionFunctionType] = *params;
 
-    RETURN_IF_NO_MATCH(scanner::TokenType::OpenBrace, "Expected '{' after function signature");
-
-    auto prevFunction = m_vm->currentFunction();
-
     auto function = runtime::Value::createObject<objects::PoiseFunction>(std::move(functionName), m_filePath.string(), m_filePathHash, numParams, isExported, hasPack);
     auto functionPtr = function.object()->asFunction();
     m_vm->setCurrentFunction(functionPtr);
 
-    if (!parseBlock("function")) {
+    if (match(scanner::TokenType::OpenBrace)) {
+        if (!parseBlock("function")) {
+            return;
+        }
+
+        if (functionPtr->opList().empty() || functionPtr->opList().back().op != runtime::Op::Return) {
+            // if no return statement, make sure we pop locals and implicitly return none
+            emitConstant(0);
+            emitOp(runtime::Op::PopLocals, m_previous->line());
+            emitConstant(runtime::Value::none());
+            emitOp(runtime::Op::LoadConstant, m_previous->line());
+            emitOp(runtime::Op::Return, m_previous->line());
+        }
+    } else if (match(scanner::TokenType::Arrow)) {
+        expression(false, false);
+        emitConstant(0);
+        emitOp(runtime::Op::PopLocals, m_previous->line());
+        emitOp(runtime::Op::Return, m_previous->line());
+        EXPECT_SEMICOLON();
+    } else {
+        errorAtCurrent("Expected '{' or '=>'");
         return;
     }
 
-    if (functionPtr->opList().empty() || functionPtr->opList().back().op != runtime::Op::Return) {
-        // if no return statement, make sure we pop locals and implicitly return none
-        emitConstant(0);
-        emitOp(runtime::Op::PopLocals, m_previous->line());
-        emitConstant(runtime::Value::none());
-        emitOp(runtime::Op::LoadConstant, m_previous->line());
-        emitOp(runtime::Op::Return, m_previous->line());
-    }
-
-    m_vm->setCurrentFunction(prevFunction);
+    m_vm->setCurrentFunction(nullptr);
 
     if (functionPtr->name() == "main") {
         m_mainFunction = function;

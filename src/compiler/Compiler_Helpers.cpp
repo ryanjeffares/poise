@@ -138,7 +138,7 @@ auto Compiler::parseCallArgs(scanner::TokenType sentinel) -> std::optional<CallA
         expression(false, true);
         numArgs++;
 
-        if (m_vm->currentFunction()->opList().back().op == runtime::Op::Unpack) {
+        if (!m_vm->currentFunction()->opList().empty() && m_vm->currentFunction()->opList().back().op == runtime::Op::Unpack) {
             hasUnpack = true;
         }
 

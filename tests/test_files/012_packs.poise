@@ -32,7 +32,7 @@ func main() {
         println(i);
     }
 
-    final make_list = || (final args...) [...args];
+    final make_list = || (final args...) => [...args];
 
     println(make_list("Hello", "My", "Name", "Is", "Ryan"));
 }

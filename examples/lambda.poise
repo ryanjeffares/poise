@@ -7,9 +7,7 @@ func main() {
 
     final c = 2;
 
-    final multiply = |c| (final value) {
-        return value * c;
-    };
+    final multiply = |c| (final value) => value * c;
 
     println(multiply(2));
     println(multiply(4));

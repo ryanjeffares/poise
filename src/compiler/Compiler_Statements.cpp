@@ -60,7 +60,7 @@ auto Compiler::expressionStatement() -> void
 
     call(true, false);
 
-    if (m_vm->currentFunction()->opList().back().op != runtime::Op::AssignLocal) {
+    if (!m_vm->currentFunction()->opList().empty() && m_vm->currentFunction()->opList().back().op != runtime::Op::AssignLocal) {
         emitOp(runtime::Op::Pop, m_previous->line());
     }
 

@@ -1,20 +1,9 @@
 import std::list;
 
-export func is_infinite_loop(this final Range range) {
-    return __NATIVE_RANGE_IS_INFINITE_LOOP(range);
-}
-
-export func start(this final Range range) {
-    return __NATIVE_RANGE_START(range);
-}
-
-export func end(this final Range range) {
-    return __NATIVE_RANGE_END(range);
-}
-
-export func increment(this final Range range) {
-    return __NATIVE_RANGE_INCREMENT(range);
-}
+export func is_infinite_loop(this final Range range) => __NATIVE_RANGE_IS_INFINITE_LOOP(range);
+export func start(this final Range range) => __NATIVE_RANGE_START(range);
+export func end(this final Range range) => __NATIVE_RANGE_END(range);
+export func increment(this final Range range) => __NATIVE_RANGE_INCREMENT(range);
 
 export func contains(this final Range range, final value) {
     for i in range {
