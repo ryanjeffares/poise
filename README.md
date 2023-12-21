@@ -29,6 +29,8 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * How would we know what to pop off the stack, if only one of the values is used?
     * Unpacking would need a different Vm implementation
     * What if packs were just lists...
+* Full UFCS?
+* `Any` type annotation? To do this, it would make the most sense to refactor the internals so extension functions have a list of types they're implemented for, rather than the other way around, but that becomes very complicated to look up at runtime.
 * Vectors instead of maps!
 
 ## Feature Roadmap
@@ -93,10 +95,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * Friendship ended with `PoisePack`, `PoiseList` is my best friend now
     * A "pack" will not be a unique type, and you will simply be able to unpack any collection
 * Construct `Type` instance, `Type` ident
-* `Any` type keyword for implementing dot functions on any variable
 * Union type annotation so that we can implement functions on multiple collections
-    * If we're going to do this, maybe reverse the type -> function association so that we're not duplicating functions
-    * Also, when we revisit extension functions, do full UFCS
 * Break statements
 * Classes
     * Member variable access as well as extension function access
