@@ -95,7 +95,10 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * Friendship ended with `PoisePack`, `PoiseList` is my best friend now
     * A "pack" will not be a unique type, and you will simply be able to unpack any collection
 * Construct `Type` instance, `Type` ident
-* Union type annotation so that we can implement functions on multiple collections
+* ~~Union type annotation so that we can implement functions on multiple collections~~
+    * Have type aliases, eg `type OrderedCollection = List|Range`
+    * You should be able to export and import these
+    * Maybe leave this until we do user defined classes, and we can come up with a nice generic way to handle it, since we'll have to work off of identifiers rather than builtin type keywords.
 * Break statements
 * Classes
     * Member variable access as well as extension function access
@@ -108,8 +111,6 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * Pattern matching
 * Ifs as expressions
 * ~~Single expression lambdas~~
-    * We could do implicit captures and use a function declaration instead of alternative lambda syntax
-    * Nah, I like it the way it is.
     * ~~But, perhaps we could do `|| => <expr>` and then also have single line functions like that too (`func foo() => <expr>`)~~
     * Figure out how to compile this as a statement rather than an expression - need to return null in case of a print or loop statement etc.
 * ~~Type hints~~

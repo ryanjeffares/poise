@@ -93,7 +93,7 @@ auto Compiler::funcDeclaration(bool isExported) -> void
         return;
     }
 
-    const auto [numParams, hasPack, extensionFunctionType] = *params;
+    const auto& [numParams, hasPack, extensionFunctionTypes] = *params;
 
     if (match(scanner::TokenType::Colon)) {
         parseTypeAnnotation();
@@ -137,8 +137,10 @@ auto Compiler::funcDeclaration(bool isExported) -> void
     functionPtr->printOps();
 #endif
 
-    if (extensionFunctionType) {
-        m_vm->types()->typeValue(*extensionFunctionType).object()->asType()->addExtensionFunction(function);
+    if (!extensionFunctionTypes.empty()) {
+        for (const auto type : extensionFunctionTypes) {
+            m_vm->types()->typeValue(type).object()->asType()->addExtensionFunction(function);
+        }
     }
 
     m_vm->namespaceManager()->addFunctionToNamespace(m_filePathHash, std::move(function));

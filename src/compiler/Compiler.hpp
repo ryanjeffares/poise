@@ -73,7 +73,7 @@ private:
     {
         u8 numParams;
         bool hasPack;
-        std::optional<runtime::types::Type> extensionFunctionType;
+        std::vector<runtime::types::Type> extensionFunctionTypes;
     };
 
     struct NamespaceParseResult

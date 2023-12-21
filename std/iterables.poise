@@ -1,0 +1,30 @@
+import std::list;
+
+export func for_each(this final List|Range collection, final fn: Function) {
+    for item in collection {
+        fn(item);
+    }
+}
+
+export func map(this final List|Range collection, final fn): List {
+    final res = [];
+
+    for item in collection {
+        res.append(fn(item));
+    }
+
+    return res;
+}
+
+export func where(this final List|Range list, final predicate): List {
+    final res = [];
+
+    for item in list {
+        if predicate(item) {
+            res.append(item);
+        }
+    }
+
+    return res;
+}
+

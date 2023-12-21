@@ -1,0 +1,22 @@
+import std::iterables;
+
+func foo(this final Bool|Int option): Int|String {
+    if option {
+        return 0;
+    } else {
+        return "String!";
+    }
+}
+
+func main() {
+    println(true.foo());
+    println(0.foo());
+
+    (0..10).for_each(|| (final value) {
+        println("Range value is " + value);
+    });
+
+    ["Ryan", 42, false, none].for_each(|| (final value) {
+        println("List value is " + value);
+    });
+}

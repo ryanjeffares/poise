@@ -33,6 +33,11 @@ auto isTypeIdent(TokenType tokenType) noexcept -> bool
            tokenType == TokenType::RangeIdent;
 }
 
+auto isGenericTypeIdent(TokenType tokenType) noexcept -> bool
+{
+    return tokenType == TokenType::ListIdent;
+}
+
 auto isPrimitiveTypeIdent(TokenType tokenType) noexcept -> bool
 {
     return tokenType == TokenType::BoolIdent ||

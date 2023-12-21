@@ -15,34 +15,6 @@ export func remove_first(this final List list, final value): Bool => __NATIVE_LI
 // returns true if removal happened, false if no match was found or index out of range
 export func remove_at(this final List list, final index): Bool => __NATIVE_LIST_REMOVE_AT(list, index);
 
-export func where(this final List list, final predicate): List {
-    final res = [];
-
-    for item in list {
-        if predicate(item) {
-            res.append(item);
-        }
-    }
-
-    return res;
-}
-
-export func map(this final List list, final fn): List {
-    final res = [];
-
-    for item in list {
-        res.append(fn(item));
-    }
-
-    return res;
-}
-
-export func for_each(this final List list, final fn): None {
-    for item in list {
-        fn(item);
-    }
-}
-
 export func contains(this final List list, final value): Bool {
     for item in list {
         if item == value {

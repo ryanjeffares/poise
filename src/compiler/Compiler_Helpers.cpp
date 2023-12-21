@@ -4,6 +4,7 @@
 
 #include "Compiler.hpp"
 #include "Compiler_Macros.hpp"
+#include "../runtime/Types.hpp"
 
 #include <limits>
 
@@ -162,7 +163,7 @@ auto Compiler::parseFunctionParams(bool isLambda) -> std::optional<FunctionParam
     auto hasThisArg = false;
     auto hasPack = false;
     auto numParams = 0_u8;
-    std::optional<runtime::types::Type> extensionFunctionType;
+    std::vector <runtime::types::Type> extensionFunctionTypes;
 
     while (!match(scanner::TokenType::CloseParen)) {
         if (numParams == std::numeric_limits<u8>::max()) {
@@ -197,8 +198,22 @@ auto Compiler::parseFunctionParams(bool isLambda) -> std::optional<FunctionParam
                 return {};
             }
 
-            advance();
-            extensionFunctionType = static_cast<runtime::types::Type>(m_previous->tokenType());
+            while (true) {
+                advance();
+                extensionFunctionTypes.push_back(static_cast<runtime::types::Type>(m_previous->tokenType()));
+
+                if (check(scanner::TokenType::Identifier)) {
+                    break;
+                }
+
+                if (match(scanner::TokenType::Pipe)) {
+                    if (!scanner::isTypeIdent(m_current->tokenType())) {
+                        errorAtCurrent("Expected type");
+                        return {};
+                    }
+                }
+            }
+
             hasThisArg = false;
         }
 
@@ -238,7 +253,7 @@ auto Compiler::parseFunctionParams(bool isLambda) -> std::optional<FunctionParam
         }
     }
 
-    return {{numParams, hasPack, extensionFunctionType}};
+    return {{numParams, hasPack, std::move(extensionFunctionTypes)}};
 }
 
 auto Compiler::parseNamespaceImport() -> std::optional<NamespaceParseResult>
@@ -355,9 +370,18 @@ auto Compiler::parseTypeAnnotation() -> void
 
     advance();
 
+    if (check(scanner::TokenType::OpenSquareBracket) && !scanner::isGenericTypeIdent(m_previous->tokenType())) {
+        errorAtCurrent(fmt::format("Type {} is not generic", static_cast<runtime::types::Type>(m_previous->tokenType())));
+        return;
+    }
+
     if (match(scanner::TokenType::OpenSquareBracket)) {
         parseTypeAnnotation();
         RETURN_IF_NO_MATCH(scanner::TokenType::CloseSquareBracket, "Expected ']'");
+    }
+
+    if (match(scanner::TokenType::Pipe)) {
+        parseTypeAnnotation();
     }
 }
 }   // namespace poise::compiler

@@ -98,6 +98,7 @@ enum class TokenType : u8
 [[nodiscard]] auto isLiteral(TokenType tokenType) noexcept -> bool;
 [[nodiscard]] auto isUnaryOp(TokenType tokenType) noexcept -> bool;
 [[nodiscard]] auto isTypeIdent(TokenType tokenType) noexcept -> bool;
+[[nodiscard]] auto isGenericTypeIdent(TokenType tokenType) noexcept -> bool;
 [[nodiscard]] auto isPrimitiveTypeIdent(TokenType tokenType) noexcept -> bool;
 [[nodiscard]] auto isBuiltinFunction(TokenType tokenType) noexcept -> bool;
 [[nodiscard]] auto isValidStartOfExpression(TokenType tokenType) noexcept -> bool;
