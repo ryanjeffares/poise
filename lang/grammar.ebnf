@@ -10,6 +10,7 @@ finalDecl = "final", IDENTIFIER, [ { ",", IDENTIFIER } ], "=", [ "try" ], expres
 statement = assignmentStatement | expressionStatement | printlnStatement | returnStatement | tryCatchStatement
     | throwStatement | whileStatement | forStatement ;
 
+assignmentStatement = IDENTIFIER, "=", [ "try" ], expression, ";" ;
 expressionStatement = call, [ "=", [ "try" ], expression ], ";" ;
 printlnStatement = "println", "(", expression, ")" ;
 returnStatement = "return", [ expression ], ";" ;
@@ -39,7 +40,7 @@ FLOAT = { DIGIT }, ".", { DIGIT } ;
 INT = { DIGIT } ;
 NONE = "None" ;
 STRING = '"', [ { all characters } ], '"' ;
-TYPE = "Bool", "Float", "Int", "None", "String", "Function" ;
+TYPE = "Bool", "Float", "Int", "None", "String", "Function", "Exception", "List", "Range" ;
 TYPEOF = "typeof", "(", expression, ")" ;
 LAMBDA = "|", [ CAPTURE_LIST ], "|", "(", [ FUNCTION_ARGS ], ")", ":", BLOCK | ("=>", expression, ";") ;
 CAST = TYPE, "(", CALL_ARGS, ")" ;
@@ -53,5 +54,6 @@ FUNCTION_ARGS = [ "final" ], IDENTIFIER, [ { ",", [ "final" ], IDENTIFIER } ], [
 BLOCK = "{", [ { declaration - funcDecl } ], "}" ;
 PACK = IDENTIFIER, "..." ;
 UNPACK = "...", IDENTIFIER ;
+TYPE_ANNOTATION = TYPE, [ "[", TYPE, "]" ] ;
 
 NAMESPACE = IDENTIFIER, [ { "::", IDENTIFIER } ] ;
