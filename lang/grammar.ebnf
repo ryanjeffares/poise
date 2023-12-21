@@ -54,6 +54,6 @@ FUNCTION_ARGS = [ "final" ], IDENTIFIER, [ ":", TYPE_ANNOTATION ], [ { ",", [ "f
 BLOCK = "{", [ { declaration - funcDecl } ], "}" ;
 PACK = IDENTIFIER, "..." ;
 UNPACK = "...", IDENTIFIER ;
-TYPE_ANNOTATION = TYPE, [ "[", TYPE, "]" ] ;
+TYPE_ANNOTATION = TYPE, [ "[", TYPE, "]" ], [ "|", TYPE ] ;
 
 NAMESPACE = IDENTIFIER, [ { "::", IDENTIFIER } ] ;
