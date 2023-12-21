@@ -626,14 +626,16 @@ auto Compiler::lambda() -> void
 
     const auto [numArgs, hasPack, extensionFunctionType] = *args;
 
-    const auto prevFunction = m_vm->currentFunction();
+    if (match(scanner::TokenType::Colon)) {
+        parseTypeAnnotation();
+    }
 
     m_contextStack.push_back(Context::Function);
 
+    const auto prevFunction = m_vm->currentFunction();
     auto lambdaName = fmt::format("{}_lambda{}", prevFunction->name(), prevFunction->numLambdas());
     auto lambda = runtime::Value::createObject<objects::PoiseFunction>(std::move(lambdaName), m_filePath, m_filePathHash, numArgs, false, hasPack);
     auto functionPtr = lambda.object()->asFunction();
-
     m_vm->setCurrentFunction(functionPtr);
 
     for (auto i = 0_uz; i < m_localNames.size() - numArgs; i++) {

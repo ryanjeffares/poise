@@ -95,6 +95,10 @@ auto Compiler::funcDeclaration(bool isExported) -> void
 
     const auto [numParams, hasPack, extensionFunctionType] = *params;
 
+    if (match(scanner::TokenType::Colon)) {
+        parseTypeAnnotation();
+    }
+
     auto function = runtime::Value::createObject<objects::PoiseFunction>(std::move(functionName), m_filePath.string(), m_filePathHash, numParams, isExported, hasPack);
     auto functionPtr = function.object()->asFunction();
     m_vm->setCurrentFunction(functionPtr);
@@ -166,6 +170,10 @@ auto Compiler::varDeclaration(bool isFinal) -> void
     }
 
     m_localNames.push_back({std::move(varName), isFinal});
+
+    if (match(scanner::TokenType::Colon)) {
+        parseTypeAnnotation();
+    }
 
     if (match(scanner::TokenType::Equal)) {
         parseAssignment(std::nullopt);

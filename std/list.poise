@@ -1,21 +1,21 @@
-export func empty(this final List list) => __NATIVE_LIST_EMPTY(list);
-export func size(this final List list) => __NATIVE_LIST_SIZE(list);
-export func append(this final List list, final value) => __NATIVE_LIST_APPEND(list, value);
-export func clear(this final List list) => __NATIVE_LIST_CLEAR(list);
+export func empty(this final List list): Bool => __NATIVE_LIST_EMPTY(list);
+export func size(this final List list): Int => __NATIVE_LIST_SIZE(list);
+export func append(this final List list, final value): None => __NATIVE_LIST_APPEND(list, value);
+export func clear(this final List list): None => __NATIVE_LIST_CLEAR(list);
 
 // returns true if insertion happened, false if index was out of range
-export func insert(this final List list, final index, final value) => __NATIVE_LIST_INSERT(list, index, value);
+export func insert(this final List list, final index, final value): Bool => __NATIVE_LIST_INSERT(list, index, value);
 
 // returns count of matching values removed
-export func remove(this final List list, final value) => __NATIVE_LIST_REMOVE(list, value);
+export func remove(this final List list, final value): Int => __NATIVE_LIST_REMOVE(list, value);
 
 // returns true if removal happened, false if not
-export func remove_first(this final List list, final value) => __NATIVE_LIST_REMOVE_FIRST(list, value);
+export func remove_first(this final List list, final value): Bool => __NATIVE_LIST_REMOVE_FIRST(list, value);
 
 // returns true if removal happened, false if no match was found or index out of range
-export func remove_at(this final List list, final index) => __NATIVE_LIST_REMOVE_AT(list, index);
+export func remove_at(this final List list, final index): Bool => __NATIVE_LIST_REMOVE_AT(list, index);
 
-export func where(this final List list, final predicate) {
+export func where(this final List list, final predicate): List {
     final res = [];
 
     for item in list {
@@ -27,7 +27,7 @@ export func where(this final List list, final predicate) {
     return res;
 }
 
-export func map(this final List list, final fn) {
+export func map(this final List list, final fn): List {
     final res = [];
 
     for item in list {
@@ -37,13 +37,13 @@ export func map(this final List list, final fn) {
     return res;
 }
 
-export func for_each(this final List list, final fn) {
+export func for_each(this final List list, final fn): None {
     for item in list {
         fn(item);
     }
 }
 
-export func contains(this final List list, final value) {
+export func contains(this final List list, final value): Bool {
     for item in list {
         if item == value {
             return true;

@@ -2,17 +2,17 @@ func foo(a, b) {
     return a + b;
 }
 
-func make_foo() {
+func make_foo(): Function {
     return foo;
 }
 
-func bar(final s, multiplier) {
+func bar(final s: String, multiplier: Int): String {
     return s * multiplier;
 }
 
 func main() {
-    final foo = make_foo();
-    final res = foo(4, 3);
+    final foo: Function = make_foo();
+    final res: Int = foo(4, 3);
     println(res);
 
     println(make_foo()(3, 2));

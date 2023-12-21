@@ -17,12 +17,10 @@ func main() {
         println(error);
     }
 
-    try {
-        var a = try 2 * 10;
-        a = try throw_exception();
-    } catch e {
-        println(e);
-    }
+    var a = try 2 * 10;
+    println(a);
+    a = try throw_exception();
+    println(a);
 }
 
 func foo() {

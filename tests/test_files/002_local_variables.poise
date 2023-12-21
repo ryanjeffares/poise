@@ -1,7 +1,7 @@
 func main() {
-    var a = 2;
-    var b = "Hello";
-    final c = true;
+    var a: Int = 2;
+    var b: String = "Hello";
+    final c: Bool = true;
 
     println(a);
     println(b);

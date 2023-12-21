@@ -18,7 +18,7 @@ func main() {
     println(list1.contains(5));
     println(list.map(|| (final value) => value * 2));
 
-    final names = ["Ryan", "Syl", "Hays", "Jamie", "Sonya"];
+    final names: List[String] = ["Ryan", "Syl", "Hays", "Jamie", "Sonya"];
     for name, index in names {
         println("The name at " + index + " is " + name);
         if name == "Hays" {

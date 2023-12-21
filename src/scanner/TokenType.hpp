@@ -52,6 +52,7 @@ enum class TokenType : u8
     CloseBrace,
     CloseParen,
     CloseSquareBracket,
+    Colon,
     ColonColon,
     Comma,
     Dot,

@@ -32,6 +32,7 @@ public:
     [[nodiscard]] auto rangeStart() const noexcept -> runtime::Value;
     [[nodiscard]] auto rangeEnd() const noexcept -> runtime::Value;
     [[nodiscard]] auto rangeIncrement() const noexcept -> runtime::Value;
+    [[nodiscard]] auto rangeInclusive() const noexcept -> runtime::Value;
 
 private:
     static constexpr usize s_chunkSize = 8_uz;

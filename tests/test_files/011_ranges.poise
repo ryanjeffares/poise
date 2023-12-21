@@ -1,8 +1,7 @@
 import std::range;
-
 func main() {
-    final min = -10;
-    final max = 10;
+    final min: Int = -10;
+    final max: Int = 10;
     for i in min or 5 .. max * 100 by 4 {
         println(i);
     }

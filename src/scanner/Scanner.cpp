@@ -14,6 +14,7 @@ Scanner::Scanner(const std::filesystem::path& inFilePath)
         {'}', TokenType::CloseBrace},
         {')', TokenType::CloseParen},
         {']', TokenType::CloseSquareBracket},
+        {':', TokenType::Colon},
         {',', TokenType::Comma},
         {'.', TokenType::Dot},
         {'!', TokenType::Exclamation},
@@ -139,7 +140,7 @@ auto Scanner::scanToken() noexcept -> Token
 
         switch (*current) {
             case '!':
-                return multiCharSymbol({{'=', TokenType::NotEqual}}, TokenType::Equal);
+                return multiCharSymbol({{'=', TokenType::NotEqual}}, TokenType::Exclamation);
             case '=':
                 return multiCharSymbol({{'=', TokenType::EqualEqual}, {'>', TokenType::Arrow}}, TokenType::Equal);
             case '<':
@@ -155,14 +156,8 @@ auto Scanner::scanToken() noexcept -> Token
             }
             case '"':
                 return string();
-            case ':': {
-                if (peek() == ':') {
-                    advance();
-                    return makeToken(TokenType::ColonColon);
-                } else {
-                    return {TokenType::Error, m_line, m_column, std::string_view{m_code.data() + m_start, m_current - m_start}};
-                }
-            }
+            case ':':
+                return multiCharSymbol({{':', TokenType::ColonColon}}, TokenType::Colon);
             default: {
                 if (const auto t = m_symbolLookup.find(*current); t != m_symbolLookup.end()) {
                     return makeToken(t->second);

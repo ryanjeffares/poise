@@ -184,6 +184,9 @@ auto formatter<TokenType>::format(TokenType tokenType, format_context& context) 
         case TokenType::CloseSquareBracket:
             result = "CloseSquareBracket";
             break;
+        case TokenType::Colon:
+            result = "Colon";
+            break;
         case TokenType::ColonColon:
             result = "ColonColon";
             break;

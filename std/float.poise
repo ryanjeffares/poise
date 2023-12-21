@@ -1,3 +1,3 @@
-export func pow(this final Float base, final exponent) => __NATIVE_FLOAT_POW(base, exponent);
-export func abs(this final Float value) => __NATIVE_FLOAT_ABS(value);
-export func sqrt(this final Float value) => __NATIVE_FLOAT_SQRT(value);
+export func pow(this final Float base, final exponent): Float => __NATIVE_FLOAT_POW(base, exponent);
+export func abs(this final Float value): Float => __NATIVE_FLOAT_ABS(value);
+export func sqrt(this final Float value): Float => __NATIVE_FLOAT_SQRT(value);

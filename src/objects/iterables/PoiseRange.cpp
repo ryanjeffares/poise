@@ -109,6 +109,11 @@ auto PoiseRange::rangeIncrement() const noexcept -> runtime::Value
     return m_increment;
 }
 
+auto PoiseRange::rangeInclusive() const noexcept -> runtime::Value
+{
+    return m_inclusive;
+}
+
 auto PoiseRange::fillData(i64 value, i64 increment) -> void
 {
     const auto size = m_data.size();

@@ -1,9 +1,9 @@
-func say_hello() {
+func say_hello(): Bool {
     println("Hello");
     return true;
 }
 
-func say_goodbye() {
+func say_goodbye(): Bool {
     println("goodbye");
     return false;
 }

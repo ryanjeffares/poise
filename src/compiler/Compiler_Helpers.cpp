@@ -222,6 +222,10 @@ auto Compiler::parseFunctionParams(bool isLambda) -> std::optional<FunctionParam
             hasPack = true;
         }
 
+        if (match(scanner::TokenType::Colon)) {
+            parseTypeAnnotation();
+        }
+
         // trailing commas are allowed but all arguments must be comma separated
         // so here, if the next token is not a comma or a close paren, it's invalid
         if (!check(scanner::TokenType::CloseParen) && !check(scanner::TokenType::Comma)) {
@@ -339,6 +343,21 @@ auto Compiler::parseAssignment(std::optional<usize> localIndex) -> void
         emitOp(runtime::Op::AssignLocal, m_previous->line());
     } else {
         emitOp(runtime::Op::DeclareLocal, m_previous->line());
+    }
+}
+
+auto Compiler::parseTypeAnnotation() -> void
+{
+    if (!scanner::isTypeIdent(m_current->tokenType())) {
+        errorAtCurrent("Expected type");
+        return;
+    }
+
+    advance();
+
+    if (match(scanner::TokenType::OpenSquareBracket)) {
+        parseTypeAnnotation();
+        RETURN_IF_NO_MATCH(scanner::TokenType::CloseSquareBracket, "Expected ']'");
     }
 }
 }   // namespace poise::compiler

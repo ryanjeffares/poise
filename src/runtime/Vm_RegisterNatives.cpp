@@ -151,6 +151,7 @@ auto Vm::registerRangeNatives() noexcept -> void
             throwIfWrongType(0, args[0], types::Type::Range);
             return args[0].object()->asRange()->rangeStart();
         }});
+
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_RANGE_END"), NativeFunction{
         1, [](std::span<Value> args) -> Value {
             throwIfWrongType(0, args[0], types::Type::Range);
@@ -161,6 +162,12 @@ auto Vm::registerRangeNatives() noexcept -> void
         1, [](std::span<Value> args) -> Value {
             throwIfWrongType(0, args[0], types::Type::Range);
             return args[0].object()->asRange()->rangeIncrement();
+        }});
+
+    m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_RANGE_INCLUSIVE"), NativeFunction{
+        1, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0, args[0], types::Type::Range);
+            return args[0].object()->asRange()->rangeInclusive();
         }});
 }
 }   // namespace poise::runtime

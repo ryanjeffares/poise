@@ -1,4 +1,4 @@
-func fib(final n) {
+func fib(final n: Int): Int {
     if n < 2 {
         return n;
     } else {
@@ -6,7 +6,7 @@ func fib(final n) {
     }
 }
 
-func say_hello(final country) {
+func say_hello(final country: String) {
     if country == "France" {
         var a;
         println("Bonjour!");

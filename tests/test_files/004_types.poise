@@ -2,7 +2,7 @@ func return_type(final value) {
     return typeof(value);
 }
 
-func foo() {
+func foo(): None {
     println("Hello from foo()");
 }
 

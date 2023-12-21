@@ -3,9 +3,9 @@ program = { declaration } EOF ;
 declaration = importDecl | funcDecl | varDecl | finalDecl | statement ;
 
 importDecl = "import", NAMESPACE, ";" ;
-funcDecl = "func", IDENTIFIER, "(", [ FUNCTION_ARGS ], ")", BLOCK | ("=>", expression, ";") ;
-varDecl = "var", IDENTIFIER, [ { ",", IDENTIFIER } ], [ "=", [ "try" ], expression ], ";" ;
-finalDecl = "final", IDENTIFIER, [ { ",", IDENTIFIER } ], "=", [ "try" ], expression, ";" ;
+funcDecl = "func", IDENTIFIER, "(", [ FUNCTION_ARGS ], ")", [ ":", TYPE_ANNOTATION ], BLOCK | ("=>", expression, ";") ;
+varDecl = "var", IDENTIFIER, [ ":", TYPE_ANNOTATION ], [ { ",", IDENTIFIER, [ ":", TYPE_ANNOTATION ], } ], [ "=", [ "try" ], expression ], ";" ;
+finalDecl = "final", IDENTIFIER, [ ":", TYPE_ANNOTATION ], [ { ",", IDENTIFIER, [ ":", TYPE_ANNOTATION ] } ], "=", [ "try" ], expression, ";" ;
 
 statement = assignmentStatement | expressionStatement | printlnStatement | returnStatement | tryCatchStatement
     | throwStatement | whileStatement | forStatement ;
@@ -42,7 +42,7 @@ NONE = "None" ;
 STRING = '"', [ { all characters } ], '"' ;
 TYPE = "Bool", "Float", "Int", "None", "String", "Function", "Exception", "List", "Range" ;
 TYPEOF = "typeof", "(", expression, ")" ;
-LAMBDA = "|", [ CAPTURE_LIST ], "|", "(", [ FUNCTION_ARGS ], ")", ":", BLOCK | ("=>", expression, ";") ;
+LAMBDA = "|", [ CAPTURE_LIST ], "|", "(", [ FUNCTION_ARGS ], ")", [ ":", TYPE_ANNOTATION ], BLOCK | ("=>", expression, ";") ;
 CAST = TYPE, "(", CALL_ARGS, ")" ;
 LIST = "[", CALL_ARGS, "]" ;
 
@@ -50,7 +50,7 @@ DIGIT = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 ;
 
 CAPTURE_LIST = IDENTIFIER, [ { ",", IDENTIFIER } ], [ "," ] ;
 CALL_ARGS = expression, [ { ",", expression } ], [ "," ] ;
-FUNCTION_ARGS = [ "final" ], IDENTIFIER, [ { ",", [ "final" ], IDENTIFIER } ], [ ",", PACK ], [ "," ] ;
+FUNCTION_ARGS = [ "final" ], IDENTIFIER, [ ":", TYPE_ANNOTATION ], [ { ",", [ "final" ], IDENTIFIER, [ ":", TYPE_ANNOTATION ] } ], [ ",", PACK ], [ "," ] ;
 BLOCK = "{", [ { declaration - funcDecl } ], "}" ;
 PACK = IDENTIFIER, "..." ;
 UNPACK = "...", IDENTIFIER ;

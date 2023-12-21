@@ -1,0 +1,22 @@
+import std::list;
+
+func stringify_list(final list: List): List[String] {
+    final res: List[String] = [];
+    for item in list {
+        res.append(item);
+    }
+    return res;
+}
+
+func main() {
+    final data: List = ["Ryan", 42, false, ["Hello"]];
+    println(stringify_list(data));
+
+    final matrix: List[List[Int]] = [
+        [0, 1, 2, 3],
+        [0, 1, 2, 3],
+        [0, 1, 2, 3],
+        [0, 1, 2, 3],
+    ];
+    println(matrix);
+}
