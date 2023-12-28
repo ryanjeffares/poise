@@ -29,8 +29,12 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * How would we know what to pop off the stack, if only one of the values is used?
     * Unpacking would need a different Vm implementation
     * What if packs were just lists...
-* Full UFCS?
-* `Any` type annotation? To do this, it would make the most sense to refactor the internals so extension functions have a list of types they're implemented for, rather than the other way around, but that becomes very complicated to look up at runtime.
+* Full UFCS + `Any` type annotation?
+    * In general, I think I prefer the idea of having an `Any` type annotation as opposed to full UFCS.
+    * However, adding an extension function to `Any` gets complicated.
+    * Currently, each type has a list of its extension functions. Keeping this system, an extension function on `Any` would have to be added to all current and future types when compiled
+    * We'd have to reverse this association, so each function knows which types it extends, but this is tedious to look up at runtime
+    * So maybe the current system is ok? A `PoiseFunction` instance in a `Value` is basically a shared pointer, so it's not too crazy
 * Vectors instead of maps!
 
 ## Feature Roadmap
@@ -80,8 +84,8 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
         * Index operator
     * Special constructors for the above
     * Binary ops for the above
-    * Could we do some kind of rust/c# linq/ranges style functor...
-    * Option and Result types?
+    * Could we do some kind of rust/c# linq/ranges style lazy evaluation...
+    * ~~Option and Result types?~~
         * No need, `try` assignments work like Results, everything is an option because anything can be `none` - implement `is_none()` and `is_some()` on `Any`
 * For loops
     * Make sure everything's working fine for more collections we add
