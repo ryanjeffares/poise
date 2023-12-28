@@ -63,6 +63,9 @@ private:
     [[nodiscard]] auto findLocal(std::string_view localName) const noexcept -> std::optional<LocalVariable>;
     [[nodiscard]] auto indexOfLocal(std::string_view localName) const noexcept -> std::optional<usize>;
 
+    [[nodiscard]] auto checkLastOp(runtime::Op op) const noexcept -> bool;
+    [[nodiscard]] auto lastOpWasAssignment() const noexcept -> bool;
+
     struct CallArgsParseResult
     {
         u8 numArgs;
@@ -95,13 +98,13 @@ private:
     auto funcDeclaration(bool isExported) -> void;
     auto varDeclaration(bool isFinal) -> void;
 
-    auto statement() -> void;
-    auto expressionStatement() -> void;
-    auto printStatement(bool err, bool newLine) -> void;
-    auto returnStatement() -> void;
+    auto statement(bool consumeSemicolon) -> void;
+    auto expressionStatement(bool consumeSemicolon) -> void;
+    auto printStatement(bool err, bool newLine, bool consumeSemicolon) -> void;
+    auto returnStatement(bool consumeSemicolon) -> void;
+    auto throwStatement(bool consumeSemicolon) -> void;
     auto tryStatement() -> void;
     auto catchStatement() -> void;
-    auto throwStatement() -> void;
     auto ifStatement() -> void;
     auto whileStatement() -> void;
     auto forStatement() -> void;

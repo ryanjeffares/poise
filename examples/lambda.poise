@@ -1,7 +1,6 @@
 func main() {
-    final hello_world = || {
-        println("Hello, world!");
-    };
+    var a;
+    final hello_world = |a| => a = ("Hello, world!");
 
     hello_world();
 

@@ -647,26 +647,36 @@ auto Compiler::lambda() -> void
         if (!parseBlock("lambda")) {
             return;
         }
-
-        if (functionPtr->opList().empty() || functionPtr->opList().back().op != runtime::Op::Return) {
-            // if no return statement, make sure we pop locals and implicitly return none
-            emitConstant(0);
-            emitOp(runtime::Op::PopLocals, m_previous->line());
-            emitConstant(runtime::Value::none());
-            emitOp(runtime::Op::LoadConstant, m_previous->line());
-            emitOp(runtime::Op::Return, m_previous->line());
-        }
     } else if (match(scanner::TokenType::Arrow)) {
-        expression(false, false);
-        emitConstant(0);
-        emitOp(runtime::Op::PopLocals, m_previous->line());
-        emitOp(runtime::Op::Return, m_previous->line());
+        // could be an expression, or a statement
+        // if it's a statement that's NOT a return, just parse that and return none
+        // if it's a return statement, nothing to be done
+        if (scanner::isValidStartOfExpression(m_current->tokenType())){
+            expression(true, false);
+            emitConstant(0);
+            if (lastOpWasAssignment()) {
+                emitConstant(runtime::Value::none());
+                emitOp(runtime::Op::LoadConstant, m_previous->line());
+            }
+            emitOp(runtime::Op::PopLocals, m_previous->line());
+            emitOp(runtime::Op::Return, m_previous->line());
+        } else {
+            statement(false);
+        }
     } else {
         m_vm->setCurrentFunction(prevFunction);
         errorAtCurrent("Expected '{' or '=>'");
         return;
     }
 
+    if (!checkLastOp(runtime::Op::Return)) {
+        // if no return statement, make sure we pop locals and implicitly return none
+        emitConstant(0);
+        emitOp(runtime::Op::PopLocals, m_previous->line());
+        emitConstant(runtime::Value::none());
+        emitOp(runtime::Op::LoadConstant, m_previous->line());
+        emitOp(runtime::Op::Return, m_previous->line());
+    }
 
 #ifdef POISE_DEBUG
     functionPtr->printOps();

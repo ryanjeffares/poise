@@ -1,14 +1,8 @@
-func foo(a, b) {
-    return a + b;
-}
+func foo(a, b) => a + b;
 
-func make_foo(): Function {
-    return foo;
-}
+func make_foo(): Function => foo;
 
-func bar(final s: String, multiplier: Int): String {
-    return s * multiplier;
-}
+func bar(final s: String, multiplier: Int): String => s * multiplier;
 
 func main() {
     final foo: Function = make_foo();

@@ -6,7 +6,7 @@
 #include "Compiler_Macros.hpp"
 
 namespace poise::compiler {
-auto Compiler::statement() -> void
+auto Compiler::statement(bool consumeSemicolon) -> void
 {
     if (m_contextStack.back() == Context::TopLevel) {
         errorAtCurrent("Statements not allowed at top level");
@@ -17,13 +17,13 @@ auto Compiler::statement() -> void
         || match(scanner::TokenType::EPrint) || match(scanner::TokenType::EPrintLn)) {
         const auto err = m_previous->tokenType() == scanner::TokenType::EPrint || m_previous->tokenType() == scanner::TokenType::EPrintLn;
         const auto newLine = m_previous->tokenType() == scanner::TokenType::PrintLn || m_previous->tokenType() == scanner::TokenType::EPrintLn;
-        printStatement(err, newLine);
+        printStatement(err, newLine, consumeSemicolon);
     } else if (match(scanner::TokenType::Return)) {
-        returnStatement();
+        returnStatement(consumeSemicolon);
+    } else if (match(scanner::TokenType::Throw)) {
+        throwStatement(consumeSemicolon);
     } else if (match(scanner::TokenType::Try)) {
         tryStatement();
-    } else if (match(scanner::TokenType::Throw)) {
-        throwStatement();
     } else if (match(scanner::TokenType::If)) {
         ifStatement();
     } else if (match(scanner::TokenType::While)) {
@@ -31,23 +31,21 @@ auto Compiler::statement() -> void
     } else if (match(scanner::TokenType::For)) {
         forStatement();
     } else {
-        expressionStatement();
+        expressionStatement(consumeSemicolon);
     }
 }
 
-auto Compiler::expressionStatement() -> void
+auto Compiler::expressionStatement(bool consumeSemicolon) -> void
 {
     /*
         calling `expression()` in any other context means the result of that expression is being consumed
         but this function is called when you have a line that's just like
 
         ```
-        5 + 5;
         some_void_function();
         ```
 
         so emit an extra `Pop` instruction to remove that unused result
-
         OR an assignment
 
         ```
@@ -56,18 +54,21 @@ auto Compiler::expressionStatement() -> void
         ```
 
         in that case, nothing to pop if the last emitted op was assign local
+        TODO: will need to check for assigning members and indexing
     */
 
     call(true, false);
 
-    if (!m_vm->currentFunction()->opList().empty() && m_vm->currentFunction()->opList().back().op != runtime::Op::AssignLocal) {
+    if (!lastOpWasAssignment()) {
         emitOp(runtime::Op::Pop, m_previous->line());
     }
 
-    EXPECT_SEMICOLON();
+    if (consumeSemicolon) {
+        EXPECT_SEMICOLON();
+    }
 }
 
-auto Compiler::printStatement(bool err, bool newLine) -> void
+auto Compiler::printStatement(bool err, bool newLine, bool consumeSemicolon) -> void
 {
     RETURN_IF_NO_MATCH(scanner::TokenType::OpenParen, "Expected '(' after 'println'");
 
@@ -77,10 +78,13 @@ auto Compiler::printStatement(bool err, bool newLine) -> void
     emitOp(runtime::Op::Print, m_previous->line());
 
     RETURN_IF_NO_MATCH(scanner::TokenType::CloseParen, "Expected ')' after 'println'");
-    EXPECT_SEMICOLON();
+
+    if (consumeSemicolon) {
+        EXPECT_SEMICOLON();
+    }
 }
 
-auto Compiler::returnStatement() -> void
+auto Compiler::returnStatement(bool consumeSemicolon) -> void
 {
     if (match(scanner::TokenType::Semicolon)) {
         // emit none value to return if no value is returned
@@ -98,7 +102,24 @@ auto Compiler::returnStatement() -> void
     // expression above is still on the stack
     emitOp(runtime::Op::Return, m_previous->line());
 
-    EXPECT_SEMICOLON();
+    if (consumeSemicolon) {
+        EXPECT_SEMICOLON();
+    }
+}
+
+auto Compiler::throwStatement(bool consumeSemicolon) -> void
+{
+    if (m_contextStack.back() == Context::TopLevel) {
+        errorAtPrevious("'throw' not allowed at top level");
+        return;
+    }
+
+    expression(false, false);
+    emitOp(runtime::Op::Throw, m_previous->line());
+
+    if (consumeSemicolon) {
+        EXPECT_SEMICOLON();
+    }
 }
 
 auto Compiler::tryStatement() -> void
@@ -183,19 +204,6 @@ auto Compiler::catchStatement() -> void
     m_localNames.resize(numLocalsStart);
 
     m_contextStack.pop_back();
-}
-
-auto Compiler::throwStatement() -> void
-{
-    if (m_contextStack.back() == Context::TopLevel) {
-        errorAtPrevious("'throw' not allowed at top level");
-        return;
-    }
-
-    expression(false, false);
-    emitOp(runtime::Op::Throw, m_previous->line());
-
-    EXPECT_SEMICOLON();
 }
 
 auto Compiler::ifStatement() -> void

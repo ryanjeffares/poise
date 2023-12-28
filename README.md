@@ -112,7 +112,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * Ifs as expressions
 * ~~Single expression lambdas~~
     * ~~But, perhaps we could do `|| => <expr>` and then also have single line functions like that too (`func foo() => <expr>`)~~
-    * Figure out how to compile this as a statement rather than an expression - need to return null in case of a print or loop statement etc.
+    * ~~Figure out how to compile this as a statement rather than an expression - need to return null in case of a print or loop statement etc.~~
 * ~~Type hints~~
     * Expand to include user defined classes when we do these
         * Could we compile time check for the existence of the class? Is there a situation where you'd need to define a function that takes a class, before defining that class?

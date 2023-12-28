@@ -1,10 +1,6 @@
-func return_type(final value) {
-    return typeof(value);
-}
+func return_type(final value) => typeof(value);
 
-func foo(): None {
-    println("Hello from foo()");
-}
+func foo(): None => println("Hello from foo()");
 
 func main() {
     var t_int = Int;

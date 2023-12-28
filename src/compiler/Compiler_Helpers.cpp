@@ -120,6 +120,17 @@ auto Compiler::indexOfLocal(std::string_view localName) const noexcept -> std::o
     }
 }
 
+auto Compiler::checkLastOp(runtime::Op op) const noexcept -> bool
+{
+    return !m_vm->currentFunction()->opList().empty() && m_vm->currentFunction()->opList().back().op == op;
+}
+
+auto Compiler::lastOpWasAssignment() const noexcept -> bool
+{
+    // TODO: add member assignment, index assignment
+    return checkLastOp(runtime::Op::AssignLocal);
+}
+
 auto Compiler::parseCallArgs(scanner::TokenType sentinel) -> std::optional<CallArgsParseResult>
 {
     auto numArgs = 0_u8;
@@ -139,7 +150,7 @@ auto Compiler::parseCallArgs(scanner::TokenType sentinel) -> std::optional<CallA
         expression(false, true);
         numArgs++;
 
-        if (!m_vm->currentFunction()->opList().empty() && m_vm->currentFunction()->opList().back().op == runtime::Op::Unpack) {
+        if (checkLastOp(runtime::Op::Unpack)) {
             hasUnpack = true;
         }
 

@@ -17,9 +17,7 @@ func main() {
     l2.append(l2);
     println(l2);
 
-    println(l.map(|| (final value) {
-        return value *2 ;
-    }));
+    println(l.map(|| (final value) => value *2));
 
     final l3 = List(false, "Ryan", main);
     println(l3);

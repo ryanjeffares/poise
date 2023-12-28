@@ -23,7 +23,7 @@ auto Compiler::declaration() -> void
             errorAtCurrent("Expected function");
         }
     } else {
-        statement();
+        statement(true);
     }
 }
 
@@ -107,24 +107,32 @@ auto Compiler::funcDeclaration(bool isExported) -> void
         if (!parseBlock("function")) {
             return;
         }
-
-        if (functionPtr->opList().empty() || functionPtr->opList().back().op != runtime::Op::Return) {
-            // if no return statement, make sure we pop locals and implicitly return none
-            emitConstant(0);
-            emitOp(runtime::Op::PopLocals, m_previous->line());
-            emitConstant(runtime::Value::none());
-            emitOp(runtime::Op::LoadConstant, m_previous->line());
-            emitOp(runtime::Op::Return, m_previous->line());
-        }
     } else if (match(scanner::TokenType::Arrow)) {
-        expression(false, false);
-        emitConstant(0);
-        emitOp(runtime::Op::PopLocals, m_previous->line());
-        emitOp(runtime::Op::Return, m_previous->line());
-        EXPECT_SEMICOLON();
+        if (scanner::isValidStartOfExpression(m_current->tokenType())) {
+            expression(false, false);
+            emitConstant(0);
+            if (lastOpWasAssignment()) {
+                emitConstant(runtime::Value::none());
+                emitOp(runtime::Op::LoadConstant, m_previous->line());
+            }
+            emitOp(runtime::Op::PopLocals, m_previous->line());
+            emitOp(runtime::Op::Return, m_previous->line());
+            EXPECT_SEMICOLON();
+        } else {
+            statement(true);
+        }
     } else {
         errorAtCurrent("Expected '{' or '=>'");
         return;
+    }
+
+    if (!checkLastOp(runtime::Op::Return)) {
+        // if no return statement, make sure we pop locals and implicitly return none
+        emitConstant(0);
+        emitOp(runtime::Op::PopLocals, m_previous->line());
+        emitConstant(runtime::Value::none());
+        emitOp(runtime::Op::LoadConstant, m_previous->line());
+        emitOp(runtime::Op::Return, m_previous->line());
     }
 
     m_vm->setCurrentFunction(nullptr);

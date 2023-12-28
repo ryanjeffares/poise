@@ -1,6 +1,4 @@
-func throw_exception() {
-    throw Exception("Oops");
-}
+func throw_exception() => throw Exception("Oops");
 
 func main() {
     try {
@@ -23,22 +21,8 @@ func main() {
     println(a);
 }
 
-func foo() {
-    return bar();
-}
-
-func bar() {
-    return baz();
-}
-
-func baz() {
-    return faz();
-}
-
-func faz() {
-    return boo();
-}
-
-func boo() {
-    return "Hello" / 2;
-}
+func foo() => bar();
+func bar() => baz();
+func baz() => faz();
+func faz() => boo();
+func boo() => "Hello" / 2;

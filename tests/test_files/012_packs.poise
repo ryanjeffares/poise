@@ -1,8 +1,6 @@
 import std::function;
 
-func print_one(final arg) {
-    println(arg);
-}
+func print_one(final arg) => println(arg);
 
 func print_two(final arg1, final arg2) {
     print(arg1);
