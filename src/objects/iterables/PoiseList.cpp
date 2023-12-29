@@ -3,11 +3,45 @@
 //
 
 #include "PoiseList.hpp"
+#include "PoiseRange.hpp"
 #include "../PoiseException.hpp"
+#include "../PoisePack.hpp"
 
 #include <ranges>
 
 namespace poise::objects::iterables {
+
+PoiseList::PoiseList(runtime::Value value)
+{
+    switch (value.type()) {
+        case runtime::types::Type::String: {
+            for (const auto c : value.string()) {
+                m_data.emplace_back(std::string(1_uz, c));
+            }
+            break;
+        }
+        case runtime::types::Type::List: {
+            for (const auto& item : value.object()->asList()->data()) {
+                m_data.push_back(item);
+            }
+            break;
+        }
+        case runtime::types::Type::Range: {
+            m_data = value.object()->asRange()->toVector();
+            break;
+        }
+        case runtime::types::Type::Pack: {
+            for (const auto& item : value.object()->asPack()->values()) {
+                m_data.push_back(item);
+            }
+            break;
+        }
+        default: {
+            m_data.emplace_back(std::move(value));
+            break;
+        }
+    }
+}
 
 PoiseList::PoiseList(std::vector<runtime::Value> data) : PoiseIterable{std::move(data)}
 {

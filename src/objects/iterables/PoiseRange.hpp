@@ -13,7 +13,7 @@ class PoiseRange : public PoiseObject, public PoiseIterable
 {
 public:
     // all values are required to be checked to be numbers before this is called
-    PoiseRange(runtime::Value value, runtime::Value end, runtime::Value increment, bool inclusive);
+    PoiseRange(runtime::Value start, runtime::Value end, runtime::Value increment, bool inclusive);
     ~PoiseRange() override = default;
 
     [[nodiscard]] auto asRange() noexcept -> iterables::PoiseRange* override;
@@ -34,6 +34,7 @@ public:
     [[nodiscard]] auto rangeIncrement() const noexcept -> runtime::Value;
     [[nodiscard]] auto rangeInclusive() const noexcept -> runtime::Value;
 
+    [[nodiscard]] auto toVector() const noexcept -> std::vector<runtime::Value>;
 private:
     static constexpr usize s_chunkSize = 8_uz;
 

@@ -34,7 +34,7 @@ TEST_CASE("PoiseList functions and iteration")
     using namespace poise::runtime;
     using namespace poise::objects::iterables;
 
-    PoiseList list{{}};
+    PoiseList list{std::vector<runtime::Value>{}};
     REQUIRE(list.empty());
     PoiseIterator emptyIterator{&list};
     REQUIRE(emptyIterator.isAtEnd());
@@ -70,6 +70,11 @@ TEST_CASE("PoiseList functions and iteration")
     list.clear();
     REQUIRE(list.empty());
     REQUIRE(!iterator.valid());
+
+    PoiseList fromString{"Hello"};
+    REQUIRE(fromString.size() == 5_uz);
+    PoiseList fromRange{Value::createObject<PoiseRange>(0, 10, 1, false)};
+    REQUIRE(fromRange.size() == 10_uz);
 }
 
 TEST_CASE("PoiseRange functions and iteration")

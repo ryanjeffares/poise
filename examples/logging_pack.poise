@@ -1,0 +1,13 @@
+func add(a: Int, b: Int) => a + b;
+
+func logger(message: String, function: Function) {
+    return |message, function| (args...) {
+        println(message);
+        return function(...args);
+    };
+}
+
+func main() {
+    var log_add = logger("Called add", add);
+    println(log_add(1, 3));
+}

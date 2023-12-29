@@ -225,9 +225,11 @@ auto Vm::run() noexcept -> RunResult
                     break;
                 }
                 case Op::LoadCapture: {
+                    // captures need to be inserted before call args
                     const auto index = constantList[constantIndex++].value<usize>();
                     const auto& capture = currentFunction->getCapture(index);
-                    localVariables.emplace_back(capture);
+                    const auto insertionIdx = localVariables.size() - currentFunction->arity();
+                    localVariables.insert(localVariables.begin() + static_cast<isize>(insertionIdx), capture);
                     break;
                 }
                 case Op::LoadConstant: {

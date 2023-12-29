@@ -124,4 +124,28 @@ auto PoiseRange::fillData(i64 value, i64 increment) -> void
         value += increment;
     }
 }
+
+auto PoiseRange::toVector() const noexcept -> std::vector<runtime::Value>
+{
+    if (m_isInfiniteLoop) {
+        return {};
+    }
+
+    std::vector<runtime::Value> res;
+
+    auto s = m_start.toInt();
+    const auto e = m_end.toInt();
+    const auto inc = m_increment.toInt();
+    const auto upwards = e > s;
+
+    for (;; s += inc) {
+        if (upwards ? (m_inclusive ? (s > e) : (s >= e)) : (m_inclusive ? (s < e) : (s <= e))) {
+            break;
+        }
+
+        res.emplace_back(s);
+    }
+
+    return res;
+}
 }   // namespace poise::objects::iterables

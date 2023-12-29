@@ -12,6 +12,7 @@ namespace poise::objects::iterables {
 class PoiseList : public PoiseObject, public PoiseIterable
 {
 public:
+    explicit PoiseList(runtime::Value value);
     explicit PoiseList(std::vector<runtime::Value> data);
     ~PoiseList() override = default;
 

@@ -29,5 +29,9 @@ func main() {
                 println(e);
             }
         }
-    }   
+    }
+
+    println(List("Hello"));
+    println(List(0..10));
+    println(List(names));
 }

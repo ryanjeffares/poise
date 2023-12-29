@@ -96,10 +96,14 @@ auto PoiseType::construct(std::span<runtime::Value> args) const -> runtime::Valu
             }
         }
         case runtime::types::Type::List: {
-            return runtime::Value::createObject<iterables::PoiseList>(std::vector<runtime::Value>{
-                std::make_move_iterator(args.begin()),
-                std::make_move_iterator(args.end())
-            });
+            if (args.size() == 1_uz) {
+                return runtime::Value::createObject<iterables::PoiseList>(std::move(args[0]));
+            } else {
+                return runtime::Value::createObject<iterables::PoiseList>(std::vector<runtime::Value>{
+                    std::make_move_iterator(args.begin()),
+                    std::make_move_iterator(args.end())
+                });
+            }
         }
         case runtime::types::Type::Pack: {
             return runtime::Value::createObject<PoisePack>(args);
