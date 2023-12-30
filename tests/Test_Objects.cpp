@@ -75,6 +75,11 @@ TEST_CASE("PoiseList functions and iteration")
     REQUIRE(fromString.size() == 5_uz);
     PoiseList fromRange{Value::createObject<PoiseRange>(0, 10, 1, false)};
     REQUIRE(fromRange.size() == 10_uz);
+
+    auto repeated = fromString.repeat(10);
+    REQUIRE(repeated.object()->asList()->size() == 50_uz);
+    auto concatenated = fromString.concat(fromRange);
+    REQUIRE(concatenated.object()->asList()->size() == 15_uz);
 }
 
 TEST_CASE("PoiseRange functions and iteration")

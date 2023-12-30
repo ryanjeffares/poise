@@ -59,6 +59,9 @@ auto formatter<PoiseException::ExceptionType>::format(PoiseException::ExceptionT
     string_view res = "unknown";
 
     switch (exceptionType) {
+        case PoiseException::ExceptionType::ArgumentOutOfRange:
+            res = "ArgumentOutOfRangeException";
+            break;
         case PoiseException::ExceptionType::AmbiguousCall:
             res = "AmbiguousCallException";
             break;

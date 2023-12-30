@@ -18,6 +18,7 @@ public:
     enum class ExceptionType
     {
         AmbiguousCall,
+        ArgumentOutOfRange,
         Exception,
         FunctionNotFound,
         IncorrectArgCount,

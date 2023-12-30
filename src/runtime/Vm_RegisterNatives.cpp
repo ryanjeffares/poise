@@ -136,6 +136,20 @@ auto Vm::registerListNatives() noexcept -> void
             args[0].object()->asList()->clear();
             return Value::none();
         }});
+
+    m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_LIST_REPEAT"), NativeFunction{
+        2, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0, args[0], types::Type::List);
+            throwIfWrongType(1, args[1], types::Type::Int);
+            return args[0].object()->asList()->repeat(args[1].value<isize>());
+        }});
+
+    m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_LIST_CONCAT"), NativeFunction{
+        2, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0, args[0], types::Type::List);
+            throwIfWrongType(1, args[1], types::Type::List);
+            return args[0].object()->asList()->concat(*args[1].object()->asList());
+        }});
 }
 
 auto Vm::registerRangeNatives() noexcept -> void

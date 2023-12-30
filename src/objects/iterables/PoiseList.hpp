@@ -39,6 +39,9 @@ public:
     [[nodiscard]] auto removeFirst(const runtime::Value& value) noexcept -> bool;
     [[nodiscard]] auto removeAt(usize index) noexcept -> bool;
     auto clear() noexcept -> void;
+
+    [[nodiscard]] auto repeat(isize n) const -> runtime::Value;
+    [[nodiscard]] auto concat(const PoiseList& other) const noexcept -> runtime::Value;
 };
 }   // namespace poise::objects::iterables
 

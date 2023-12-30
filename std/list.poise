@@ -2,6 +2,8 @@ export func empty(this final List list): Bool => __NATIVE_LIST_EMPTY(list);
 export func size(this final List list): Int => __NATIVE_LIST_SIZE(list);
 export func append(this final List list, final value): None => __NATIVE_LIST_APPEND(list, value);
 export func clear(this final List list): None => __NATIVE_LIST_CLEAR(list);
+export func repeat(this final List list, final n: Int): List => __NATIVE_LIST_REPEAT(list, n);
+export func concat(this final List list, final other: List): List => __NATIVE_LIST_CONCAT(list, other);
 
 // returns true if insertion happened, false if index was out of range
 export func insert(this final List list, final index, final value): Bool => __NATIVE_LIST_INSERT(list, index, value);

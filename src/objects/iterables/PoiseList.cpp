@@ -200,4 +200,24 @@ auto PoiseList::clear() noexcept -> void
     m_data.clear();
     invalidateIterators();
 }
+
+auto PoiseList::repeat(isize n) const -> runtime::Value
+{
+    if (n < 0_iz) {
+        throw PoiseException(PoiseException::ExceptionType::ArgumentOutOfRange, fmt::format("Number of repeats must be positive but got {}", n));
+    }
+    std::vector<runtime::Value> data;
+    data.resize(m_data.size() * static_cast<usize>(n));
+    for (auto i = 0_iz; i < n; i++) {
+        std::copy(m_data.begin(), m_data.end(), std::next(data.begin(), i * std::ssize(m_data)));
+    }
+    return runtime::Value::createObject<PoiseList>(std::move(data));
+}
+
+auto PoiseList::concat(const PoiseList& other) const noexcept -> runtime::Value
+{
+    std::vector<runtime::Value> data = m_data;
+    data.insert(data.end(), other.data().begin(), other.data().end());
+    return runtime::Value::createObject<PoiseList>(std::move(data));
+}
 }   // namespace poise::objects::iterables
