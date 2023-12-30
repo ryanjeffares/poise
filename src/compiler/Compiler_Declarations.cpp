@@ -147,7 +147,7 @@ auto Compiler::funcDeclaration(bool isExported) -> void
 
     if (!extensionFunctionTypes.empty()) {
         for (const auto type : extensionFunctionTypes) {
-            m_vm->types()->typeValue(type).object()->asType()->addExtensionFunction(function);
+            m_vm->typeValue(type).object()->asType()->addExtensionFunction(function);
         }
     }
 

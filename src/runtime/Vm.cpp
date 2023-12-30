@@ -14,7 +14,23 @@
 namespace poise::runtime {
 using objects::PoiseException;
 
-Vm::Vm(std::string mainFilePath) : m_mainFilePath{std::move(mainFilePath)}
+Vm::Vm(std::string mainFilePath)
+    : m_mainFilePath{std::move(mainFilePath)}
+    , m_typeLookup{
+        {types::Type::Bool, Value::createObject<objects::PoiseType>(types::Type::Bool, "Bool")},
+        {types::Type::Float, Value::createObject<objects::PoiseType>(types::Type::Float, "Float")},
+        {types::Type::Int, Value::createObject<objects::PoiseType>(types::Type::Int, "Int")},
+        {types::Type::None, Value::createObject<objects::PoiseType>(types::Type::None, "None")},
+        {types::Type::String, Value::createObject<objects::PoiseType>(types::Type::String, "String")},
+        {types::Type::Exception, Value::createObject<objects::PoiseType>(types::Type::Exception, "Exception")},
+        {types::Type::Function, Value::createObject<objects::PoiseType>(types::Type::Function, "Function")},
+        {types::Type::Iterator, Value::createObject<objects::PoiseType>(types::Type::Iterator, "Iterator")},
+        {types::Type::List, Value::createObject<objects::PoiseType>(types::Type::List, "List")},
+        {types::Type::Pack, Value::createObject<objects::PoiseType>(types::Type::Pack, "Pack")},
+        {types::Type::Range, Value::createObject<objects::PoiseType>(types::Type::Range, "Range")},
+        {types::Type::Type, Value::createObject<objects::PoiseType>(types::Type::Type, "Type")},
+    }
+
 {
     registerNatives();
 }
@@ -40,11 +56,6 @@ auto Vm::nativeFunctionArity(NativeNameHash hash) const noexcept -> u8
     return m_nativeFunctionLookup.at(hash).arity();
 }
 
-auto Vm::types() const noexcept -> const types::Types*
-{
-    return &m_types;
-}
-
 auto Vm::namespaceManager() const noexcept -> const NamespaceManager*
 {
     return &m_namespaceManager;
@@ -53,6 +64,11 @@ auto Vm::namespaceManager() const noexcept -> const NamespaceManager*
 auto Vm::namespaceManager() noexcept -> NamespaceManager*
 {
     return &m_namespaceManager;
+}
+
+auto Vm::typeValue(types::Type type) const noexcept -> const Value&
+{
+    return m_typeLookup.at(type);
 }
 
 auto Vm::emitOp(Op op, usize line) noexcept -> void
@@ -200,7 +216,7 @@ auto Vm::run() noexcept -> RunResult
                         args.emplace_back(inclusiveRange);
                     }
 
-                    stack.emplace_back(m_types.typeValue(type).object()->asType()->construct(args));
+                    stack.emplace_back(typeValue(type).object()->asType()->construct(args));
                     break;
                 }
                 case Op::DeclareLocal: {
@@ -258,7 +274,7 @@ auto Vm::run() noexcept -> RunResult
                 case Op::LoadMember: {
                     // TODO: class member variables
                     auto value = pop();
-                    const auto type = m_types.typeValue(value.type()).object()->asType();
+                    const auto type = typeValue(value.type()).object()->asType();
                     const auto& memberName = constantList[constantIndex++].string();
                     const auto& memberNameHash = constantList[constantIndex++].value<usize>();
                     const auto pushParentBack = constantList[constantIndex++].toBool();
@@ -281,7 +297,7 @@ auto Vm::run() noexcept -> RunResult
                 }
                 case Op::LoadType: {
                     const auto type = static_cast<types::Type>(constantList[constantIndex++].value<u8>());
-                    stack.push_back(m_types.typeValue(type));
+                    stack.push_back(typeValue(type));
                     break;
                 }
                 case Op::PopLocals: {
@@ -317,7 +333,7 @@ auto Vm::run() noexcept -> RunResult
                     break;
                 }
                 case Op::TypeOf: {
-                    stack.emplace_back(m_types.typeValue(pop().type()));
+                    stack.emplace_back(typeValue(pop().type()));
                     break;
                 }
                 case Op::Print: {

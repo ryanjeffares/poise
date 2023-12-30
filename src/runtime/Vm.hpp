@@ -38,7 +38,7 @@ public:
 
     [[nodiscard]] auto namespaceManager() const noexcept -> const NamespaceManager*;
     [[nodiscard]] auto namespaceManager() noexcept -> NamespaceManager*;
-    [[nodiscard]] auto types() const noexcept -> const types::Types*;
+    [[nodiscard]] auto typeValue(types::Type type) const noexcept -> const Value&;
 
     auto emitOp(Op op, usize line) noexcept -> void;
     auto emitConstant(Value value) noexcept -> void;
@@ -63,7 +63,8 @@ private:
     objects::PoiseFunction* m_currentFunction{nullptr};
 
     NamespaceManager m_namespaceManager;
-    types::Types m_types;
+    
+    std::unordered_map<types::Type, runtime::Value> m_typeLookup;
 };  // class Vm
 }   // namespace poise::runtime
 

@@ -20,17 +20,6 @@ enum class Type
     // so that we match this to the TokenType
     Bool, Float, Int, None, String, Exception, Function, List, Range, Type, Iterator, Pack,
 };
-
-class Types
-{
-public:
-    Types();
-
-    [[nodiscard]] auto typeValue(Type type) const noexcept -> const runtime::Value&;
-
-private:
-    std::unordered_map<Type, runtime::Value> m_typeLookup;
-};
 }   // namespace types
 }   // namespace poise::runtime
 
