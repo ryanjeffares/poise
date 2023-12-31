@@ -1,0 +1,7 @@
+import cyclic1;
+
+export func bar() {
+    cyclic1::baz();
+}
+
+

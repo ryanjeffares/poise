@@ -1,0 +1,13 @@
+import cyclic2;
+
+export func foo() {
+    cyclic2::bar();
+}
+
+export func baz() {
+    println("Hello!");
+}
+
+func main() {
+    foo();
+}

@@ -462,83 +462,33 @@ auto Compiler::namespaceQualifiedCall() -> void
         }
     }
 
-    auto verifyNamespaceAndFunction =
-        [this](std::string_view functionName, std::string_view namespaceText, usize namespaceHash) -> bool {
-            const auto namespaceManager = m_vm->namespaceManager();
-            // load the function
-            if (!namespaceManager->namespaceHasImportedNamespace(m_filePathHash, namespaceHash)) {
-                errorAtPrevious(fmt::format("Namespace '{}' not imported", namespaceText));
-                return false;
-            }
-
-            if (auto function = namespaceManager->namespaceFunction(namespaceHash, functionName)) {
-                if (function->exported()) {
-                    return true;
-                } else {
-                    errorAtPrevious(fmt::format("Function '{}' is not exported", functionName));
-                    return false;
-                }
-            } else {
-                errorAtPrevious(fmt::format("Function '{}' not found in namespace '{}'", functionName, namespaceText));
-                return false;
-            }
-        };
-
     auto functionName = m_previous->string();
     const auto namespaceManager = m_vm->namespaceManager();
 
+    if (!namespaceFilePath.has_extension()) {
+        namespaceFilePath += ".poise";
+    }
+
+    const auto namespaceHash = namespaceManager->namespaceHash(namespaceFilePath);
+
+    if (!namespaceManager->namespaceHasImportedNamespace(m_filePathHash, namespaceHash)) {
+        errorAtPrevious(fmt::format("Namespace '{}' not imported", namespaceText));
+        return;
+    }
+
+    emitConstant(namespaceHash);
+    emitConstant(m_stringHasher(functionName));
+    emitConstant(functionName);
+    emitOp(runtime::Op::LoadFunction, m_previous->line());
+
     if (match(scanner::TokenType::OpenParen)) {
-        // function call
-        // consume semicolon
-        if (!namespaceFilePath.has_extension()) {
-            namespaceFilePath += ".poise";
-        }
-
-        const auto namespaceHash = namespaceManager->namespaceHash(namespaceFilePath);
-        if (!verifyNamespaceAndFunction(functionName, namespaceText, namespaceHash)) {
-            return;
-        }
-
-        emitConstant(namespaceHash);
-        emitConstant(m_stringHasher(functionName));
-        emitConstant(functionName);
-        emitOp(runtime::Op::LoadFunction, m_previous->line());
-
         if (const auto args = parseCallArgs(scanner::TokenType::CloseParen)) {
-            const auto function = namespaceManager->namespaceFunction(namespaceHash, functionName);
             const auto [numArgs, hasUnpack] = *args;
-
-            if (hasUnpack || function->hasVariadicParams()) {
-                if (numArgs < function->arity()) {
-                    errorAtPrevious(fmt::format("Expected >={} args to '{}::{}()' but got {}", function->arity(), namespaceText, functionName, numArgs));
-                    return;
-                }
-            } else {
-                if (numArgs != function->arity()) {
-                    errorAtPrevious(fmt::format("Expected {} args to '{}::{}()' but got {}", function->arity(), namespaceText, functionName, numArgs));
-                    return;
-                }
-            }
-
             emitConstant(numArgs);
             emitConstant(hasUnpack);
             emitConstant(false);
             emitOp(runtime::Op::Call, m_previous->line());
         }
-    } else {
-        if (!namespaceFilePath.has_extension()) {
-            namespaceFilePath += ".poise";
-        }
-
-        const auto namespaceHash = namespaceManager->namespaceHash(namespaceFilePath);
-        if (!verifyNamespaceAndFunction(functionName, namespaceText, namespaceHash)) {
-            return;
-        }
-
-        emitConstant(namespaceHash);
-        emitConstant(m_stringHasher(functionName));
-        emitConstant(std::move(functionName));
-        emitOp(runtime::Op::LoadFunction, m_previous->line());
     }
 }
 
