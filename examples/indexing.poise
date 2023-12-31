@@ -1,0 +1,15 @@
+import std::iterables;
+
+func main() {
+    final names = ["Ryan", "Noodle", "Puffle"];
+    for i in 0..names.size() + 1 {
+        println(try names[i]);
+    }
+
+    names[0] = "Syl";
+    println(names[0]);
+
+    for i in 0..3 {
+        println(names[0][i]);
+    }
+}

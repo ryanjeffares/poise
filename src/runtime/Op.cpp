@@ -134,6 +134,12 @@ auto formatter<Op>::format(poise::runtime::Op op, fmt::format_context& context) 
         case Op::MakeLambda:
             result = "MakeLambda";
             break;
+        case Op::AssignIndex:
+            result = "AssignIndex";
+            break;
+        case Op::LoadIndex:
+            result = "LoadIndex";
+            break;
         case Op::Call:
             result = "Call";
             break;

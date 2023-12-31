@@ -49,6 +49,7 @@ private:
     auto registerNatives() noexcept -> void;
     auto registerIntNatives() noexcept -> void;
     auto registerFloatNatives() noexcept -> void;
+    auto registerIterableNatives() noexcept -> void;
     auto registerListNatives() noexcept -> void;
     auto registerRangeNatives() noexcept -> void;
 

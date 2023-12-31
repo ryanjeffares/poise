@@ -106,6 +106,11 @@ auto Value::string() const noexcept -> const std::string&
     return *m_data.string;
 }
 
+auto Value::string() noexcept -> std::string&
+{
+    return *m_data.string;
+}
+
 auto Value::object() const noexcept -> objects::PoiseObject*
 {
     return typeInternal() == TypeInternal::Object ? m_data.object : nullptr;

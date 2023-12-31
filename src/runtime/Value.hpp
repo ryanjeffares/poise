@@ -126,6 +126,7 @@ public:
     }
 
     [[nodiscard]] auto string() const noexcept -> const std::string&;
+    [[nodiscard]] auto string() noexcept -> std::string&;
     [[nodiscard]] auto object() const noexcept -> objects::PoiseObject*;
     [[nodiscard]] auto type() const noexcept -> types::Type;
 

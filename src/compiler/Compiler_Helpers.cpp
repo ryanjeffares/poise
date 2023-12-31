@@ -127,8 +127,8 @@ auto Compiler::checkLastOp(runtime::Op op) const noexcept -> bool
 
 auto Compiler::lastOpWasAssignment() const noexcept -> bool
 {
-    // TODO: add member assignment, index assignment
-    return checkLastOp(runtime::Op::AssignLocal);
+    // TODO: add member assignmen
+    return checkLastOp(runtime::Op::AssignLocal) || checkLastOp(runtime::Op::AssignIndex);
 }
 
 auto Compiler::parseCallArgs(scanner::TokenType sentinel) -> std::optional<CallArgsParseResult>

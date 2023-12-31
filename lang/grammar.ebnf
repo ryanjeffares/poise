@@ -7,10 +7,8 @@ funcDecl = "func", IDENTIFIER, "(", [ FUNCTION_ARGS ], ")", [ ":", TYPE_ANNOTATI
 varDecl = "var", IDENTIFIER, [ ":", TYPE_ANNOTATION ], [ { ",", IDENTIFIER, [ ":", TYPE_ANNOTATION ], } ], [ "=", [ "try" ], expression ], ";" ;
 finalDecl = "final", IDENTIFIER, [ ":", TYPE_ANNOTATION ], [ { ",", IDENTIFIER, [ ":", TYPE_ANNOTATION ] } ], "=", [ "try" ], expression, ";" ;
 
-statement = assignmentStatement | expressionStatement | printlnStatement | returnStatement | tryCatchStatement
-    | throwStatement | whileStatement | forStatement ;
+statement = expressionStatement | printlnStatement | returnStatement | tryCatchStatement | throwStatement | whileStatement | forStatement ;
 
-assignmentStatement = IDENTIFIER, "=", expression, ";" ;
 expressionStatement = call, [ "=", expression ], ";" ;
 printlnStatement = "println", "(", expression, ")" ;
 returnStatement = "return", [ expression ], ";" ;
@@ -32,7 +30,7 @@ shift = term, [ { ( "<<" | ">>" ), term } ] ;
 term = factor, [ { ( "-" | "+" ), factor } ] ;
 factor = unary, [ { ( "/" | "*" ), unary } ] ;
 unary = [ ( "!" | "-" | "~" ) ], ( unary | call ) ;
-call = primary [ { ("(", [ CALL_ARGS ], ")") | (".", IDENTIFIER) } ] ;
+call = primary [ { ("(", [ CALL_ARGS ], ")") | (".", IDENTIFIER) | ("[", expression, "]") } ] ;
 primary = BOOL | NUMBER | STRING | "(", expression, ")" | TYPE | TYPEOF | LAMBDA | CAST | LIST ;
 
 BOOL = "false" | "true" ;

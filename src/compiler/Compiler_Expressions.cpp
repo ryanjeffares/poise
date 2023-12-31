@@ -287,6 +287,21 @@ auto Compiler::call(bool canAssign, bool canUnpack) -> void
                     emitOp(runtime::Op::Call, m_previous->line());
                 }
             }
+        } else if (match(scanner::TokenType::OpenSquareBracket)) {
+            expression(false, false);
+            RETURN_IF_NO_MATCH(scanner::TokenType::CloseSquareBracket, "Expected ']'");
+
+            if (match(scanner::TokenType::Equal)) {
+                if (!canAssign) {
+                    errorAtPrevious("Assignment is not allowed here");
+                    return;
+                }
+
+                expression(false, false);
+                emitOp(runtime::Op::AssignIndex, m_previous->line());
+            } else {
+                emitOp(runtime::Op::LoadIndex, m_previous->line());
+            }
         } else {
             break;
         }
