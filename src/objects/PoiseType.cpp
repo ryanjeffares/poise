@@ -1,8 +1,4 @@
-#include "PoiseType.hpp"
-#include "PoiseException.hpp"
-#include "PoiseFunction.hpp"
-#include "iterables/PoiseList.hpp"
-#include "iterables/PoiseRange.hpp"
+#include "Objects.hpp"
 
 #include <fmt/core.h>
 #include <fmt/format.h>

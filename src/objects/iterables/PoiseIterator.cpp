@@ -11,7 +11,7 @@
 namespace poise::objects::iterables {
 PoiseIterator::PoiseIterator(runtime::Value iterable)
     : m_iterableValue{std::move(iterable)}
-    , m_iterablePtr{dynamic_cast<PoiseIterable*>(m_iterableValue.object())}
+    , m_iterablePtr{m_iterableValue.object()->asIterable()}
     , m_isValid{true}
 {
     m_iterableValue.object()->incrementRefCount();
@@ -74,12 +74,12 @@ auto PoiseIterator::value() const -> const runtime::Value&
     return *m_iterator;
 }
 
-auto PoiseIterator::iterator() const -> const IteratorType&
+auto PoiseIterator::iterator() const noexcept -> const IteratorType&
 {
     return m_iterator;
 }
 
-auto PoiseIterator::iterator() -> PoiseIterator::IteratorType&
+auto PoiseIterator::iterator() noexcept -> PoiseIterator::IteratorType&
 {
     return m_iterator;
 }
@@ -93,5 +93,15 @@ auto PoiseIterator::throwIfInvalid() const -> void
     if (isAtEnd()) {
         throw PoiseException(PoiseException::ExceptionType::IteratorOutOfBounds, "Iterator has already been incremented past the end of the collection");
     }
+}
+
+auto PoiseIterator::iterableValue() const noexcept -> const runtime::Value&
+{
+    return m_iterableValue;
+}
+
+auto PoiseIterator::iterablePtr() const noexcept -> PoiseIterable*
+{
+    return m_iterablePtr;
 }
 }   // namespace poise::objects::iterables

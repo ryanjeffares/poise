@@ -35,9 +35,11 @@ public:
     auto invalidate() noexcept -> void;
     [[nodiscard]] auto isAtEnd() const noexcept -> bool;
     [[nodiscard]] auto valid() const noexcept -> bool;
-    [[nodiscard]] auto iterator() const -> const IteratorType&;
-    [[nodiscard]] auto iterator() -> IteratorType&;
+    [[nodiscard]] auto iterator() const noexcept -> const IteratorType&;
+    [[nodiscard]] auto iterator() noexcept -> IteratorType&;
     [[nodiscard]] auto value() const -> const runtime::Value&;
+    [[nodiscard]] auto iterableValue() const noexcept -> const runtime::Value&;
+    [[nodiscard]] auto iterablePtr() const noexcept -> PoiseIterable*;
 
 private:
     auto throwIfInvalid() const -> void;

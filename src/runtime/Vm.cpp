@@ -1,7 +1,5 @@
 #include "Vm.hpp"
-#include "../objects/iterables/PoiseList.hpp"
-#include "../objects/PoiseException.hpp"
-#include "../objects/PoiseType.hpp"
+#include "../objects/Objects.hpp"
 #include "../scanner/Scanner.hpp"
 
 #include <fmt/color.h>
@@ -591,7 +589,10 @@ auto Vm::run() noexcept -> RunResult
 
                     if (secondIteratorLocalIndex > 0_uz) {
                         auto& local = localVariables[secondIteratorLocalIndex + localIndexOffset];
-                        local = local.value<i64>() + 1_i64;
+                        // type was checked in InitIterator
+                        if (iterator->iterableValue().type() == types::Type::List) {
+                            local = local.value<i64>() + 1_i64;
+                        }
                     }
                     break;
                 }
