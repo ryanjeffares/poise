@@ -93,11 +93,10 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * Parameter packing and unpacking
     * ~~Expand unpacking into collections~~
         * Remember this when we add Dicts and Sets...
-    * Unpack a collection
-    * Return multiple values, this is a pack
+    * ~~Unpack a collection~~
     * Multiple assignments on one line (`a, b, = b, a`) or assigning an unpack (`a, b = ...pack`)
-    * Friendship ended with `PoisePack`, `PoiseList` is my best friend now
-    * A "pack" will not be a unique type, and you will simply be able to unpack any collection
+    * ~~Friendship ended with `PoisePack`, `PoiseList` is my best friend now~~
+    * ~~A "pack" will not be a unique type, and you will simply be able to unpack any collection~~
 * Construct `Type` instance, `Type` ident
 * ~~Union type annotation so that we can implement functions on multiple collections~~
     * Have type aliases, eg `type OrderedCollection = List|Range`

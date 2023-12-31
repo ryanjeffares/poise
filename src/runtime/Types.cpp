@@ -39,9 +39,6 @@ auto formatter<Type>::format(Type type, format_context& context) const -> declty
         case Type::List:
             res = "List";
             break;
-        case Type::Pack:
-            res = "Pack";
-            break;
         case Type::Range:
             res = "Range";
             break;

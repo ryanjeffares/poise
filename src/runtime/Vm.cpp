@@ -1,7 +1,6 @@
 #include "Vm.hpp"
 #include "../objects/iterables/PoiseList.hpp"
 #include "../objects/PoiseException.hpp"
-#include "../objects/PoisePack.hpp"
 #include "../objects/PoiseType.hpp"
 #include "../scanner/Scanner.hpp"
 
@@ -26,7 +25,6 @@ Vm::Vm(std::string mainFilePath)
         {types::Type::Function, Value::createObject<objects::PoiseType>(types::Type::Function, "Function")},
         {types::Type::Iterator, Value::createObject<objects::PoiseType>(types::Type::Iterator, "Iterator")},
         {types::Type::List, Value::createObject<objects::PoiseType>(types::Type::List, "List")},
-        {types::Type::Pack, Value::createObject<objects::PoiseType>(types::Type::Pack, "Pack")},
         {types::Type::Range, Value::createObject<objects::PoiseType>(types::Type::Range, "Range")},
         {types::Type::Type, Value::createObject<objects::PoiseType>(types::Type::Type, "Type")},
     }
@@ -319,17 +317,12 @@ auto Vm::run() noexcept -> RunResult
                     throw PoiseException(exception->exceptionType(), std::string{exception->message()});
                 }
                 case Op::Unpack: {
-                    auto pack = pop();
-                    if (pack.type() != types::Type::Pack) {
-                        throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("{} cannot be unpacked", pack.type()));
+                    auto value = pop();
+                    if (auto iterable = value.object()->asIterable()) {
+                        iterable->unpack(stack);
+                    } else {
+                        throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("{} cannot be unpacked", value.type()));
                     }
-
-                    auto packObj = pack.object()->asPack();
-                    for (auto values = packObj->values(); auto& value : values) {
-                        stack.emplace_back(std::move(value));
-                    }
-
-                    stack.emplace_back(packObj->size());
                     break;
                 }
                 case Op::TypeOf: {
@@ -488,17 +481,23 @@ auto Vm::run() noexcept -> RunResult
 
                     if (auto object = function.object()) {
                         if (auto calleeFunction = object->asFunction()) {
-                            const auto hasPack = calleeFunction->hasPack();
+                            const auto hasVariadicParams = calleeFunction->hasVariadicParams();
 
                             // if the function has a pack, numParams can be >= arity
                             numArgs = isDotCall ? numArgs + 1_u8 : numArgs;
-                            if (hasPack) {
+                            if (hasVariadicParams) {
                                 if (numArgs < calleeFunction->arity()) {
-                                    throw PoiseException(PoiseException::ExceptionType::IncorrectArgCount, fmt::format("Function '{}' takes >={} args but was given {}", calleeFunction->name(), calleeFunction->arity(), numArgs));
+                                    throw PoiseException(
+                                        PoiseException::ExceptionType::IncorrectArgCount,
+                                        fmt::format("Function '{}' takes >={} args but was given {}", calleeFunction->name(), calleeFunction->arity(), numArgs)
+                                    );
                                 }
                             } else {
                                 if (numArgs != calleeFunction->arity()) {
-                                    throw PoiseException(PoiseException::ExceptionType::IncorrectArgCount, fmt::format("Function '{}' takes {} args but was given {}", calleeFunction->name(), calleeFunction->arity(), numArgs));
+                                    throw PoiseException(
+                                        PoiseException::ExceptionType::IncorrectArgCount,
+                                        fmt::format("Function '{}' takes {} args but was given {}", calleeFunction->name(), calleeFunction->arity(), numArgs)
+                                    );
                                 }
                             }
 
@@ -512,14 +511,13 @@ auto Vm::run() noexcept -> RunResult
                                 .calleeFunction = calleeFunction,
                             });
 
-                            if (hasPack) {
-                                std::vector<Value> packArgs;
+                            if (hasVariadicParams) {
+                                std::vector<Value> variadicParams;
                                 for (auto i = calleeFunction->arity() - 1_uz; i < numArgs; i++) {
-                                    packArgs.emplace_back(std::move(args[i]));
+                                    variadicParams.emplace_back(std::move(args[i]));
                                 }
-                                args.resize(args.size() - packArgs.size());
-                                auto pack = Value::createObject<objects::PoisePack>(std::move(packArgs));
-                                args.emplace_back(std::move(pack));
+                                args.resize(args.size() - variadicParams.size());
+                                args.emplace_back(Value::createObject<objects::iterables::PoiseList>(std::move(variadicParams)));
                             }
 
                             localVariables.insert(localVariables.end(), std::make_move_iterator(args.begin()), std::make_move_iterator(args.end()));

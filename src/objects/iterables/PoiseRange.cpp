@@ -28,6 +28,11 @@ PoiseRange::PoiseRange(runtime::Value start, runtime::Value end, runtime::Value 
     }
 }
 
+auto PoiseRange::asIterable() noexcept -> iterables::PoiseIterable*
+{
+    return this;
+}
+
 auto PoiseRange::asRange() noexcept -> iterables::PoiseRange*
 {
     return this;
@@ -46,6 +51,48 @@ auto PoiseRange::type() const noexcept -> runtime::types::Type
 auto PoiseRange::iterable() const -> bool
 {
     return true;
+}
+
+auto PoiseRange::size() const noexcept -> usize
+{
+    if (m_isInfiniteLoop) {
+        return 0_uz;
+    }
+
+    const auto s = m_start.toInt();
+    const auto e = m_end.toInt();
+    const auto i = std::abs(m_increment.toInt());
+
+    const auto range = s < e ? std::abs(e - s) : std::abs(s - e);
+    return static_cast<usize>(range / i);
+}
+
+auto PoiseRange::ssize() const noexcept -> isize
+{
+    return static_cast<isize>(size());
+}
+
+auto PoiseRange::unpack(std::vector<runtime::Value>& stack) const noexcept -> void
+{
+    if (m_isInfiniteLoop) {
+        stack.emplace_back(0);
+        return;
+    }
+
+    auto s = m_start.toInt();
+    const auto e = m_end.toInt();
+    const auto inc = m_increment.toInt();
+    const auto upwards = e > s;
+
+    for (;; s += inc) {
+        if (upwards ? (m_inclusive ? (s > e) : (s >= e)) : (m_inclusive ? (s < e) : (s <= e))) {
+            break;
+        }
+
+        stack.emplace_back(s);
+    }
+
+    stack.emplace_back(size());
 }
 
 auto PoiseRange::begin() noexcept -> PoiseIterable::IteratorType

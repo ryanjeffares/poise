@@ -13,7 +13,7 @@ PoiseFunction::PoiseFunction(std::string name, std::filesystem::path filePath, u
     , m_nameHash{s_hasher(m_name)}
     , m_namespaceHash{namespaceHash}
     , m_isExported{isExported}
-    , m_hasPack{hasPack}
+    , m_hasVariadicParams{hasPack}
 {
 
 }
@@ -98,9 +98,9 @@ auto PoiseFunction::exported() const noexcept -> bool
     return m_isExported;
 }
 
-auto PoiseFunction::hasPack() const noexcept -> bool
+auto PoiseFunction::hasVariadicParams() const noexcept -> bool
 {
-    return m_hasPack;
+    return m_hasVariadicParams;
 }
 
 auto PoiseFunction::numLambdas() const noexcept -> u32
@@ -140,7 +140,7 @@ auto PoiseFunction::printOps() const -> void
 
 auto PoiseFunction::shallowClone() const noexcept -> runtime::Value
 {
-    auto value = runtime::Value::createObject<PoiseFunction>(m_name, m_filePath, m_namespaceHash, m_arity, m_isExported, m_hasPack);
+    auto value = runtime::Value::createObject<PoiseFunction>(m_name, m_filePath, m_namespaceHash, m_arity, m_isExported, m_hasVariadicParams);
     auto function = value.object()->asFunction();
     function->copyData(*this);
     return value;

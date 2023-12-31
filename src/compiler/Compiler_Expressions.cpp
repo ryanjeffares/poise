@@ -41,7 +41,8 @@ auto Compiler::range(bool canAssign, bool canUnpack) -> void
 {
     logicOr(canAssign, canUnpack);
 
-    if (match(scanner::TokenType::DotDot)) {
+    if (match(scanner::TokenType::DotDot) || match(scanner::TokenType::DotDotEqual)) {
+        const auto inclusive = m_previous->tokenType() == scanner::TokenType::DotDotEqual;
         logicOr(canAssign, canUnpack);
 
         if (match(scanner::TokenType::By)) {
@@ -54,23 +55,9 @@ auto Compiler::range(bool canAssign, bool canUnpack) -> void
         emitConstant(static_cast<u8>(runtime::types::Type::Range));
         emitConstant(3);
         emitConstant(false);
-        emitConstant(false);
+        emitConstant(inclusive);
         emitOp(runtime::Op::ConstructBuiltin, m_previous->line());
-    } else if (match(scanner::TokenType::DotDotEqual)) {
-        logicOr(canAssign, canUnpack);
 
-        if (match(scanner::TokenType::By)) {
-            expression(false, false);
-        } else {
-            emitConstant(1);
-            emitOp(runtime::Op::LoadConstant, m_previous->line());
-        }
-
-        emitConstant(static_cast<u8>(runtime::types::Type::Range));
-        emitConstant(3);
-        emitConstant(false);
-        emitConstant(true);
-        emitOp(runtime::Op::ConstructBuiltin, m_previous->line());
     }
 }
 
@@ -499,7 +486,7 @@ auto Compiler::namespaceQualifiedCall() -> void
             const auto function = namespaceManager->namespaceFunction(namespaceHash, functionName);
             const auto [numArgs, hasUnpack] = *args;
 
-            if (hasUnpack || function->hasPack()) {
+            if (hasUnpack || function->hasVariadicParams()) {
                 if (numArgs < function->arity()) {
                     errorAtPrevious(fmt::format("Expected >={} args to '{}::{}()' but got {}", function->arity(), namespaceText, functionName, numArgs));
                     return;
@@ -624,7 +611,7 @@ auto Compiler::lambda() -> void
         }
     }
 
-    const auto [numArgs, hasPack, extensionFunctionType] = *args;
+    const auto [numArgs, hasVariadicParams, extensionFunctionType] = *args;
 
     if (match(scanner::TokenType::Colon)) {
         parseTypeAnnotation();
@@ -634,7 +621,7 @@ auto Compiler::lambda() -> void
 
     const auto prevFunction = m_vm->currentFunction();
     auto lambdaName = fmt::format("{}_lambda{}", prevFunction->name(), prevFunction->numLambdas());
-    auto lambda = runtime::Value::createObject<objects::PoiseFunction>(std::move(lambdaName), m_filePath, m_filePathHash, numArgs, false, hasPack);
+    auto lambda = runtime::Value::createObject<objects::PoiseFunction>(std::move(lambdaName), m_filePath, m_filePathHash, numArgs, false, hasVariadicParams);
     auto functionPtr = lambda.object()->asFunction();
     m_vm->setCurrentFunction(functionPtr);
 

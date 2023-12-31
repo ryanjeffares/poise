@@ -14,10 +14,10 @@ class Value;
 namespace poise::objects {
 class PoiseException;
 class PoiseFunction;
-class PoisePack;
 class PoiseType;
 
 namespace iterables {
+class PoiseIterable;
 class PoiseIterator;
 class PoiseList;
 class PoiseRange;
@@ -39,9 +39,9 @@ public:
 
     [[nodiscard]] virtual auto asException() noexcept -> PoiseException*;
     [[nodiscard]] virtual auto asFunction() noexcept -> PoiseFunction*;
+    [[nodiscard]] virtual auto asIterable() noexcept -> iterables::PoiseIterable*;
     [[nodiscard]] virtual auto asIterator() noexcept -> iterables::PoiseIterator*;
     [[nodiscard]] virtual auto asList() noexcept -> iterables::PoiseList*;
-    [[nodiscard]] virtual auto asPack() noexcept -> PoisePack*;
     [[nodiscard]] virtual auto asRange() noexcept -> iterables::PoiseRange*;
     [[nodiscard]] virtual auto asType() noexcept -> PoiseType*;
 

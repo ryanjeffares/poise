@@ -172,7 +172,7 @@ auto Compiler::parseCallArgs(scanner::TokenType sentinel) -> std::optional<CallA
 auto Compiler::parseFunctionParams(bool isLambda) -> std::optional<FunctionParamsParseResult>
 {
     auto hasThisArg = false;
-    auto hasPack = false;
+    auto hasVariadicParams = false;
     auto numParams = 0_u8;
     std::vector <runtime::types::Type> extensionFunctionTypes;
 
@@ -182,8 +182,8 @@ auto Compiler::parseFunctionParams(bool isLambda) -> std::optional<FunctionParam
             return {};
         }
 
-        if (hasPack) {
-            errorAtCurrent("Pack must be the last function parameter");
+        if (hasVariadicParams) {
+            errorAtCurrent("Variadic parameter must be the last function parameter");
         }
 
         if (match(scanner::TokenType::This)) {
@@ -245,7 +245,7 @@ auto Compiler::parseFunctionParams(bool isLambda) -> std::optional<FunctionParam
         numParams++;
 
         if (match(scanner::TokenType::DotDotDot)) {
-            hasPack = true;
+            hasVariadicParams = true;
         }
 
         if (match(scanner::TokenType::Colon)) {
@@ -264,7 +264,7 @@ auto Compiler::parseFunctionParams(bool isLambda) -> std::optional<FunctionParam
         }
     }
 
-    return {{numParams, hasPack, std::move(extensionFunctionTypes)}};
+    return {{numParams, hasVariadicParams, std::move(extensionFunctionTypes)}};
 }
 
 auto Compiler::parseNamespaceImport() -> std::optional<NamespaceParseResult>

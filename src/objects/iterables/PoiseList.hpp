@@ -20,7 +20,11 @@ public:
     [[nodiscard]] auto end() noexcept -> IteratorType override;
     auto incrementIterator(IteratorType& iterator) noexcept -> void override;
     auto isAtEnd(const IteratorType& iterator) noexcept -> bool override;
+    [[nodiscard]] auto size() const noexcept -> usize override;
+    [[nodiscard]] auto ssize() const noexcept -> isize override;
+    auto unpack(std::vector<runtime::Value>& stack) const noexcept -> void override;
 
+    [[nodiscard]] auto asIterable() noexcept -> iterables::PoiseIterable* override;
     [[nodiscard]] auto asList() noexcept -> iterables::PoiseList* override;
 
     [[nodiscard]] auto toString() const noexcept -> std::string override;
@@ -28,7 +32,6 @@ public:
     [[nodiscard]] auto iterable() const noexcept -> bool override;
 
     [[nodiscard]] auto empty() const noexcept -> bool;
-    [[nodiscard]] auto size() const noexcept -> usize;
 
     [[nodiscard]] auto at(usize index) const -> const runtime::Value&;
     [[nodiscard]] auto at(usize index) -> runtime::Value&;

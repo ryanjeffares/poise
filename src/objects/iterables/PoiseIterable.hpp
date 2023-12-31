@@ -27,6 +27,9 @@ public:
     [[nodiscard]] virtual auto end() noexcept -> IteratorType = 0;
     virtual auto incrementIterator(IteratorType& iterator) noexcept -> void = 0;
     virtual auto isAtEnd(const IteratorType& iterator) noexcept -> bool = 0;
+    [[nodiscard]] virtual auto size() const noexcept -> usize = 0;
+    [[nodiscard]] virtual auto ssize() const noexcept -> isize = 0;
+    virtual auto unpack(std::vector<runtime::Value>& stack) const noexcept -> void = 0;
 
     auto addIterator(PoiseIterator* iterator) noexcept -> void;
     auto removeIterator(PoiseIterator* iterator) noexcept -> void;

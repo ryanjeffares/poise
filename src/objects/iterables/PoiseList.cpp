@@ -5,7 +5,6 @@
 #include "PoiseList.hpp"
 #include "PoiseRange.hpp"
 #include "../PoiseException.hpp"
-#include "../PoisePack.hpp"
 
 #include <ranges>
 
@@ -28,12 +27,6 @@ PoiseList::PoiseList(runtime::Value value)
         }
         case runtime::types::Type::Range: {
             m_data = value.object()->asRange()->toVector();
-            break;
-        }
-        case runtime::types::Type::Pack: {
-            for (const auto& item : value.object()->asPack()->values()) {
-                m_data.push_back(item);
-            }
             break;
         }
         default: {
@@ -68,7 +61,30 @@ auto PoiseList::isAtEnd(const PoiseIterable::IteratorType& iterator) noexcept ->
     return iterator == end();
 }
 
-auto PoiseList::asList() noexcept -> iterables::PoiseList*
+auto PoiseList::size() const noexcept -> usize
+{
+    return m_data.size();
+}
+
+auto PoiseList::ssize() const noexcept -> isize
+{
+    return std::ssize(m_data);
+}
+
+auto PoiseList::unpack(std::vector<runtime::Value> &stack) const noexcept -> void
+{
+    for (const auto& value : m_data) {
+        stack.push_back(value);
+    }
+    stack.emplace_back(size());
+}
+
+auto PoiseList::asIterable() noexcept -> PoiseIterable*
+{
+    return this;
+}
+
+auto PoiseList::asList() noexcept -> PoiseList*
 {
     return this;
 }
@@ -121,11 +137,6 @@ auto PoiseList::iterable() const noexcept -> bool
 auto PoiseList::empty() const noexcept -> bool
 {
     return m_data.empty();
-}
-
-auto PoiseList::size() const noexcept -> usize
-{
-    return m_data.size();
 }
 
 auto PoiseList::at(usize index) const -> const runtime::Value&

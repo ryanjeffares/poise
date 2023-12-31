@@ -1,7 +1,6 @@
 #include "PoiseType.hpp"
 #include "PoiseException.hpp"
 #include "PoiseFunction.hpp"
-#include "PoisePack.hpp"
 #include "iterables/PoiseList.hpp"
 #include "iterables/PoiseRange.hpp"
 
@@ -104,9 +103,6 @@ auto PoiseType::construct(std::span<runtime::Value> args) const -> runtime::Valu
                     std::make_move_iterator(args.end())
                 });
             }
-        }
-        case runtime::types::Type::Pack: {
-            return runtime::Value::createObject<PoisePack>(args);
         }
         case runtime::types::Type::Range: {
             // last arg is whether the range is inclusive or not which is handled internally, user side it's 2 or 3 args

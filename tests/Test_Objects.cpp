@@ -90,6 +90,7 @@ TEST_CASE("PoiseRange functions and iteration")
     {
         PoiseRange range{0, 10, 1, false};
         REQUIRE(!range.isInfiniteLoop());
+        REQUIRE(range.size() == 10_uz);
 
         PoiseIterator iterator{&range};
         REQUIRE(!iterator.isAtEnd());
@@ -112,6 +113,7 @@ TEST_CASE("PoiseRange functions and iteration")
     {
         PoiseRange range{0, -10, 1, false};
         REQUIRE(range.isInfiniteLoop());
+        REQUIRE(range.size() == 0_uz);
 
         PoiseIterator iterator{&range};
         REQUIRE(iterator.isAtEnd());

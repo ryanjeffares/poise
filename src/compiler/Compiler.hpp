@@ -75,7 +75,7 @@ private:
     struct FunctionParamsParseResult
     {
         u8 numParams;
-        bool hasPack;
+        bool hasVariadicParams;
         std::vector<runtime::types::Type> extensionFunctionTypes;
     };
 

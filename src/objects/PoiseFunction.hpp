@@ -38,7 +38,7 @@ public:
     [[nodiscard]] auto nameHash() const noexcept -> usize;
     [[nodiscard]] auto namespaceHash() const noexcept -> usize;
     [[nodiscard]] auto exported() const noexcept -> bool;
-    [[nodiscard]] auto hasPack() const noexcept -> bool;
+    [[nodiscard]] auto hasVariadicParams() const noexcept -> bool;
 
     auto lamdaAdded() noexcept -> void;
     [[nodiscard]] auto numLambdas() const noexcept -> u32;
@@ -57,7 +57,7 @@ private:
     usize m_nameHash;
     usize m_namespaceHash;
     bool m_isExported;
-    bool m_hasPack;
+    bool m_hasVariadicParams;
 
     u32 m_numLambdas{0};
 

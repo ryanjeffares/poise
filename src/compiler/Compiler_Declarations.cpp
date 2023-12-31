@@ -93,13 +93,13 @@ auto Compiler::funcDeclaration(bool isExported) -> void
         return;
     }
 
-    const auto& [numParams, hasPack, extensionFunctionTypes] = *params;
+    const auto& [numParams, hasVariadicParams, extensionFunctionTypes] = *params;
 
     if (match(scanner::TokenType::Colon)) {
         parseTypeAnnotation();
     }
 
-    auto function = runtime::Value::createObject<objects::PoiseFunction>(std::move(functionName), m_filePath.string(), m_filePathHash, numParams, isExported, hasPack);
+    auto function = runtime::Value::createObject<objects::PoiseFunction>(std::move(functionName), m_filePath.string(), m_filePathHash, numParams, isExported, hasVariadicParams);
     auto functionPtr = function.object()->asFunction();
     m_vm->setCurrentFunction(functionPtr);
 
