@@ -1,0 +1,26 @@
+func main() {
+    var a;
+
+    a = try "Hello";
+    println(a);
+
+    a = try a / 2;
+    println(a);
+
+    a = "Hello" + (try "World");
+    println(a);
+
+    a = "Hello" + (try "World" * -1);
+    println(a);
+
+    foo(try bar(false));
+    foo(try bar(true));
+}
+
+func foo(param) => println(param);
+
+func bar(error: Bool) => if error {
+    throw Exception("Ooops!");
+} else {
+    return 69;
+}

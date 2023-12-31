@@ -118,6 +118,7 @@ auto Vm::run() noexcept -> RunResult
 
     struct TryBlockState    // TODO: better name
     {
+        usize stackSize;
         usize callStackSize;
         usize constantIndexToJumpTo;
         usize opIndexToJumpTo;
@@ -227,6 +228,7 @@ auto Vm::run() noexcept -> RunResult
                     const auto opIndexToJumpTo = constantList[constantIndex++].value<usize>();
 
                     tryBlockStateStack.push({
+                        .stackSize = stack.size(),
                         .callStackSize = callStack.size(),
                         .constantIndexToJumpTo = constantIndexToJumpTo,
                         .opIndexToJumpTo = opIndexToJumpTo,
@@ -651,7 +653,7 @@ auto Vm::run() noexcept -> RunResult
             const auto inTryBlock = !tryBlockStateStack.empty();
 
             if (inTryBlock) {
-                const auto [callStackSize, constantIndexToJumpTo, opIndexToJumpTo, heldIteratorsSize] = tryBlockStateStack.top();
+                const auto [stackSize, callStackSize, constantIndexToJumpTo, opIndexToJumpTo, heldIteratorsSize] = tryBlockStateStack.top();
 
                 callStack.resize(callStackSize);
                 callStack.back().constantIndex = constantIndexToJumpTo;
@@ -663,7 +665,7 @@ auto Vm::run() noexcept -> RunResult
 
                 tryBlockStateStack.pop();
 
-                stack.clear();  // TODO: is this right?
+                stack.resize(stackSize);
                 stack.push_back(Value::createObject<PoiseException>(exception.exceptionType(), std::string{exception.message()}));
             } else {
                 fmt::print(stderr, fmt::emphasis::bold | fmt::fg(fmt::color::red), "Runtime Error: ");

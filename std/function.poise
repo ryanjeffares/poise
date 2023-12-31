@@ -1,4 +1,2 @@
-export func bind(this final Function function, final args...): Function {
-    // println(typeof(args));
-    return |function, args| => function(...args);
-}
+export func bind(this final Function function, final args...): Function => |function, args| => function(...args);
+

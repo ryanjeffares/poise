@@ -90,7 +90,6 @@ private:
     [[nodiscard]] auto parseFunctionParams(bool isLambda) -> std::optional<FunctionParamsParseResult>;
     [[nodiscard]] auto parseNamespaceImport() -> std::optional<NamespaceParseResult>;
     [[nodiscard]] auto parseBlock(std::string_view scopeType) -> bool;
-    auto parseAssignment(std::optional<usize> localIndex) -> void;
     auto parseTypeAnnotation() -> void;
 
     auto declaration() -> void;

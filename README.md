@@ -90,6 +90,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * For loops
     * Make sure everything's working fine for more collections we add
 * ~~Zig style try assignment~~
+    * Could this be like a unary operator as opposed to only valid on assignment, so `foo(try bar())` is valid?
 * Parameter packing and unpacking
     * ~~Expand unpacking into collections~~
         * Remember this when we add Dicts and Sets...

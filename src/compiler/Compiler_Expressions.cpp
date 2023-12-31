@@ -10,6 +10,18 @@
 namespace poise::compiler {
 auto Compiler::expression(bool canAssign, bool canUnpack) -> void
 {
+    const auto function = m_vm->currentFunction();
+    std::optional<usize> jumpConstantIndex, jumpOpIndex;
+
+
+    if (match(scanner::TokenType::Try)) {
+        jumpConstantIndex = function->numConstants();
+        emitConstant(0_uz);
+        jumpOpIndex = function->numConstants();
+        emitConstant(0_uz);
+        emitOp(runtime::Op::EnterTry, m_previous->line());
+    }
+
     // expressions can only start with a literal, unary op, or identifier
     if (scanner::isValidStartOfExpression(m_current->tokenType())) {
         range(canAssign, canUnpack);
@@ -21,6 +33,14 @@ auto Compiler::expression(bool canAssign, bool canUnpack) -> void
         unpack();
     } else {
         errorAtCurrent("Expected expression");
+    }
+
+    if (jumpConstantIndex) {
+        emitOp(runtime::Op::ExitTry, m_previous->line());
+        const auto numConstants = function->numConstants();
+        const auto numOps = function->numOps();
+        function->setConstant(numConstants, *jumpConstantIndex);
+        function->setConstant(numOps, *jumpOpIndex);
     }
 }
 
@@ -332,7 +352,9 @@ auto Compiler::identifier(bool canAssign) -> void
                 return;
             }
 
-            parseAssignment(*localIndex);
+            expression(false, false);
+            emitConstant(*localIndex);
+            emitOp(runtime::Op::AssignLocal, m_previous->line());
         } else {
             // just loading the value
             emitConstant(*localIndex);

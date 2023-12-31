@@ -186,7 +186,8 @@ auto Compiler::varDeclaration(bool isFinal) -> void
     }
 
     if (match(scanner::TokenType::Equal)) {
-        parseAssignment(std::nullopt);
+        expression(false, false);
+        emitOp(runtime::Op::DeclareLocal, m_previous->line());
     } else {
         if (isFinal) {
             errorAtCurrent("Expected assignment after 'final'");

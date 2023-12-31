@@ -341,37 +341,6 @@ auto Compiler::parseBlock(std::string_view scopeType) -> bool
     return true;
 }
 
-auto Compiler::parseAssignment(std::optional<usize> localIndex) -> void
-{
-    const auto function = m_vm->currentFunction();
-    std::optional<usize> jumpConstantIndex, jumpOpIndex;
-
-    if (match(scanner::TokenType::Try)) {
-        jumpConstantIndex = function->numConstants();
-        emitConstant(0_uz);
-        jumpOpIndex = function->numConstants();
-        emitConstant(0_uz);
-        emitOp(runtime::Op::EnterTry, m_previous->line());
-    }
-
-    expression(false, false);
-
-    if (jumpConstantIndex) {
-        emitOp(runtime::Op::ExitTry, m_previous->line());
-        const auto numConstants = function->numConstants();
-        const auto numOps = function->numOps();
-        function->setConstant(numConstants, *jumpConstantIndex);
-        function->setConstant(numOps, *jumpOpIndex);
-    }
-
-    if (localIndex) {
-        emitConstant(*localIndex);
-        emitOp(runtime::Op::AssignLocal, m_previous->line());
-    } else {
-        emitOp(runtime::Op::DeclareLocal, m_previous->line());
-    }
-}
-
 auto Compiler::parseTypeAnnotation() -> void
 {
     if (!scanner::isTypeIdent(m_current->tokenType())) {

@@ -10,8 +10,8 @@ finalDecl = "final", IDENTIFIER, [ ":", TYPE_ANNOTATION ], [ { ",", IDENTIFIER, 
 statement = assignmentStatement | expressionStatement | printlnStatement | returnStatement | tryCatchStatement
     | throwStatement | whileStatement | forStatement ;
 
-assignmentStatement = IDENTIFIER, "=", [ "try" ], expression, ";" ;
-expressionStatement = call, [ "=", [ "try" ], expression ], ";" ;
+assignmentStatement = IDENTIFIER, "=", expression, ";" ;
+expressionStatement = call, [ "=", expression ], ";" ;
 printlnStatement = "println", "(", expression, ")" ;
 returnStatement = "return", [ expression ], ";" ;
 tryCatchStatement = "try", "{", BLOCK, "}", "catch", [ IDENTIFIER ], BLOCK ;
@@ -19,7 +19,7 @@ ifStatement = "if", expression, BLOCK, [ { "else", "if", expression, BLOCK } ], 
 whileStatement = "while", expression, BLOCK ;
 forStatement = "for", IDENTIFIER, [",", IDENTIFIER], "in", expression, BLOCK ;
 
-expression = range | UNPACK ;
+expression = [ "try" ], range | UNPACK ;
 range = logic_or, [ "..", logic_or, [ "by", expression ] ] ;
 logic_or = logic_and, [ { "or", logic_and } ] ;
 logic_and = bitwise_or, [ { "and", bitwise_or } ] ;
