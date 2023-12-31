@@ -603,15 +603,17 @@ auto Compiler::lambda() -> void
     auto oldLocals = std::move(m_localNames);
     m_localNames = std::move(captures);
 
-    std::optional<FunctionParamsParseResult> args;
+    std::optional<FunctionParamsParseResult> params;
     if (match(scanner::TokenType::OpenParen)) {
-        args = parseFunctionParams(true);
-        if (!args) {
+        params = parseFunctionParams(true);
+        if (!params) {
             return;
         }
+    } else {
+        params = FunctionParamsParseResult{.numParams = 0, .hasVariadicParams = false, .extensionFunctionTypes = {}};
     }
 
-    const auto [numArgs, hasVariadicParams, extensionFunctionType] = *args;
+    const auto [arity, hasVariadicParams, extensionFunctionType] = *params;
 
     if (match(scanner::TokenType::Colon)) {
         parseTypeAnnotation();
@@ -621,11 +623,11 @@ auto Compiler::lambda() -> void
 
     const auto prevFunction = m_vm->currentFunction();
     auto lambdaName = fmt::format("{}_lambda{}", prevFunction->name(), prevFunction->numLambdas());
-    auto lambda = runtime::Value::createObject<objects::PoiseFunction>(std::move(lambdaName), m_filePath, m_filePathHash, numArgs, false, hasVariadicParams);
+    auto lambda = runtime::Value::createObject<objects::PoiseFunction>(std::move(lambdaName), m_filePath, m_filePathHash, arity, false, hasVariadicParams);
     auto functionPtr = lambda.object()->asFunction();
     m_vm->setCurrentFunction(functionPtr);
 
-    for (auto i = 0_uz; i < m_localNames.size() - numArgs; i++) {
+    for (auto i = 0_uz; i < m_localNames.size() - arity; i++) {
         emitConstant(i);
         emitOp(runtime::Op::LoadCapture, m_previous->line());
     }
