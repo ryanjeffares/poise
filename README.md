@@ -95,8 +95,13 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * ~~Expand unpacking into collections~~
         * Remember this when we add Dicts and Sets...
     * ~~Unpack a collection~~
-    * Multiple assignments on one line (`a, b, = b, a`) or assigning an unpack (`a, b = ...pack`)
+    * Multiple assignments on one line (`a, b = b, a`) or assigning an unpack (`a, b = ...pack`)
         * How to parse `var a, b, c = try ...expr`?
+        * How badly do we want multiple assignments? Right now it works for variable declarations, but not for...
+            * Reassigning variables
+            * Assigning indexing etc
+            * It would also imply the ability to return multiple values from a function
+        * I'm just hesitant because of how annoying it is to compile LOL but maybe there's a better way to handle assignments in general in the compiler
     * ~~Friendship ended with `PoisePack`, `PoiseList` is my best friend now~~
     * ~~A "pack" will not be a unique type, and you will simply be able to unpack any collection~~
 * Construct `Type` instance, `Type` ident

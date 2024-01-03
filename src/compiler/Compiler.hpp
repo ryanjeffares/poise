@@ -3,7 +3,6 @@
 
 #include "../Poise.hpp"
 
-#include "../objects/PoiseType.hpp"
 #include "../runtime/Op.hpp"
 #include "../runtime/Vm.hpp"
 #include "../scanner/Scanner.hpp"

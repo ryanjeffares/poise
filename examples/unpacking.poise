@@ -13,7 +13,7 @@ func main() {
     println(b);
     println(c);
 
-    var ryan, syl, hays = try ...["Ryan", "Syl", "Hays"];
+    var ryan, syl, hays = ...["Ryan", "Syl", "Hays"];
     println(ryan);
     println(syl);
     println(hays);
