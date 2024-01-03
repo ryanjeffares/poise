@@ -208,12 +208,18 @@ auto Compiler::varDeclaration(bool isFinal) -> void
     const auto numDeclarations = m_localNames.size() - numDeclarationsBefore;
 
     if (match(scanner::TokenType::Equal)) {
-        for (auto i = 0_uz; i < numDeclarations; i++) {
-            expression(false, false);
-            emitOp(runtime::Op::DeclareLocal, m_previous->line());
+        if (match(scanner::TokenType::DotDotDot)) {
+            unpack();
+            emitConstant(numDeclarations);
+            emitOp(runtime::Op::DeclareMultipleLocals, m_previous->line());
+        } else {
+            for (auto i = 0_uz; i < numDeclarations; i++) {
+                expression(false, false);
+                emitOp(runtime::Op::DeclareLocal, m_previous->line());
 
-            if (i < numDeclarations - 1_uz && !match(scanner::TokenType::Comma)) {
-                errorAtCurrent("Expected ','");
+                if (i < numDeclarations - 1_uz && !match(scanner::TokenType::Comma)) {
+                    errorAtCurrent("Expected ','");
+                }
             }
         }
     } else {

@@ -13,7 +13,6 @@ auto Compiler::expression(bool canAssign, bool canUnpack) -> void
     const auto function = m_vm->currentFunction();
     std::optional<usize> jumpConstantIndex, jumpOpIndex;
 
-
     if (match(scanner::TokenType::Try)) {
         jumpConstantIndex = function->numConstants();
         emitConstant(0_uz);
@@ -46,15 +45,8 @@ auto Compiler::expression(bool canAssign, bool canUnpack) -> void
 
 auto Compiler::unpack() -> void
 {
-    // TODO: unpack calls
-    RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected identifier");
-
-    const auto text = m_previous->text();
-    if (const auto index = indexOfLocal(text)) {
-        emitConstant(*index);
-        emitOp(runtime::Op::LoadLocal, m_previous->line());
-        emitOp(runtime::Op::Unpack, m_previous->line());
-    }
+    expression(false, false);
+    emitOp(runtime::Op::Unpack, m_previous->line());
 }
 
 auto Compiler::range(bool canAssign, bool canUnpack) -> void

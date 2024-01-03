@@ -76,6 +76,7 @@ auto PoiseRange::unpack(std::vector<runtime::Value>& stack) const noexcept -> vo
 {
     if (m_isInfiniteLoop) {
         stack.emplace_back(0);
+        stack.emplace_back(0);
         return;
     }
 

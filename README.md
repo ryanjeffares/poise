@@ -96,6 +96,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
         * Remember this when we add Dicts and Sets...
     * ~~Unpack a collection~~
     * Multiple assignments on one line (`a, b, = b, a`) or assigning an unpack (`a, b = ...pack`)
+        * How to parse `var a, b, c = try ...expr`?
     * ~~Friendship ended with `PoisePack`, `PoiseList` is my best friend now~~
     * ~~A "pack" will not be a unique type, and you will simply be able to unpack any collection~~
 * Construct `Type` instance, `Type` ident

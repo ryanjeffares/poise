@@ -232,6 +232,23 @@ auto Vm::run() noexcept -> RunResult
                     localVariables.emplace_back(std::move(value));
                     break;
                 }
+                case Op::DeclareMultipleLocals: {
+                    const auto numDeclarations = constantList[constantIndex++].value<usize>();
+                    const auto numUnpacked = pop().value<usize>();
+
+                    if (numDeclarations != numUnpacked) {
+                        throw PoiseException(
+                            PoiseException::ExceptionType::IncorrectArgCount,
+                            fmt::format("Expected {} values to assign but unpacked {}", numDeclarations, numUnpacked)
+                        );
+                    }
+
+                    auto unpacked = popCallArgs(numUnpacked);
+                    for (auto i = 0_uz; i < unpacked.size(); i++) {
+                        localVariables.emplace_back(std::move(unpacked[i]));
+                    }
+                    break;
+                }
                 case Op::EnterTry: {
                     const auto constantIndexToJumpTo = constantList[constantIndex++].value<usize>();
                     const auto opIndexToJumpTo = constantList[constantIndex++].value<usize>();
@@ -329,11 +346,10 @@ auto Vm::run() noexcept -> RunResult
                 }
                 case Op::Unpack: {
                     auto value = pop();
-                    if (auto iterable = value.object()->asIterable()) {
-                        iterable->unpack(stack);
-                    } else {
+                    if (value.object() == nullptr || value.object()->asIterable() == nullptr) {
                         throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("{} cannot be unpacked", value.type()));
                     }
+                    value.object()->asIterable()->unpack(stack);
                     break;
                 }
                 case Op::TypeOf: {
