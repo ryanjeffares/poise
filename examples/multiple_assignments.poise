@@ -1,0 +1,6 @@
+func main() {
+    final a, b, c = 0, 1, 2;
+    println(a);
+    println(b);
+    println(c);
+}

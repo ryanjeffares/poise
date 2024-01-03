@@ -168,35 +168,65 @@ auto Compiler::varDeclaration(bool isFinal) -> void
 
     RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected identifier");
 
-    auto varName = m_previous->string();
-    if (varName.starts_with("__")) {
-        errorAtPrevious("Variable names may not start with '__' as this is reserved for the standard library");
+    auto verifyVarName = [this] (std::string_view varName) -> bool {
+        if (varName.starts_with("__")) {
+            errorAtPrevious("Variable names may not start with '__' as this is reserved for the standard library");
+            return false;
+        }
+
+        if (hasLocal(varName)) {
+            errorAtPrevious("Local variable with the same name already declared");
+            return false;
+        }
+        
+        return true;
+    };
+
+    const auto numDeclarationsBefore = m_localNames.size();
+
+    if (!verifyVarName(m_previous->text())) {
         return;
     }
 
-    if (hasLocal(varName)) {
-        errorAtPrevious("Local variable with the same name already declared");
-        return;
-    }
-
-    m_localNames.push_back({std::move(varName), isFinal});
-
+    std::vector<std::string> varNames{m_previous->string()};
+    m_localNames.push_back({m_previous->string(), isFinal});
+    
     if (match(scanner::TokenType::Colon)) {
         parseTypeAnnotation();
     }
 
+    while (match(scanner::TokenType::Comma)) {
+        RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected identifier");
+
+        if (!verifyVarName(m_previous->text())) {
+            return;
+        }
+
+        m_localNames.push_back({m_previous->string(), isFinal});
+    }
+
+    const auto numDeclarations = m_localNames.size() - numDeclarationsBefore;
+
     if (match(scanner::TokenType::Equal)) {
-        expression(false, false);
-        emitOp(runtime::Op::DeclareLocal, m_previous->line());
+        for (auto i = 0_uz; i < numDeclarations; i++) {
+            expression(false, false);
+            emitOp(runtime::Op::DeclareLocal, m_previous->line());
+
+            if (i < numDeclarations - 1_uz && !match(scanner::TokenType::Comma)) {
+                errorAtCurrent("Expected ','");
+            }
+        }
     } else {
         if (isFinal) {
             errorAtCurrent("Expected assignment after 'final'");
             return;
         }
 
-        emitConstant(runtime::Value::none());
-        emitOp(runtime::Op::LoadConstant, m_previous->line());
-        emitOp(runtime::Op::DeclareLocal, m_previous->line());
+        for (auto i = 0_uz; i < numDeclarations; i++) {
+            emitConstant(runtime::Value::none());
+            emitOp(runtime::Op::LoadConstant, m_previous->line());
+            emitOp(runtime::Op::DeclareLocal, m_previous->line());
+        }
     }
 
     EXPECT_SEMICOLON();

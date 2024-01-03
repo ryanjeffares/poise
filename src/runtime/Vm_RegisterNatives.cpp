@@ -8,6 +8,8 @@
 #include "../objects/PoiseException.hpp"
 #include "Types.hpp"
 
+#include <fmt/ranges.h>
+
 #include <cmath>
 
 namespace poise::runtime {

@@ -2,8 +2,7 @@
 
 #include <fmt/core.h>
 #include <fmt/format.h>
-
-#include <ranges>
+#include <fmt/ranges.h>
 
 namespace poise::objects {
 PoiseType::PoiseType(runtime::types::Type type, std::string name, runtime::Value constructorFunction)
