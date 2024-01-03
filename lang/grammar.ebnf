@@ -4,12 +4,12 @@ declaration = importDecl | funcDecl | varDecl | finalDecl | statement ;
 
 importDecl = "import", NAMESPACE, ";" ;
 funcDecl = "func", IDENTIFIER, "(", [ FUNCTION_ARGS ], ")", [ ":", TYPE_ANNOTATION ], BLOCK | ("=>", expression, ";") ;
-varDecl = "var", IDENTIFIER, [ ":", TYPE_ANNOTATION ], [ { ",", IDENTIFIER, [ ":", TYPE_ANNOTATION ], } ], [ "=", [ "try" ], expression, [ { ",", expression } ] ], ";" ;
-finalDecl = "final", IDENTIFIER, [ ":", TYPE_ANNOTATION ], [ { ",", IDENTIFIER, [ ":", TYPE_ANNOTATION ] } ], "=", [ "try" ], expression, [ { ",", expression } ], ";" ;
+varDecl = "var", IDENTIFIER, [ ":", TYPE_ANNOTATION ], [ { ",", IDENTIFIER, [ ":", TYPE_ANNOTATION ], } ], [ "=", [ "try" ], expression ], ";" ;
+finalDecl = "final", IDENTIFIER, [ ":", TYPE_ANNOTATION ], [ { ",", IDENTIFIER, [ ":", TYPE_ANNOTATION ] } ], "=", [ "try" ], expression, ";" ;
 
 statement = expressionStatement | printlnStatement | returnStatement | tryCatchStatement | throwStatement | whileStatement | forStatement ;
 
-expressionStatement = call, [ { ",", call } ] [ "=", expression, [ { ",", expression } ] ], ";" ;
+expressionStatement = call, [ { ",", call } ] [ "=", expression ], ";" ;
 printlnStatement = "println", "(", expression, ")" ;
 returnStatement = "return", [ expression ], ";" ;
 tryCatchStatement = "try", "{", BLOCK, "}", "catch", [ IDENTIFIER ], BLOCK ;
