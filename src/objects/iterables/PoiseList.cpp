@@ -6,7 +6,9 @@
 #include "PoiseRange.hpp"
 #include "../PoiseException.hpp"
 
+#ifdef __cpp_lib_ranges_enumerate
 #include <ranges>
+#endif
 
 namespace poise::objects::iterables {
 
@@ -111,7 +113,7 @@ auto PoiseList::toString() const noexcept -> std::string
             }
         }
 
-        if (static_cast<usize>(index) < m_data.size() - 1_uz) {
+        if (index < m_data.size() - 1_uz) {
             res.append(", ");
         }
 

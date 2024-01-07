@@ -24,8 +24,8 @@ public:
     [[nodiscard]] auto ssize() const noexcept -> isize override;
     auto unpack(std::vector<runtime::Value>& stack) const noexcept -> void override;
 
-    [[nodiscard]] auto asIterable() noexcept -> iterables::PoiseIterable* override;
-    [[nodiscard]] auto asList() noexcept -> iterables::PoiseList* override;
+    [[nodiscard]] auto asIterable() noexcept -> PoiseIterable* override;
+    [[nodiscard]] auto asList() noexcept -> PoiseList* override;
 
     [[nodiscard]] auto toString() const noexcept -> std::string override;
     [[nodiscard]] auto type() const noexcept -> runtime::types::Type override;

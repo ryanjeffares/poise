@@ -4,6 +4,7 @@
 #include "PoiseIterable.hpp"
 #include "PoiseList.hpp"
 #include "PoiseRange.hpp"
+#include "PoiseTuple.hpp"
 
 #endif  // ifndef POISE_ITERABLES_HPP 
 

@@ -3,7 +3,6 @@
 //
 
 #include "PoiseRange.hpp"
-#include "../PoiseException.hpp"
 
 #include <fmt/format.h>
 
@@ -28,12 +27,12 @@ PoiseRange::PoiseRange(runtime::Value start, runtime::Value end, runtime::Value 
     }
 }
 
-auto PoiseRange::asIterable() noexcept -> iterables::PoiseIterable*
+auto PoiseRange::asIterable() noexcept -> PoiseIterable*
 {
     return this;
 }
 
-auto PoiseRange::asRange() noexcept -> iterables::PoiseRange*
+auto PoiseRange::asRange() noexcept -> PoiseRange*
 {
     return this;
 }
@@ -197,3 +196,4 @@ auto PoiseRange::toVector() const noexcept -> std::vector<runtime::Value>
     return res;
 }
 }   // namespace poise::objects::iterables
+ 
