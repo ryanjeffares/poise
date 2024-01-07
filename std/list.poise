@@ -1,5 +1,4 @@
 export func empty(this final List list): Bool => __NATIVE_LIST_EMPTY(list);
-export func size(this final List list): Int => __NATIVE_LIST_SIZE(list);
 export func append(this final List list, final value): None => __NATIVE_LIST_APPEND(list, value);
 export func clear(this final List list): None => __NATIVE_LIST_CLEAR(list);
 export func repeat(this final List list, final n: Int): List => __NATIVE_LIST_REPEAT(list, n);

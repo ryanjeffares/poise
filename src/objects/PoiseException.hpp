@@ -11,7 +11,6 @@
 #include <exception>
 
 namespace poise::objects {
-
 class PoiseException : public PoiseObject, public std::exception
 {
 public:
@@ -23,6 +22,7 @@ public:
         FunctionNotFound,
         IncorrectArgCount,
         IndexOutOfBounds,
+        InvalidArgument,
         InvalidCast,
         InvalidIterator,
         InvalidOperand,
@@ -48,7 +48,6 @@ private:
     ExceptionType m_exceptionType;
     std::string m_message;
 };  // class PoiseException
-
 }   // namespace poise::objects
 
 namespace fmt {

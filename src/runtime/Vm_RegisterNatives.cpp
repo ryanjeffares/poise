@@ -35,6 +35,7 @@ auto Vm::registerNatives() noexcept -> void
 {
     registerIntNatives();
     registerFloatNatives();
+    registerIterableNatives();
     registerListNatives();
     registerRangeNatives();
 }   // Vm::registerNatives()
@@ -85,18 +86,21 @@ auto Vm::registerFloatNatives() noexcept -> void
         }});
 }
 
+auto Vm::registerIterableNatives() noexcept -> void
+{
+    m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_ITERABLE_SIZE"), NativeFunction{
+        1, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0, args[0], {types::Type::List, types::Type::Range});
+            return args[0].object()->asIterable()->size();
+        }});
+}
+
 auto Vm::registerListNatives() noexcept -> void
 {
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_LIST_EMPTY"), NativeFunction{
         1, [](std::span<Value> args) -> Value {
             throwIfWrongType(0, args[0], types::Type::List);
             return args[0].object()->asList()->empty();
-        }});
-
-    m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_LIST_SIZE"), NativeFunction{
-        1, [](std::span<Value> args) -> Value {
-            throwIfWrongType(0, args[0], types::Type::List);
-            return args[0].object()->asList()->size();
         }});
 
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_LIST_APPEND"), NativeFunction{

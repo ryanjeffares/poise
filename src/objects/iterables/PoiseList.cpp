@@ -139,22 +139,22 @@ auto PoiseList::empty() const noexcept -> bool
     return m_data.empty();
 }
 
-auto PoiseList::at(usize index) const -> const runtime::Value&
+auto PoiseList::at(isize index) const -> const runtime::Value&
 {
-    if (index >= size()) {
+    if (index >= ssize() || index < 0_iz) {
         throw PoiseException(PoiseException::ExceptionType::IndexOutOfBounds, fmt::format("The index is {} but the size is {}", index, size()));
     }
 
-    return m_data[index];
+    return m_data[static_cast<usize>(index)];
 }
 
-auto PoiseList::at(usize index) -> runtime::Value&
+auto PoiseList::at(isize index) -> runtime::Value&
 {
-    if (index >= size()) {
+    if (index >= ssize() || index < 0_iz) {
         throw PoiseException(PoiseException::ExceptionType::IndexOutOfBounds, fmt::format("The index is {} but the size is {}", index, size()));
     }
 
-    return m_data[index];
+    return m_data[static_cast<usize>(index)];
 }
 
 auto PoiseList::append(runtime::Value value) noexcept -> void

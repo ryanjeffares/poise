@@ -142,7 +142,18 @@ auto Vm::run() noexcept -> RunResult
         return std::make_tuple<Value>(std::move(value2), std::move(value1));
     };
 
-    auto popCallArgs = [&pop] (usize numArgs) {
+    auto popThree = [&stack] -> std::tuple<Value, Value, Value> {
+        POISE_ASSERT(stack.size() >= 3_uz, "Stack is not big enough, there has been an error in codegen");
+        auto value1 = std::move(stack.back());
+        stack.pop_back();
+        auto value2 = std::move(stack.back());
+        stack.pop_back();
+        auto value3 = std::move(stack.back());
+        stack.pop_back();
+        return {std::move(value3), std::move(value2), std::move(value1)};
+    };
+
+    auto popCallArgs = [&pop] [[nodiscard]](usize numArgs) -> std::vector<Value> {
         std::vector<Value> args;
         args.resize(numArgs);
 
@@ -460,6 +471,72 @@ auto Vm::run() noexcept -> RunResult
                 case Op::MakeLambda: {
                     const auto lambda = constantList[constantIndex++].object()->asFunction();
                     stack.emplace_back(lambda->shallowClone());
+                    break;
+                }
+                case Op::AssignIndex: {
+                    auto [collection, index, value] = popThree();
+                    switch (collection.type()) {
+                        case types::Type::List: {
+                            if (index.type() != types::Type::Int) {
+                                throw PoiseException(
+                                    PoiseException::ExceptionType::InvalidType,
+                                    fmt::format("Expected Int to index List but got {}", index.type())
+                                );
+                            }
+
+                            collection.object()->asList()->at(index.value<isize>()) = std::move(value);
+                            break;
+                        }
+                        default: {
+                            throw PoiseException(
+                                PoiseException::ExceptionType::InvalidType,
+                                fmt::format("Cannot assign to {} at index", collection.type())
+                            );
+                        }
+                    }
+                    break;
+                }
+                case Op::LoadIndex: {
+                    auto [collection, index] = popTwo();
+                    switch (collection.type()) {
+                        case types::Type::List: {
+                            if (index.type() != types::Type::Int) {
+                                throw PoiseException(
+                                    PoiseException::ExceptionType::InvalidType,
+                                    fmt::format("Expected Int to index List but got {}", index.type())
+                                );
+                            }
+
+                            stack.push_back(collection.object()->asList()->at(index.value<isize>()));
+                            break;
+                        }
+                        case types::Type::String: {
+                            if (index.type() != types::Type::Int) {
+                                throw PoiseException(
+                                    PoiseException::ExceptionType::InvalidType,
+                                    fmt::format("Expected Int to index String but got {}", index.type())
+                                );
+                            }
+
+                            const auto& s = collection.string();
+                            const auto i = index.value<isize>(); 
+                            if (i < 0_i64 || i >= std::ssize(s)) {
+                                throw PoiseException(
+                                    PoiseException::ExceptionType::IndexOutOfBounds,
+                                    fmt::format("The index is {} but the size is {}", i, s.size())
+                                );
+                            }
+
+                            stack.emplace_back(std::string{1_uz, s[static_cast<usize>(i)]});
+                            break;
+                        }
+                        default: {
+                            throw PoiseException(
+                                PoiseException::ExceptionType::InvalidType,
+                                fmt::format("Cannot index {}", collection.type())
+                            );
+                        }
+                    }
                     break;
                 }
                 case Op::Call: {
