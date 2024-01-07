@@ -126,23 +126,23 @@ auto Vm::run() noexcept -> RunResult
     std::stack<TryBlockState> tryBlockStateStack;
     std::stack<Value> heldIterators;
 
-    auto pop = [&stack] {
+    auto pop = [&stack] () -> Value {
         POISE_ASSERT(!stack.empty(), "Stack is empty, there has been an error in codegen");
         auto value = std::move(stack.back());
         stack.pop_back();
         return value;
     };
 
-    auto popTwo = [&stack] {
+    auto popTwo = [&stack] () -> std::tuple<Value, Value> {
         POISE_ASSERT(stack.size() >= 2_uz, "Stack is not big enough, there has been an error in codegen");
         auto value1 = std::move(stack.back());
         stack.pop_back();
         auto value2 = std::move(stack.back());
         stack.pop_back();
-        return std::make_tuple<Value>(std::move(value2), std::move(value1));
+        return {std::move(value2), std::move(value1)};
     };
 
-    auto popThree = [&stack] -> std::tuple<Value, Value, Value> {
+    auto popThree = [&stack] () -> std::tuple<Value, Value, Value> {
         POISE_ASSERT(stack.size() >= 3_uz, "Stack is not big enough, there has been an error in codegen");
         auto value1 = std::move(stack.back());
         stack.pop_back();
@@ -153,7 +153,7 @@ auto Vm::run() noexcept -> RunResult
         return {std::move(value3), std::move(value2), std::move(value1)};
     };
 
-    auto popCallArgs = [&pop] [[nodiscard]](usize numArgs) -> std::vector<Value> {
+    auto popCallArgs = [&pop] (usize numArgs) -> std::vector<Value> {
         std::vector<Value> args;
         args.resize(numArgs);
 
@@ -543,7 +543,9 @@ auto Vm::run() noexcept -> RunResult
                                 );
                             }
 
-                            stack.emplace_back(std::string{1_uz, s[static_cast<usize>(i)]});
+                            std::string res;
+                            res.push_back(s[static_cast<usize>(i)]);
+                            stack.emplace_back(std::move(res));
                             break;
                         }
                         default: {
