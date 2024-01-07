@@ -65,239 +65,239 @@ auto isValidStartOfExpression(TokenType tokenType) noexcept -> bool
 }   // namespace poise::scanner
 
 namespace fmt {
-using namespace poise::scanner;
+using namespace poise;
 
-auto formatter<TokenType>::format(TokenType tokenType, format_context& context) const -> decltype(context.out())
+auto formatter<scanner::TokenType>::format(scanner::TokenType tokenType, format_context& context) const -> decltype(context.out())
 {
     string_view result = "unknown";
 
     switch (tokenType) {
-        case TokenType::BoolIdent:
+        case scanner::TokenType::BoolIdent:
             result = "BoolIdent";
             break;
-        case TokenType::FloatIdent:
+        case scanner::TokenType::FloatIdent:
             result = "FloatIdent";
             break;
-        case TokenType::IntIdent:
+        case scanner::TokenType::IntIdent:
             result = "IntIdent";
             break;
-        case TokenType::NoneIdent:
+        case scanner::TokenType::NoneIdent:
             result = "NoneIdent";
             break;
-        case TokenType::StringIdent:
+        case scanner::TokenType::StringIdent:
             result = "StringIdent";
             break;
-        case TokenType::ExceptionIdent:
+        case scanner::TokenType::ExceptionIdent:
             result = "ExceptionIdent";
             break;
-        case TokenType::FunctionIdent:
+        case scanner::TokenType::FunctionIdent:
             result = "FunctionIdent";
             break;
-        case TokenType::ListIdent:
+        case scanner::TokenType::ListIdent:
             result = "ListIdent";
             break;
-        case TokenType::RangeIdent:
+        case scanner::TokenType::RangeIdent:
             result = "RangeIdent";
             break;
-        case TokenType::And:
+        case scanner::TokenType::And:
             result = "And";
             break;
-        case TokenType::As:
+        case scanner::TokenType::As:
             result = "As";
             break;
-        case TokenType::By:
+        case scanner::TokenType::By:
             result = "By";
             break;
-        case TokenType::Catch:
+        case scanner::TokenType::Catch:
             result = "Catch";
             break;
-        case TokenType::Else:
+        case scanner::TokenType::Else:
             result = "Else";
             break;
-        case TokenType::EPrint:
+        case scanner::TokenType::EPrint:
             result = "EPrint";
             break;
-        case TokenType::EPrintLn:
+        case scanner::TokenType::EPrintLn:
             result = "EPrintLn";
             break;
-        case TokenType::Export:
+        case scanner::TokenType::Export:
             result = "Export";
             break;
-        case TokenType::Final:
+        case scanner::TokenType::Final:
             result = "Final";
             break;
-        case TokenType::For:
+        case scanner::TokenType::For:
             result = "For";
             break;
-        case TokenType::Func:
+        case scanner::TokenType::Func:
             result = "Func";
             break;
-        case TokenType::If:
+        case scanner::TokenType::If:
             result = "If";
             break;
-        case TokenType::Import:
+        case scanner::TokenType::Import:
             result = "Import";
             break;
-        case TokenType::In:
+        case scanner::TokenType::In:
             result = "In";
             break;
-        case TokenType::Or:
+        case scanner::TokenType::Or:
             result = "Or";
             break;
-        case TokenType::Print:
+        case scanner::TokenType::Print:
             result = "Print";
             break;
-        case TokenType::PrintLn:
+        case scanner::TokenType::PrintLn:
             result = "PrintLn";
             break;
-        case TokenType::Return:
+        case scanner::TokenType::Return:
             result = "Return";
             break;
-        case TokenType::Throw:
+        case scanner::TokenType::Throw:
             result = "Throw";
             break;
-        case TokenType::This:
+        case scanner::TokenType::This:
             result = "This";
             break;
-        case TokenType::Try:
+        case scanner::TokenType::Try:
             result = "Try";
             break;
-        case TokenType::TypeOf:
+        case scanner::TokenType::TypeOf:
             result = "TypeOf";
             break;
-        case TokenType::Var:
+        case scanner::TokenType::Var:
             result = "Var";
             break;
-        case TokenType::While:
+        case scanner::TokenType::While:
             result = "While";
             break;
-        case TokenType::Ampersand:
+        case scanner::TokenType::Ampersand:
             result = "Ampersand";
             break;
-        case TokenType::Arrow:
+        case scanner::TokenType::Arrow:
             result = "Arrow";
             break;
-        case TokenType::Caret:
+        case scanner::TokenType::Caret:
             result = "Caret";
             break;
-        case TokenType::CloseBrace:
+        case scanner::TokenType::CloseBrace:
             result = "CloseBrace";
             break;
-        case TokenType::CloseParen:
+        case scanner::TokenType::CloseParen:
             result = "CloseParen";
             break;
-        case TokenType::CloseSquareBracket:
+        case scanner::TokenType::CloseSquareBracket:
             result = "CloseSquareBracket";
             break;
-        case TokenType::Colon:
+        case scanner::TokenType::Colon:
             result = "Colon";
             break;
-        case TokenType::ColonColon:
+        case scanner::TokenType::ColonColon:
             result = "ColonColon";
             break;
-        case TokenType::Comma:
+        case scanner::TokenType::Comma:
             result = "Comma";
             break;
-        case TokenType::Dot:
+        case scanner::TokenType::Dot:
             result = "Dot";
             break;
-        case TokenType::DotDot:
+        case scanner::TokenType::DotDot:
             result = "DotDot";
             break;
-        case TokenType::DotDotDot:
+        case scanner::TokenType::DotDotDot:
             result = "DotDotDot";
             break;
-        case TokenType::DotDotEqual:
+        case scanner::TokenType::DotDotEqual:
             result = "DotDotEqual";
             break;
-        case TokenType::Equal:
+        case scanner::TokenType::Equal:
             result = "Equal";
             break;
-        case TokenType::EqualEqual:
+        case scanner::TokenType::EqualEqual:
             result = "EqualEqual";
             break;
-        case TokenType::Exclamation:
+        case scanner::TokenType::Exclamation:
             result = "Exclamation";
             break;
-        case TokenType::Greater:
+        case scanner::TokenType::Greater:
             result = "Greater";
             break;
-        case TokenType::GreaterEqual:
+        case scanner::TokenType::GreaterEqual:
             result = "GreaterEqual";
             break;
-        case TokenType::Less:
+        case scanner::TokenType::Less:
             result = "Less";
             break;
-        case TokenType::LessEqual:
+        case scanner::TokenType::LessEqual:
             result = "LessEqual";
             break;
-        case TokenType::Modulus:
+        case scanner::TokenType::Modulus:
             result = "Modulus";
             break;
-        case TokenType::Minus:
+        case scanner::TokenType::Minus:
             result = "Subtraction";
             break;
-        case TokenType::NotEqual:
+        case scanner::TokenType::NotEqual:
             result = "NotEqual";
             break;
-        case TokenType::OpenBrace:
+        case scanner::TokenType::OpenBrace:
             result = "OpenBrace";
             break;
-        case TokenType::OpenParen:
+        case scanner::TokenType::OpenParen:
             result = "OpenParen";
             break;
-        case TokenType::OpenSquareBracket:
+        case scanner::TokenType::OpenSquareBracket:
             result = "OpenSquareBracket";
             break;
-        case TokenType::Pipe:
+        case scanner::TokenType::Pipe:
             result = "Pipe";
             break;
-        case TokenType::Plus:
+        case scanner::TokenType::Plus:
             result = "Addition";
             break;
-        case TokenType::Semicolon:
+        case scanner::TokenType::Semicolon:
             result = "Semicolon";
             break;
-        case TokenType::ShiftLeft:
+        case scanner::TokenType::ShiftLeft:
             result = "ShiftLeft";
             break;
-        case TokenType::ShiftRight:
+        case scanner::TokenType::ShiftRight:
             result = "ShiftRight";
             break;
-        case TokenType::Slash:
+        case scanner::TokenType::Slash:
             result = "Slash";
             break;
-        case TokenType::Star:
+        case scanner::TokenType::Star:
             result = "Star";
             break;
-        case TokenType::Tilde:
+        case scanner::TokenType::Tilde:
             result = "Tilde";
             break;
-        case TokenType::False:
+        case scanner::TokenType::False:
             result = "False";
             break;
-        case TokenType::Float:
+        case scanner::TokenType::Float:
             result = "Float";
             break;
-        case TokenType::Identifier:
+        case scanner::TokenType::Identifier:
             result = "Identifier";
             break;
-        case TokenType::Int:
+        case scanner::TokenType::Int:
             result = "Int";
             break;
-        case TokenType::None:
+        case scanner::TokenType::None:
             result = "None";
             break;
-        case TokenType::String:
+        case scanner::TokenType::String:
             result = "String";
             break;
-        case TokenType::True:
+        case scanner::TokenType::True:
             result = "True";
             break;
-        case TokenType::EndOfFile:
+        case scanner::TokenType::EndOfFile:
             result = "EndOfFile";
             break;
-        case TokenType::Error:
+        case scanner::TokenType::Error:
             result = "Error";
             break;
     }

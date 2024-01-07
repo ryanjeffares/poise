@@ -14,9 +14,9 @@ int main(int argc, const char* argv[])
         std::exit(1);
     }
 
-    auto verbose = argc >= 3 && (std::strcmp(argv[2zu], "--verbose") == 0 || std::strcmp(argv[2zu], "-v") == 0);
+    auto verbose = argc >= 3 && (std::strcmp(argv[std::size_t{2}], "--verbose") == 0 || std::strcmp(argv[std::size_t{2}], "-v") == 0);
 
-    std::filesystem::path inFilePath{argv[1zu]};
+    std::filesystem::path inFilePath{argv[std::size_t{1}]};
 
     if (!std::filesystem::exists(inFilePath)) {
         fmt::print(stderr, "File not found\n");

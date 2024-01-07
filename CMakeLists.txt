@@ -19,15 +19,16 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(Catch2)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(POISE_COMPILE_DEFINITIONS BOOST_STACKTRACE_GNU_SOURCE_NOT_REQUIRED=1 FMT_HEADER_ONLY)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
 
 if(MSVC)
-    list(APPEND POISE_COMPILE_DEFINITIONS POISE_MSVC)
-    set(POISE_COMPILE_OPTIONS /W4 /WX /external:templates- /external:W0 /std:c++latest)
+    list(APPEND POISE_COMPILE_DEFINITIONS POISE_MSVC WIN32_LEAN_AND_MEAN)
+    set(POISE_COMPILE_OPTIONS /W4 /WX /external:templates- /external:W0 /std:c++20)
 else()
     list(APPEND POISE_COMPILE_DEFINITIONS POISE_GCC_CLANG)
-    set(POISE_COMPILE_OPTIONS -Wall -Werror -Wpedantic -Wextra -Wconversion -std=gnu++2b)
+    set(POISE_COMPILE_OPTIONS -Wall -Werror -Wpedantic -Wextra -Wconversion -std=c++20)
 endif()
     
 if (CMAKE_BUILD_TYPE MATCHES "Debug")

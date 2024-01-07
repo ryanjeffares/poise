@@ -126,23 +126,23 @@ auto Vm::run() noexcept -> RunResult
     std::stack<TryBlockState> tryBlockStateStack;
     std::stack<Value> heldIterators;
 
-    auto pop = [&stack] -> Value {
+    auto pop = [&stack] {
         POISE_ASSERT(!stack.empty(), "Stack is empty, there has been an error in codegen");
         auto value = std::move(stack.back());
         stack.pop_back();
         return value;
     };
 
-    auto popTwo = [&stack] -> std::tuple<Value, Value> {
+    auto popTwo = [&stack] {
         POISE_ASSERT(stack.size() >= 2_uz, "Stack is not big enough, there has been an error in codegen");
         auto value1 = std::move(stack.back());
         stack.pop_back();
         auto value2 = std::move(stack.back());
         stack.pop_back();
-        return {std::move(value2), std::move(value1)};
+        return std::make_tuple<Value>(std::move(value2), std::move(value1));
     };
 
-    auto popCallArgs = [&pop] [[nodiscard]](usize numArgs) -> std::vector<Value> {
+    auto popCallArgs = [&pop] (usize numArgs) {
         std::vector<Value> args;
         args.resize(numArgs);
 
@@ -154,7 +154,7 @@ auto Vm::run() noexcept -> RunResult
     };
 
 #ifdef POISE_DEBUG
-    auto printMemory = [&stack, &localVariables] -> void {
+    auto printMemory = [&stack, &localVariables] {
         // I'm assuming this gets yeeted in release...
         fmt::print("STACK:\n");
         for (const auto& value : stack) {

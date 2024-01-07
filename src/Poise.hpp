@@ -5,12 +5,12 @@
 
 #include <fmt/core.h>
 
-#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
 #include <filesystem>
 #include <optional>
+#include <string>
 
 namespace poise {
 using i8 = std::int8_t;
@@ -89,14 +89,36 @@ inline constexpr auto operator ""_f64(long double value) noexcept -> f64
     return static_cast<f64>(value);
 }
 
-inline auto getStdPath() -> std::optional<std::filesystem::path>
+#ifndef _CRT_SECURE_NO_WARNINGS
+inline auto getEnv(const char* varName) noexcept -> std::string
+{
+    std::string res;
+    char* pValue{};
+    auto len = 0_uz;
+    auto err = _dupenv_s(&pValue, &len, varName);
+    if (err) {
+        free(pValue);
+    } else {
+        res = pValue;
+    }
+    return res;
+}
+#else
+inline auto getEnv(const char* varName) noexcept -> std::string
+{
+    return std::getenv(varName);
+}
+#endif
+
+inline auto getStdPath() noexcept -> std::optional<std::filesystem::path>
 {
     static std::optional<std::filesystem::path> result;
     static bool found = false;
 
     if (!found) {
         found = true;
-        if (const auto var = std::getenv("POISE_STD_PATH")) {
+        const auto var = getEnv("POISE_STD_PATH");
+        if (!var.empty()) {
             result = std::filesystem::path{var};
         } else {
             return std::nullopt;
@@ -127,6 +149,11 @@ inline auto getStdPath() -> std::optional<std::filesystem::path>
 
 #ifndef POISE_UNREACHABLE
 #define POISE_UNREACHABLE() POISE_ASSERT(false, "Unreachable code")
+#endif
+
+#ifdef POISE_MSVC
+#undef min
+#undef max
 #endif
 
 #endif  // #ifndef POISE_HPP
