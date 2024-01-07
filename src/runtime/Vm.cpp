@@ -24,6 +24,7 @@ Vm::Vm(std::string mainFilePath)
         {types::Type::Iterator, Value::createObject<objects::PoiseType>(types::Type::Iterator, "Iterator")},
         {types::Type::List, Value::createObject<objects::PoiseType>(types::Type::List, "List")},
         {types::Type::Range, Value::createObject<objects::PoiseType>(types::Type::Range, "Range")},
+        {types::Type::Tuple, Value::createObject<objects::PoiseType>(types::Type::Tuple, "Tuple")},
         {types::Type::Type, Value::createObject<objects::PoiseType>(types::Type::Type, "Type")},
     }
 
@@ -524,6 +525,17 @@ auto Vm::run() noexcept -> RunResult
                             }
 
                             stack.push_back(collection.object()->asList()->at(index.value<isize>()));
+                            break;
+                        }
+                        case types::Type::Tuple: {
+                            if (index.type() != types::Type::Int) {
+                                throw PoiseException(
+                                    PoiseException::ExceptionType::InvalidType,
+                                    fmt::format("Expected Int to index Tuple but got {}", index.type())
+                                );
+                            }
+
+                            stack.push_back(collection.object()->asTuple()->at(index.value<isize>()));
                             break;
                         }
                         case types::Type::String: {

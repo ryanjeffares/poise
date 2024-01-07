@@ -46,6 +46,8 @@ auto PoiseTuple::unpack(std::vector<runtime::Value>& stack) const noexcept -> vo
     for (const auto& value : m_data) {
         stack.push_back(value);
     }
+
+    stack.emplace_back(size());
 }
 
 auto PoiseTuple::asIterable() noexcept -> PoiseIterable*
@@ -60,7 +62,7 @@ auto PoiseTuple::asTuple() noexcept -> PoiseTuple*
 
 auto PoiseTuple::toString() const noexcept -> std::string
 {
-    std::string res = "[";
+    std::string res = "(";
 
 #ifndef __cpp_lib_ranges_enumerate
     for (auto index = 0_uz; const auto& value : m_data) {
@@ -89,7 +91,7 @@ auto PoiseTuple::toString() const noexcept -> std::string
 #endif
     }
 
-    res.append("]");
+    res.append(")");
     return res;
 }
 
@@ -103,16 +105,16 @@ auto PoiseTuple::iterable() const noexcept -> bool
     return true;
 }
 
-auto PoiseTuple::at(usize index) const -> const runtime::Value&
+auto PoiseTuple::at(isize index) const -> const runtime::Value&
 {
-    if (index >= size()) {
+    if (index >= ssize() || index < 0_iz) {
         throw PoiseException{
             PoiseException::ExceptionType::IndexOutOfBounds,
             fmt::format("The index was {} but the size is {}", index, size())
         };
     }
 
-    return m_data[index];
+    return m_data[static_cast<usize>(index)];
 }
 
 }   // namespace poise::objects::iterables

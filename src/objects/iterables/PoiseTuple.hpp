@@ -26,7 +26,7 @@ public:
     [[nodiscard]] auto type() const noexcept -> runtime::types::Type override;
     [[nodiscard]] auto iterable() const noexcept -> bool override;
 
-    [[nodiscard]] auto at(usize index) const -> const runtime::Value&;
+    [[nodiscard]] auto at(isize index) const -> const runtime::Value&;
 };
 }   // namespace poise::objects::iterables
  

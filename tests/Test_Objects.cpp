@@ -2,10 +2,7 @@
 // Created by ryand on 16/12/2023.
 //
 
-#include "../src/objects/PoiseException.hpp"
-#include "../src/objects/PoiseFunction.hpp"
-#include "../src/objects/iterables/PoiseList.hpp"
-#include "../src/objects/iterables/PoiseRange.hpp"
+#include "../src/objects/Objects.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -134,5 +131,22 @@ TEST_CASE("PoiseRange functions and iteration")
 
         REQUIRE(iterator.isAtEnd());
     }
+}
+
+TEST_CASE("PoiseTuple functions and iteration")
+{
+    using namespace poise::runtime;
+    using namespace poise::objects::iterables;
+
+    PoiseTuple tuple{std::vector<Value>{Value{0}, Value{"Hello"}, Value{true}}};
+    REQUIRE(tuple.size() == 3_uz);
+    REQUIRE(tuple.at(0_uz) == 0);
+
+    PoiseIterator iterator{&tuple};
+    REQUIRE(!iterator.isAtEnd());
+
+    iterator.increment();
+
+    REQUIRE(iterator.value() == std::string{"Hello"});
 }
 }

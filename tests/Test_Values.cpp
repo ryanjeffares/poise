@@ -9,9 +9,11 @@ TEST_CASE("Check binary operations on Value class")
     using namespace poise::runtime;
 
     Value int1 = 1, int2 = 2;
-    REQUIRE(int1 + int2 == Value{3});
-    REQUIRE((int1 | int2) == Value{3});
-    REQUIRE(~int1 == Value{-2});
+    REQUIRE(int1 + int2 == 3);
+    REQUIRE((int1 | int2) == 3);
+    REQUIRE(~int1 == -2);
+    REQUIRE(int1 << 1 == 2);
+    REQUIRE(int2 >> 1 == 1);
 
     Value float1 = 0.5, float2 = 3.2;
     REQUIRE(float1 + float2 == Value{3.7});

@@ -30,7 +30,8 @@ auto isTypeIdent(TokenType tokenType) noexcept -> bool
            tokenType == TokenType::ExceptionIdent ||
            tokenType == TokenType::FunctionIdent ||
            tokenType == TokenType::ListIdent ||
-           tokenType == TokenType::RangeIdent;
+           tokenType == TokenType::RangeIdent ||
+           tokenType == TokenType::TupleIdent;
 }
 
 auto isGenericTypeIdent(TokenType tokenType) noexcept -> bool
@@ -98,6 +99,9 @@ auto formatter<scanner::TokenType>::format(scanner::TokenType tokenType, format_
             break;
         case scanner::TokenType::RangeIdent:
             result = "RangeIdent";
+            break;
+        case scanner::TokenType::TupleIdent:
+            result = "TupleIdent";
             break;
         case scanner::TokenType::And:
             result = "And";

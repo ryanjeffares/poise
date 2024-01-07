@@ -102,4 +102,12 @@ TEST_CASE("Compile and run 012_packs.poise")
     REQUIRE(compiler.compile() == compiler::Compiler::CompileResult::Success);
     REQUIRE(vm.run() == runtime::Vm::RunResult::Success);
 }
+
+TEST_CASE("Compile and run 013_tuples.poise")
+{
+    runtime::Vm vm{"tests/test_files/013_tuples.poise"};
+    compiler::Compiler compiler{true, false, &vm, "tests/test_files/013_tuples.poise"};
+    REQUIRE(compiler.compile() == compiler::Compiler::CompileResult::Success);
+    REQUIRE(vm.run() == runtime::Vm::RunResult::Success);
+}
 }

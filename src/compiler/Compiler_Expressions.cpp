@@ -506,6 +506,7 @@ auto Compiler::typeIdent() -> void
         // constructing an instance of the type
         if (const auto args = parseCallArgs(scanner::TokenType::CloseParen)) {
             const auto [numArgs, hasUnpack] = *args;
+            // TODO: some collections might allow for no args...
             if (tokenType < scanner::TokenType::ListIdent) {
                 if (numArgs > 1) {
                     errorAtPrevious(fmt::format("'{}' can only be constructed from a single argument but was given {}", static_cast<runtime::types::Type>(tokenType), numArgs));

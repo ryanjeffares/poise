@@ -15,19 +15,25 @@
 namespace poise::runtime {
 using objects::PoiseException;
 
-auto throwIfWrongType(usize position, const Value& value, types::Type type) -> void
+static auto throwIfWrongType(usize position, const Value& value, types::Type type) -> void
 {
     if (value.type() != type) {
         throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("Expected {} at position {} but got {}", type, position, value.type()));
     }
 }
 
-auto throwIfWrongType(usize position, const Value& value, std::initializer_list<types::Type> types) -> void
+static auto throwIfWrongType(usize position, const Value& value, std::initializer_list<types::Type> types) -> void
 {
     if (std::none_of(types.begin(), types.end(), [&value](types::Type type) {
         return value.type() == type;
     })) {
         throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("Expected {} at position {} but got {}", fmt::join(types, " or "), position, value.type()));
+    }
+}
+
+static auto throwIfNotIterable(usize position, const Value& value) -> void {
+    if (value.object() == nullptr || value.object()->asIterable() == nullptr) {
+        throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("Expected iterable at position {} but got {}", position, value.type()));
     }
 }
 
@@ -90,7 +96,7 @@ auto Vm::registerIterableNatives() noexcept -> void
 {
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_ITERABLE_SIZE"), NativeFunction{
         1, [](std::span<Value> args) -> Value {
-            throwIfWrongType(0, args[0], {types::Type::List, types::Type::Range});
+            throwIfNotIterable(0, args[0]);
             return args[0].object()->asIterable()->size();
         }});
 }
