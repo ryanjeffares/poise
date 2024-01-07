@@ -57,7 +57,7 @@ auto Compiler::expressionStatement(bool consumeSemicolon) -> void
         TODO: will need to check for assigning members and indexing
     */
 
-    call(true, false);
+    call(true);
 
     if (!lastOpWasAssignment()) {
         emitOp(runtime::Op::Pop, m_previous->line());

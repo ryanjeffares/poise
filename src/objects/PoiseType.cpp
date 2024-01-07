@@ -123,6 +123,12 @@ auto PoiseType::construct(std::span<runtime::Value> args) const -> runtime::Valu
                 return runtime::Value::createObject<iterables::PoiseRange>(std::move(args[0]), std::move(args[1]), 1, args[2].value<bool>());
             }
         }
+        case runtime::types::Type::Tuple: {
+            return runtime::Value::createObject<iterables::PoiseTuple>(std::vector<runtime::Value>{
+                std::make_move_iterator(args.begin()),
+                std::make_move_iterator(args.end())
+            });
+        }
         case runtime::types::Type::Type:
             throw PoiseException(PoiseException::ExceptionType::InvalidType, "Cannot construct Type");
         default:

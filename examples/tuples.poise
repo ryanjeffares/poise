@@ -1,0 +1,5 @@
+func main() {
+    final tuple = (0, 1, 2);
+    println(typeof(tuple));
+    println(tuple);
+}

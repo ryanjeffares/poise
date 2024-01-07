@@ -109,20 +109,20 @@ private:
 
     auto expression(bool canAssign, bool canUnpack) -> void;
     auto unpack() -> void;
-    auto range(bool canAssign, bool canUnpack) -> void;
-    auto logicOr(bool canAssign, bool canUnpack) -> void;
-    auto logicAnd(bool canAssign, bool canUnpack) -> void;
-    auto bitwiseOr(bool canAssign, bool canUnpack) -> void;
-    auto bitwiseXor(bool canAssign, bool canUnpack) -> void;
-    auto bitwiseAnd(bool canAssign, bool canUnpack) -> void;
-    auto equality(bool canAssign, bool canUnpack) -> void;
-    auto comparison(bool canAssign, bool canUnpack) -> void;
-    auto shift(bool canAssign, bool canUnpack) -> void;
-    auto term(bool canAssign, bool canUnpack) -> void;
-    auto factor(bool canAssign, bool canUnpack) -> void;
-    auto unary(bool canAssign, bool canUnpack) -> void;
-    auto call(bool canAssign, bool canUnpack) -> void;
-    auto primary(bool canAssign, bool canUnpack) -> void;
+    auto range(bool canAssign) -> void;
+    auto logicOr(bool canAssign) -> void;
+    auto logicAnd(bool canAssign) -> void;
+    auto bitwiseOr(bool canAssign) -> void;
+    auto bitwiseXor(bool canAssign) -> void;
+    auto bitwiseAnd(bool canAssign) -> void;
+    auto equality(bool canAssign) -> void;
+    auto comparison(bool canAssign) -> void;
+    auto shift(bool canAssign) -> void;
+    auto term(bool canAssign) -> void;
+    auto factor(bool canAssign) -> void;
+    auto unary(bool canAssign) -> void;
+    auto call(bool canAssign) -> void;
+    auto primary(bool canAssign) -> void;
 
     auto identifier(bool canAssign) -> void;
     auto nativeCall() -> void;
@@ -132,6 +132,7 @@ private:
     auto typeOf() -> void;
     auto lambda() -> void;
     auto list() -> void;
+    auto tupleOrGrouping() -> void;
 
     auto parseString() -> void;
     auto parseInt() -> void;
