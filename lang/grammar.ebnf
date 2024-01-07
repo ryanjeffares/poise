@@ -9,7 +9,7 @@ finalDecl = "final", IDENTIFIER, [ ":", TYPE_ANNOTATION ], [ { ",", IDENTIFIER, 
 
 statement = expressionStatement | printlnStatement | returnStatement | tryCatchStatement | throwStatement | whileStatement | forStatement ;
 
-expressionStatement = call, [ "=", expression ], ";" ;
+expressionStatement = call, [ { ",", call } ] [ "=", expression ], ";" ;
 printlnStatement = "println", "(", expression, ")" ;
 returnStatement = "return", [ expression ], ";" ;
 tryCatchStatement = "try", "{", BLOCK, "}", "catch", [ IDENTIFIER ], BLOCK ;

@@ -1,0 +1,20 @@
+func foo(a, b, c) {
+    println(a);
+    println(b);
+    println(c);
+}
+
+func main() {
+    var range = 0..3;
+    foo(...range);
+
+    var a, b, c = ...range;
+    println(a);
+    println(b);
+    println(c);
+
+    var ryan, syl, hays = ...["Ryan", "Syl", "Hays"];
+    println(ryan);
+    println(syl);
+    println(hays);
+}

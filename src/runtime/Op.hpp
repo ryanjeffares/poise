@@ -5,9 +5,6 @@
 
 #include <fmt/format.h>
 
-#include <cstddef>
-#include <cstdint>
-
 namespace poise::runtime {
 enum class Op : u8
 {
@@ -16,6 +13,7 @@ enum class Op : u8
     CaptureLocal,
     ConstructBuiltin,
     DeclareLocal,
+    DeclareMultipleLocals,
     EnterTry,
     ExitTry,    // gracefully!
     LoadCapture,
