@@ -95,11 +95,7 @@ auto PoiseList::toString() const noexcept -> std::string
 {
     std::string res = "[";
 
-#ifndef __cpp_lib_ranges_enumerate
     for (auto index = 0_uz; const auto& value : m_data) {
-#else
-    for (const auto [index, value] : m_data | std::views::enumerate) {
-#endif
         // TODO - check this recursively
         if (value.object() == this) {
             res.append("...");
@@ -117,9 +113,7 @@ auto PoiseList::toString() const noexcept -> std::string
             res.append(", ");
         }
 
-#ifndef __cpp_lib_ranges_enumerate
         index++;
-#endif
     }
 
     res.append("]");

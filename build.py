@@ -39,4 +39,9 @@ if __name__ == '__main__':
             os.system(f'cmake --build build --config {config} -- -j')
         else:
             os.system(f'cmake --build build --config {config}')
+    
+    try:
+        os.system(f'compdb-vs -c {config}')
+    except:
+        pass
 

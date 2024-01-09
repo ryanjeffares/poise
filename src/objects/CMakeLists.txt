@@ -1,4 +1,5 @@
 add_library(poise_objects
+        iterables/PoiseHashable.cpp
         iterables/PoiseIterable.cpp
         iterables/PoiseIterator.cpp
         iterables/PoiseList.cpp
