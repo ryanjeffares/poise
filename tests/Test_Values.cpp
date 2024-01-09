@@ -4,7 +4,7 @@
 
 namespace poise::tests
 {
-TEST_CASE("Check binary operations on Value class")
+TEST_CASE("Binary Operations", "[values]")
 {
     using namespace poise::runtime;
 
@@ -32,4 +32,5 @@ TEST_CASE("Check binary operations on Value class")
     REQUIRE(str1 + str2 == "HelloWorld");
     REQUIRE(str1 * int2 == "HelloHello");
 }
-}
+} // namespace poise::tests
+

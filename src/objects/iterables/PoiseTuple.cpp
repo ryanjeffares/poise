@@ -113,5 +113,15 @@ auto PoiseTuple::at(isize index) const -> const runtime::Value&
     return m_data[static_cast<usize>(index)];
 }
 
-}   // namespace poise::objects::iterables
+auto PoiseTuple::atMut(isize index) -> runtime::Value&
+{
+    if (index >= ssize() || index < 0_iz) {
+        throw PoiseException{
+            PoiseException::ExceptionType::IndexOutOfBounds,
+            fmt::format("The index was {} but the size is {}", index, size())
+        };
+    }
 
+    return m_data[static_cast<usize>(index)];
+}
+}   // namespace poise::objects::iterables

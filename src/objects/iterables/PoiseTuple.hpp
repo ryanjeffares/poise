@@ -29,6 +29,11 @@ public:
     [[nodiscard]] auto iterable() const noexcept -> bool override;
 
     [[nodiscard]] auto at(isize index) const -> const runtime::Value&;
+
+private:
+    friend class hashables::PoiseDictionary;
+
+    [[nodiscard]] auto atMut(isize index) -> runtime::Value&;
 };
 }   // namespace poise::objects::iterables
  

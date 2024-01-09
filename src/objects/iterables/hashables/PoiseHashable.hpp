@@ -7,15 +7,16 @@ namespace poise::objects::iterables::hashables {
 class PoiseHashable : public PoiseIterable
 {
 public:
-    PoiseHashable(usize initialSize, const runtime::Value& defaultValue = runtime::Value::none());
+    PoiseHashable();
+    PoiseHashable(usize initialCapacity, const runtime::Value& defaultValue = runtime::Value::none());
 
     [[nodiscard]] auto toVector() const noexcept -> std::vector<runtime::Value>;
 
-protected:
     static constexpr auto s_initialCapacity = 8_uz;
     static constexpr auto s_growFactor = 2_uz;
     static constexpr auto s_threshold = 0.75f;
 
+protected:
     virtual auto growAndRehash() noexcept -> void = 0;
     
     enum class CellState

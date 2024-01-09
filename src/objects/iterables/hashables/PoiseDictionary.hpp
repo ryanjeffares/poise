@@ -27,6 +27,8 @@ public:
 
     [[nodiscard]] auto containsKey(const runtime::Value& key) const noexcept -> bool;
     [[nodiscard]] auto at(const runtime::Value& key) const -> const runtime::Value&;
+    [[nodiscard]] auto capacity() const noexcept -> usize;
+
     [[nodiscard]] auto tryInsert(runtime::Value key, runtime::Value value) noexcept -> bool;
     auto insertOrUpdate(runtime::Value key, runtime::Value value) noexcept -> void;
     
@@ -34,7 +36,7 @@ protected:
     auto growAndRehash() noexcept -> void override;
 
 private:
-    auto addPair(usize index, runtime::Value key, runtime::Value value) noexcept -> void;
+    auto addPair(usize index, bool isNewKey, runtime::Value key, runtime::Value value) noexcept -> void;
 };
 } // namespace poise::objects::iterables::hashables 
 

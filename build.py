@@ -36,12 +36,13 @@ if __name__ == '__main__':
 
     if ret_code == 0:
         if args.jobs:
-            os.system(f'cmake --build build --config {config} -- -j')
+            ret_code = os.system(f'cmake --build build --config {config} -- -j')
         else:
-            os.system(f'cmake --build build --config {config}')
+            ret_code = os.system(f'cmake --build build --config {config}')
     
-    try:
-        os.system(f'compdb-vs -c {config}')
-    except:
-        pass
+        if ret_code == 0:
+            try:
+                os.system(f'compdb-vs -c {config}')
+            except:
+                pass
 

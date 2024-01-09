@@ -5,7 +5,12 @@
 namespace poise::objects::iterables::hashables {
 PoiseDictionary::PoiseDictionary(std::span<runtime::Value> pairs)
 {
-    // TODO: insert these pairs
+    for (auto& pair : pairs) {
+        auto tuple = pair.object()->asTuple();
+        POISE_ASSERT(tuple != nullptr, fmt::format("Expected Tuple to construct Dictionary but got {}", pair.type()));
+        POISE_ASSERT(tuple->size() == 2_uz, fmt::format("Expected Tuple to have size 2 but got {}", tuple->size()));
+        insertOrUpdate(std::move(tuple->atMut(0_uz)), std::move(tuple->atMut(1_uz)));
+    }
 }
 
 auto PoiseDictionary::begin() noexcept -> IteratorType
@@ -98,7 +103,7 @@ auto PoiseDictionary::containsKey(const runtime::Value& key) const noexcept -> b
                 return false;
             case CellState::Occupied: {
                 const auto tuple = m_data[index].object()->asTuple();
-                if (tuple->at(0_uz)== key) {
+                if (tuple->at(0_uz) == key) {
                     return true;
                 }
 
@@ -130,7 +135,7 @@ auto PoiseDictionary::at(const runtime::Value& key) const -> const runtime::Valu
                 };
             case CellState::Occupied: {
                 const auto tuple = m_data[index].object()->asTuple();
-                if (tuple->at(0_uz)== key) {
+                if (tuple->at(0_uz) == key) {
                     return tuple->at(1_uz);
                 }
 
@@ -140,13 +145,17 @@ auto PoiseDictionary::at(const runtime::Value& key) const -> const runtime::Valu
                 index = (index + 1_uz) % m_capacity;
                 break;
             }
-#ifdef POISE_DEBUG
             default: {
                 POISE_UNREACHABLE();
+                break;
             }
-#endif
         }
     }
+}
+
+auto PoiseDictionary::capacity() const noexcept -> usize
+{
+    return m_capacity;
 }
 
 auto PoiseDictionary::tryInsert(runtime::Value key, runtime::Value value) noexcept -> bool
@@ -162,21 +171,20 @@ auto PoiseDictionary::tryInsert(runtime::Value key, runtime::Value value) noexce
         switch (m_cellStates[index]) {
             case CellState::NeverUsed:
             case CellState::Tombstone: {
-                m_data[index] = runtime::Value::createObject<PoiseTuple>(std::move(key), std::move(value));
-                m_cellStates[index] = CellState::Occupied;
-                m_size++;
-                invalidateIterators();
-
-                if (static_cast<f32>(m_size) / static_cast<f32>(m_capacity) >= s_threshold) {
-                    growAndRehash();
-                }
-
+                addPair(index, true, std::move(key), std::move(value));
                 return true;
             }
             case CellState::Occupied: {
-                // we know they can't be equal since we already checked if it contains the key
-                // so just look ahead
+                const auto tuple = m_data[index].object()->asTuple();
+                if (tuple->at(0_uz) == key) {
+                    return false;
+                }
+
                 index = (index + 1_uz) % m_capacity;
+                break;
+            }
+            default: {
+                POISE_UNREACHABLE();
                 break;
             }
         }
@@ -192,31 +200,59 @@ auto PoiseDictionary::insertOrUpdate(runtime::Value key, runtime::Value value) n
         switch (m_cellStates[index]) {
             case CellState::NeverUsed:
             case CellState::Tombstone: {
-                addPair(index, std::move(key), std::move(value));
+                addPair(index, true, std::move(key), std::move(value));
                 return;
             }
             case CellState::Occupied: {
                 if (m_data[index].object()->asTuple()->at(0_uz) == key) {
-                    addPair(index, std::move(key), std::move(value));
+                    addPair(index, false, std::move(key), std::move(value));
                     return;
                 }
 
                 index = (index + 1_uz) % m_capacity;
                 break;
             }
+            default: {
+                POISE_UNREACHABLE();
+                break;
+            }
         }
     }
 }
 
-auto PoiseDictionary::addPair(usize index, runtime::Value key, runtime::Value value) noexcept -> void
+auto PoiseDictionary::growAndRehash() noexcept -> void
+{
+    auto pairs = toVector();
+    m_capacity *= 2_uz;
+    m_data.resize(m_capacity);
+    m_cellStates.resize(m_capacity);
+    std::fill(m_data.begin(), m_data.end(), runtime::Value::none());
+    std::fill(m_cellStates.begin(), m_cellStates.end(), CellState::NeverUsed);
+
+    // these are things that were already in the dict, so there should be no duplicates
+    // but insertOrUpdate does less than tryInsert
+    m_size = 0_uz;
+    for (auto& pair : pairs) {
+        auto tuple = pair.object()->asTuple();
+        insertOrUpdate(std::move(tuple->atMut(0_uz)), std::move(tuple->atMut(1_uz)));
+    }
+
+    // no need to invalidate iterators, the caller will always do that
+}
+
+auto PoiseDictionary::addPair(usize index, bool isNewKey, runtime::Value key, runtime::Value value) noexcept -> void
 {
     m_data[index] = runtime::Value::createObject<PoiseTuple>(std::move(key), std::move(value));
     m_cellStates[index] = CellState::Occupied;
-    m_size++;
+
     invalidateIterators();
 
-    if (static_cast<f32>(m_size) / static_cast<f32>(m_capacity) >= s_threshold) {
-        growAndRehash();
+    if (isNewKey) {
+        m_size++;
+
+        if (static_cast<f32>(m_size) / static_cast<f32>(m_capacity) >= s_threshold) {
+            growAndRehash();
+        }
     }
 }
 } // namespace poise::objects::iterables::hashables

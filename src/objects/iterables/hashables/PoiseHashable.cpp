@@ -1,9 +1,16 @@
 #include "PoiseHashable.hpp"
 
 namespace poise::objects::iterables::hashables {
-PoiseHashable::PoiseHashable(usize initialSize, const runtime::Value& defaultValue)
-    : PoiseIterable{initialSize, defaultValue}
+PoiseHashable::PoiseHashable()
+    : PoiseIterable{s_initialCapacity, runtime::Value::none()}
     , m_cellStates(s_initialCapacity, CellState::NeverUsed)
+{
+
+}
+
+PoiseHashable::PoiseHashable(usize initialCapacity, const runtime::Value& defaultValue)
+    : PoiseIterable{initialCapacity, defaultValue}
+    , m_cellStates(initialCapacity, CellState::NeverUsed)
 {
 
 }
