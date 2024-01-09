@@ -9,6 +9,8 @@ class PoiseTuple : public PoiseObject, public PoiseIterable
 {
 public:
     explicit PoiseTuple(std::vector<runtime::Value> data);
+    PoiseTuple(runtime::Value key, runtime::Value value);
+
     ~PoiseTuple() override = default;
 
     [[nodiscard]] auto begin() noexcept -> IteratorType override;

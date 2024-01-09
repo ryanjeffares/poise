@@ -1,14 +1,16 @@
 #include "PoiseTuple.hpp"
 #include "../PoiseException.hpp"
 
-#ifdef __cpp_lib_ranges_enumerate
-#include <ranges>
-#endif
-
 namespace poise::objects::iterables {
 PoiseTuple::PoiseTuple(std::vector<runtime::Value> data) : PoiseIterable{std::move(data)}
 {
 
+}
+
+PoiseTuple::PoiseTuple(runtime::Value key, runtime::Value value)
+{
+    m_data.emplace_back(std::move(key));
+    m_data.emplace_back(std::move(value));
 }
 
 auto PoiseTuple::begin() noexcept -> IteratorType 

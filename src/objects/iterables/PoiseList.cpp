@@ -6,10 +6,6 @@
 #include "PoiseRange.hpp"
 #include "../PoiseException.hpp"
 
-#ifdef __cpp_lib_ranges_enumerate
-#include <ranges>
-#endif
-
 namespace poise::objects::iterables {
 
 PoiseList::PoiseList(runtime::Value value)

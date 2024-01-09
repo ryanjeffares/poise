@@ -21,6 +21,10 @@ class PoiseIterator;
 class PoiseList;
 class PoiseRange;
 class PoiseTuple;
+
+namespace hashables {
+class PoiseDictionary;
+}
 }
 
 class PoiseObject
@@ -37,6 +41,7 @@ public:
     [[nodiscard]] auto decrementRefCount() noexcept -> usize;
     [[nodiscard]] auto refCount() const noexcept -> usize;
 
+    [[nodiscard]] virtual auto asDictionary() noexcept -> iterables::hashables::PoiseDictionary*;
     [[nodiscard]] virtual auto asException() noexcept -> PoiseException*;
     [[nodiscard]] virtual auto asFunction() noexcept -> PoiseFunction*;
     [[nodiscard]] virtual auto asIterable() noexcept -> iterables::PoiseIterable*;

@@ -129,6 +129,7 @@ public:
     [[nodiscard]] auto string() noexcept -> std::string&;
     [[nodiscard]] auto object() const noexcept -> objects::PoiseObject*;
     [[nodiscard]] auto type() const noexcept -> types::Type;
+    [[nodiscard]] auto hash() const noexcept -> usize;
 
     auto print(bool err, bool newLine) const -> void;
 

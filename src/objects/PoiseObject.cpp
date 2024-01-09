@@ -16,6 +16,11 @@ auto PoiseObject::refCount() const noexcept -> usize
     return m_refCount;
 }
 
+auto PoiseObject::asDictionary() noexcept -> iterables::hashables::PoiseDictionary*
+{
+    return nullptr;
+}
+
 auto PoiseObject::asException() noexcept -> PoiseException*
 {
     return nullptr;

@@ -1,9 +1,9 @@
 #ifndef POISE_HASHABLE_HPP
 #define POISE_HASHABLE_HPP
 
-#include "PoiseIterable.hpp"
+#include "../PoiseIterable.hpp"
 
-namespace poise::objects::iterables {
+namespace poise::objects::iterables::hashables {
 class PoiseHashable : public PoiseIterable
 {
 public:
@@ -16,7 +16,7 @@ protected:
     static constexpr auto s_growFactor = 2_uz;
     static constexpr auto s_threshold = 0.75f;
 
-    virtual auto growAndRehash() -> void = 0;
+    virtual auto growAndRehash() noexcept -> void = 0;
     
     enum class CellState
     {
@@ -30,7 +30,7 @@ protected:
 
     std::vector<CellState> m_cellStates;
 };
-} // namespace poise::objects::iterables
+} // namespace poise::objects::iterables::hashables
 
 #endif  // #ifndef POISE_HASHABLE_HPP
 

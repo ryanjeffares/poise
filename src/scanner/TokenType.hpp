@@ -14,6 +14,7 @@ enum class TokenType : u8
     IntIdent,
     NoneIdent,
     StringIdent,
+    DictIdent,
     ExceptionIdent,
     FunctionIdent,
     ListIdent,

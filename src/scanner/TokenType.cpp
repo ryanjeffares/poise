@@ -88,6 +88,9 @@ auto formatter<scanner::TokenType>::format(scanner::TokenType tokenType, format_
         case scanner::TokenType::StringIdent:
             result = "StringIdent";
             break;
+        case scanner::TokenType::DictIdent:
+            result = "DictIdent";
+            break;
         case scanner::TokenType::ExceptionIdent:
             result = "ExceptionIdent";
             break;

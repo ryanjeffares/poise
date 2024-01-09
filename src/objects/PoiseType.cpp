@@ -67,6 +67,8 @@ auto PoiseType::construct(std::span<runtime::Value> args) const -> runtime::Valu
                    : throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("Cannot construct None from '{}'", args[0].type()));
         case runtime::types::Type::String:
             return args.empty() ? "" : args[0].toString();
+        case runtime::types::Type::Dictionary:
+            return runtime::Value::createObject<iterables::hashables::PoiseDictionary>(args);
         case runtime::types::Type::Exception: {
             if (args.empty()) {
                 throw PoiseException(PoiseException::ExceptionType::IncorrectArgCount, "'Function' constructor takes 1 argument but was given none");
