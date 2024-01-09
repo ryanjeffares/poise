@@ -6,13 +6,14 @@
 
 #include <optional>
 #include <span>
-#include <unordered_map>
 
 namespace poise::objects {
 class PoiseType : public PoiseObject
 {
 public:
-    PoiseType(runtime::types::Type type, std::string name, runtime::Value constructorFunction = runtime::Value::none());
+    using ConstructorFn = runtime::Value(*)(std::span<runtime::Value>);
+
+    PoiseType(runtime::types::Type type, std::string name, ConstructorFn constructorFunction);
     ~PoiseType() override = default;
 
     [[nodiscard]] auto toString() const noexcept -> std::string override;
@@ -23,7 +24,6 @@ public:
     [[nodiscard]] auto heldType() const noexcept -> runtime::types::Type;
     [[nodiscard]] auto typeName() const noexcept -> std::string_view;
     [[nodiscard]] auto isPrimitiveType() const noexcept -> bool;
-    [[nodiscard]] auto hasConstructor() const noexcept -> bool;
 
     [[nodiscard]] auto construct(std::span<runtime::Value>) const -> runtime::Value;
 
@@ -34,8 +34,8 @@ public:
 private:
     runtime::types::Type m_type;
     std::string m_typeName;
-    runtime::Value m_constructorFunction;
     std::vector<runtime::Value> m_extensionFunctions;
+    ConstructorFn m_constructorFunction;
 };  // class PoiseType
 }   // namespace poise::objects
 

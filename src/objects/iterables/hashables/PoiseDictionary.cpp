@@ -72,13 +72,13 @@ auto PoiseDictionary::toString() const noexcept -> std::string
         }
 
         res.append(m_data[i].toString());
-        count++;
 
-        if (count < m_size - 1_uz) {
+        if (count++ < m_size - 1_uz) {
             res.append(", ");
         }
     }
 
+    res.push_back('}');
     return res;
 }
 

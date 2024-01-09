@@ -355,8 +355,27 @@ auto Compiler::parseTypeAnnotation() -> void
         return;
     }
 
+    const auto typeIdent = m_previous->tokenType();
+
     if (match(scanner::TokenType::OpenSquareBracket)) {
+        const auto numGenericTypes = scanner::builtinGenericTypeCount(typeIdent);
+
         parseTypeAnnotation();
+
+        for (auto i = 0_u8; i < numGenericTypes - 1_u8; i++) {
+            if (!match(scanner::TokenType::Comma)) {
+                errorAtCurrent(fmt::format(
+                    "Expected ',' because {} takes {} generic types",
+                    static_cast<runtime::types::Type>(typeIdent),
+                    numGenericTypes
+                ));
+
+                return;
+            }
+
+            parseTypeAnnotation();
+        }
+
         RETURN_IF_NO_MATCH(scanner::TokenType::CloseSquareBracket, "Expected ']'");
     }
 

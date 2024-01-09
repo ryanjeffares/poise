@@ -104,6 +104,16 @@ enum class TokenType : u8
 [[nodiscard]] auto isPrimitiveTypeIdent(TokenType tokenType) noexcept -> bool;
 [[nodiscard]] auto isBuiltinFunction(TokenType tokenType) noexcept -> bool;
 [[nodiscard]] auto isValidStartOfExpression(TokenType tokenType) noexcept -> bool;
+
+[[nodiscard]] auto builtinGenericTypeCount(TokenType tokenType) noexcept -> u8;
+
+// for the record, i hate this
+enum class AllowedArgCount
+{
+    None, One, OneOrNone, OneOrMore, TwoOrThree, Any,
+};
+
+[[nodiscard]] auto builtinConstructorAllowedArgCount(TokenType tokenType) noexcept -> AllowedArgCount;
 }   // namespace poise::scanner
 
 namespace fmt {

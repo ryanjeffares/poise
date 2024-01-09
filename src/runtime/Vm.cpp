@@ -14,18 +14,181 @@ using objects::PoiseException;
 Vm::Vm(std::string mainFilePath)
     : m_mainFilePath{std::move(mainFilePath)}
     , m_typeLookup{
-        {types::Type::Bool, Value::createObject<objects::PoiseType>(types::Type::Bool, "Bool")},
-        {types::Type::Float, Value::createObject<objects::PoiseType>(types::Type::Float, "Float")},
-        {types::Type::Int, Value::createObject<objects::PoiseType>(types::Type::Int, "Int")},
-        {types::Type::None, Value::createObject<objects::PoiseType>(types::Type::None, "None")},
-        {types::Type::String, Value::createObject<objects::PoiseType>(types::Type::String, "String")},
-        {types::Type::Exception, Value::createObject<objects::PoiseType>(types::Type::Exception, "Exception")},
-        {types::Type::Function, Value::createObject<objects::PoiseType>(types::Type::Function, "Function")},
-        {types::Type::Iterator, Value::createObject<objects::PoiseType>(types::Type::Iterator, "Iterator")},
-        {types::Type::List, Value::createObject<objects::PoiseType>(types::Type::List, "List")},
-        {types::Type::Range, Value::createObject<objects::PoiseType>(types::Type::Range, "Range")},
-        {types::Type::Tuple, Value::createObject<objects::PoiseType>(types::Type::Tuple, "Tuple")},
-        {types::Type::Type, Value::createObject<objects::PoiseType>(types::Type::Type, "Type")},
+        {types::Type::Bool, Value::createObject<objects::PoiseType>(types::Type::Bool, "Bool",
+                [](std::span<Value> args) -> Value {
+                    if (args.size() > 1_uz) {
+                        throw PoiseException{
+                            PoiseException::ExceptionType::IncorrectArgCount,
+                            fmt::format("Expected 1 or 0 args to Bool but got {}", args.size())
+                        };
+                    }
+
+                    return !args.empty() && args[0_uz].toBool();
+                })},
+        {types::Type::Float, Value::createObject<objects::PoiseType>(types::Type::Float, "Float",
+                [](std::span<Value> args) -> Value {
+                    if (args.size() > 1_uz) { 
+                        throw PoiseException{ 
+                            PoiseException::ExceptionType::IncorrectArgCount,
+                            fmt::format("Expected 1 or 0 args to Float but got {}", args.size())
+                        }; 
+                    } 
+
+                    return args.empty() ? 0.0 : args[0_uz].toFloat();
+                })},
+        {types::Type::Int, Value::createObject<objects::PoiseType>(types::Type::Int, "Int",
+                [](std::span<Value> args) -> Value {
+                    if (args.size() > 1_uz) { 
+                        throw PoiseException{ 
+                            PoiseException::ExceptionType::IncorrectArgCount,
+                            fmt::format("Expected 1 or 0 args to Int but got {}", args.size())
+                        }; 
+                    } 
+
+                    return args.empty() ? 0 : args[0_uz].toInt();
+                })},
+        {types::Type::None, Value::createObject<objects::PoiseType>(types::Type::None, "None",
+                [](std::span<Value> args) -> Value {
+                    return args.empty() 
+                        ? runtime::Value::none() 
+                        : throw PoiseException{ 
+                            PoiseException::ExceptionType::InvalidType,
+                            fmt::format("Expected no args to construct None but got {}", args.size())
+                        };
+                })},
+        {types::Type::String, Value::createObject<objects::PoiseType>(types::Type::String, "String",
+                [](std::span<Value> args) -> Value {
+                    if (args.size() > 1_uz) { 
+                        throw PoiseException{ 
+                            PoiseException::ExceptionType::IncorrectArgCount,
+                            fmt::format("Expected 1 or 0 args to String but got {}", args.size())
+                        }; 
+                    } 
+
+                    return args.empty() ? "" : args[0_uz].toString();
+                })},
+        {types::Type::Dictionary, Value::createObject<objects::PoiseType>(types::Type::Dictionary, "Dictionary",
+                [](std::span<Value> args) -> Value {
+                    for (auto i = 0_uz; i < args.size(); i++) {
+                        if (args[i].type() != runtime::types::Type::Tuple) {
+                            throw PoiseException{
+                                PoiseException::ExceptionType::InvalidType,
+                                fmt::format("Expected all args to construct Dict to be Tuple, but got {} at position {}", args[i].type(), i)
+                            };
+                        }
+                    }
+
+                    return runtime::Value::createObject<objects::iterables::hashables::PoiseDictionary>(args);
+                })},
+        {types::Type::Exception, Value::createObject<objects::PoiseType>(types::Type::Exception, "Exception",
+                [](std::span<Value> args) -> Value {
+                    if (args.size() != 1_uz) { 
+                        throw PoiseException{ 
+                            PoiseException::ExceptionType::IncorrectArgCount,
+                            fmt::format("Expected 1 arg to Exception but got {}", args.size())
+                        }; 
+                    } 
+
+                    return runtime::Value::createObject<PoiseException>(args[0].toString());
+                })},
+        {types::Type::Function, Value::createObject<objects::PoiseType>(types::Type::Function, "Function",
+                [](std::span<Value> args) -> Value {
+                    if (args.size() != 1_uz) {
+                        throw PoiseException{
+                            PoiseException::ExceptionType::IncorrectArgCount,
+                            fmt::format("Expected 1 arg to Function but got  {}", args.size())
+                        };
+                    }
+
+                    if (const auto object = args[0].object()) {
+                        if (const auto function = object->asFunction()) {
+                            return args[0];
+                        } else {
+                            throw PoiseException{
+                                PoiseException::ExceptionType::InvalidType,
+                                fmt::format("Function can only be constructed from Function or Lambda but got {}", args[0].type())
+                            };
+                        }
+                    } else {
+                        throw PoiseException{
+                            PoiseException::ExceptionType::InvalidType,
+                            "Function can only be constructed from Function or Lambda"
+                        };
+                    }
+                })},
+        {types::Type::Iterator, Value::createObject<objects::PoiseType>(types::Type::Iterator, "Iterator", nullptr)},
+        {types::Type::List, Value::createObject<objects::PoiseType>(types::Type::List, "List",
+                [](std::span<Value> args) -> Value {
+                    if (args.size() == 1_uz) {
+                        return runtime::Value::createObject<objects::iterables::PoiseList>(std::move(args[0]));
+                    } else {
+                        return runtime::Value::createObject<objects::iterables::PoiseList>(std::vector<runtime::Value>{
+                            std::make_move_iterator(args.begin()),
+                            std::make_move_iterator(args.end())
+                        });
+                    }
+                })},
+        {types::Type::Range, Value::createObject<objects::PoiseType>(types::Type::Range, "Range",
+                [](std::span<Value> args) -> Value {
+                    // last arg is whether the range is inclusive or not which is handled internally, user side it's 2 or 3 args
+                    if (args.size() < 3_uz || args.size() > 4_uz) {
+                        throw PoiseException{
+                            PoiseException::ExceptionType::IncorrectArgCount,
+                            fmt::format("Expected 2 or 3 args to Range but got {}", args.size())
+                        };
+                    }
+
+                    if (args[0].type() != runtime::types::Type::Int) {
+                        throw PoiseException{
+                            PoiseException::ExceptionType::InvalidType,
+                            fmt::format("Expected Int for range start but got {}", args[0].type())
+                        };
+                    }
+
+                    if (args[1].type() != runtime::types::Type::Int) {
+                        throw PoiseException{
+                            PoiseException::ExceptionType::InvalidType,
+                            fmt::format("Expected Int for range end but got {}", args[1].type())
+                        };
+                    }
+
+                    if (args.size() == 4_uz && args[2].type() != runtime::types::Type::Int) {
+                        throw PoiseException{
+                            PoiseException::ExceptionType::InvalidType,
+                            fmt::format("Expected Int for range increment but got {}", args[2].type())
+                        };
+                    }
+
+                    if (args.size() == 4_uz) {
+                        return runtime::Value::createObject<objects::iterables::PoiseRange>(
+                            std::move(args[0]),
+                            std::move(args[1]),
+                            std::move(args[2]),
+                            args[3].value<bool>()
+                        );
+                    } else {
+                        return runtime::Value::createObject<objects::iterables::PoiseRange>(
+                            std::move(args[0]),
+                            std::move(args[1]),
+                            1,
+                            args[2].value<bool>()
+                        );
+                    }
+
+                })},
+        {types::Type::Tuple, Value::createObject<objects::PoiseType>(types::Type::Tuple, "Tuple",
+                [](std::span<Value> args) -> Value {
+                    return runtime::Value::createObject<objects::iterables::PoiseTuple>(
+                        std::vector<runtime::Value>{
+                            std::make_move_iterator(args.begin()),
+                            std::make_move_iterator(args.end())
+                        }
+                    );
+                })},
+        {types::Type::Type, Value::createObject<objects::PoiseType>(types::Type::Type, "Type",
+                []([[maybe_unused]] std::span<Value> args) -> Value {
+                    throw PoiseException(PoiseException::ExceptionType::InvalidType, "Cannot construct Type");
+                })},
     }
 
 {

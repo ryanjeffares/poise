@@ -1,0 +1,4 @@
+func main() {
+    final dict = Dict(("Ryan", 24), ("Cat", 12), ("Snake", 8));
+    println(dict);
+}

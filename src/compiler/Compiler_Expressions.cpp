@@ -501,17 +501,57 @@ auto Compiler::namespaceQualifiedCall() -> void
 auto Compiler::typeIdent() -> void
 {
     const auto tokenType = m_previous->tokenType();
+    const auto runtimeType = static_cast<runtime::types::Type>(tokenType);
 
     if (match(scanner::TokenType::OpenParen)) {
         // constructing an instance of the type
         if (const auto args = parseCallArgs(scanner::TokenType::CloseParen)) {
             const auto [numArgs, hasUnpack] = *args;
-            // TODO: some collections might allow for no args...
-            if (tokenType < scanner::TokenType::ListIdent) {
-                if (numArgs > 1) {
-                    errorAtPrevious(fmt::format("'{}' can only be constructed from a single argument but was given {}", static_cast<runtime::types::Type>(tokenType), numArgs));
-                    return;
+
+            const auto numContructorParams = scanner::builtinConstructorAllowedArgCount(tokenType);
+            switch (numContructorParams) {
+                case scanner::AllowedArgCount::None: {
+                    if (numArgs != 0_uz) {
+                        errorAtPrevious(fmt::format("{} takes no arguments", runtimeType));
+                        return;
+                    }
+
+                    break;
                 }
+                case scanner::AllowedArgCount::One: {
+                    if (numArgs != 1_uz) {
+                        errorAtPrevious(fmt::format("{} takes one argument", runtimeType));
+                        return;
+                    }
+
+                    break;
+                }
+                case scanner::AllowedArgCount::OneOrNone: {
+                    if (numArgs > 1_uz) {
+                        errorAtPrevious(fmt::format("{} takes one or no arguments", runtimeType));
+                        return;
+                    }
+
+                    break;
+                }
+                case scanner::AllowedArgCount::OneOrMore: {
+                    if (numArgs < 1_uz) {
+                        errorAtPrevious(fmt::format("{} takes one or more arguments", runtimeType));
+                        return;
+                    }
+
+                    break;
+                }
+                case scanner::AllowedArgCount::TwoOrThree: {
+                    if (numArgs < 2_uz || numArgs > 3_u8) {
+                        errorAtPrevious(fmt::format("{} takes two or three arguments", runtimeType));
+                        return;
+                    }
+
+                    break;
+                }
+                case scanner::AllowedArgCount::Any:
+                    break;
             }
 
             emitConstant(static_cast<u8>(tokenType));
