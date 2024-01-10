@@ -1,15 +1,15 @@
 add_library(poise_objects
-        iterables/hashables/PoiseDictionary.cpp
-        iterables/hashables/PoiseHashable.cpp
-        iterables/PoiseIterable.cpp
-        iterables/PoiseIterator.cpp
-        iterables/PoiseList.cpp
-        iterables/PoiseRange.cpp
-        iterables/PoiseTuple.cpp
-        PoiseException.cpp
-        PoiseFunction.cpp
-        PoiseObject.cpp
-        PoiseType.cpp
+        iterables/hashables/Dict.cpp
+        iterables/hashables/Hashable.cpp
+        iterables/Iterable.cpp
+        iterables/Iterator.cpp
+        iterables/List.cpp
+        iterables/Range.cpp
+        iterables/Tuple.cpp
+        Exception.cpp
+        Function.cpp
+        Object.cpp
+        Type.cpp
 )
 
 target_compile_definitions(poise_objects PRIVATE ${POISE_COMPILE_DEFINITIONS})

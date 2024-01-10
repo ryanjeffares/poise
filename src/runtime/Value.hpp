@@ -2,7 +2,7 @@
 #define POISE_VALUE_HPP
 
 #include "../Poise.hpp"
-#include "../objects/PoiseObject.hpp"
+#include "../objects/Object.hpp"
 #include "Types.hpp"
 
 #include <fmt/format.h>

@@ -1,4 +1,4 @@
-#include "PoiseObject.hpp"
+#include "Object.hpp"
 
 namespace poise::objects {
 auto Object::incrementRefCount() noexcept -> usize

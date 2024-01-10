@@ -1,5 +1,5 @@
-#include "PoiseTuple.hpp"
-#include "../PoiseException.hpp"
+#include "Tuple.hpp"
+#include "../Exception.hpp"
 
 namespace poise::objects::iterables {
 Tuple::Tuple(std::vector<runtime::Value> data) : Iterable{std::move(data)}

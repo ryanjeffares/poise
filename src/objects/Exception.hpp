@@ -5,7 +5,7 @@
 #ifndef POISE_EXCEPTION_HPP
 #define POISE_EXCEPTION_HPP
 
-#include "PoiseObject.hpp"
+#include "Object.hpp"
 
 #include <exception>
 

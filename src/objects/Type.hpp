@@ -1,7 +1,7 @@
 #ifndef POISE_TYPE_HPP
 #define POISE_TYPE_HPP
 
-#include "PoiseObject.hpp"
+#include "Object.hpp"
 #include "../runtime/Value.hpp"
 
 #include <optional>

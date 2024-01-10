@@ -50,19 +50,19 @@ auto Vm::registerDictNatives() noexcept -> void
 {
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_DICT_CONTAINS_KEY"), NativeFunction{
         2_u8, [](std::span<Value> args) -> Value {
-            throwIfWrongType(0_uz, args[0_uz], types::Type::Dictionary);
+            throwIfWrongType(0_uz, args[0_uz], types::Type::Dict);
             return args[0_uz].object()->asDictionary()->containsKey(args[1_uz]);
         }});
 
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_DICT_TRY_INSERT"), NativeFunction{
         3_u8, [](std::span<Value> args) -> Value {
-            throwIfWrongType(0_uz, args[0_uz], types::Type::Dictionary);
+            throwIfWrongType(0_uz, args[0_uz], types::Type::Dict);
             return args[0_uz].object()->asDictionary()->tryInsert(std::move(args[1_uz]), std::move(args[2_uz]));
         }});
 
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_DICT_INSERT"), NativeFunction{
         3_u8, [](std::span<Value> args) -> Value {
-            throwIfWrongType(0_uz, args[0_uz], types::Type::Dictionary);
+            throwIfWrongType(0_uz, args[0_uz], types::Type::Dict);
             args[0_uz].object()->asDictionary()->insertOrUpdate(std::move(args[1_uz]), std::move(args[2_uz]));
             return Value::none();
         }});

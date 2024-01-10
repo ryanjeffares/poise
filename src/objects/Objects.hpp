@@ -3,9 +3,9 @@
 
 #include "iterables/Iterables.hpp"
 
-#include "PoiseException.hpp"
-#include "PoiseFunction.hpp"
-#include "PoiseType.hpp"
+#include "Exception.hpp"
+#include "Function.hpp"
+#include "Type.hpp"
 
 #endif  // ifndef POISE_OBJECTS_HPP
 

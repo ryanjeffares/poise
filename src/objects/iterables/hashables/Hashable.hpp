@@ -1,7 +1,7 @@
 #ifndef POISE_HASHABLE_HPP
 #define POISE_HASHABLE_HPP
 
-#include "../PoiseIterable.hpp"
+#include "../Iterable.hpp"
 
 namespace poise::objects::iterables::hashables {
 class Hashable : public Iterable

@@ -27,8 +27,8 @@ auto formatter<Type>::format(Type type, format_context& context) const -> declty
         case Type::String:
             res = "String";
             break;
-        case Type::Dictionary:
-            res = "Dictionary";
+        case Type::Dict:
+            res = "Dict";
             break;
         case Type::Exception:
             res = "Exception";

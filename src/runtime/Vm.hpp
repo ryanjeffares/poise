@@ -3,7 +3,7 @@
 
 #include "../Poise.hpp"
 
-#include "../objects/PoiseFunction.hpp"
+#include "../objects/Function.hpp"
 #include "Op.hpp"
 #include "NamespaceManager.hpp"
 #include "NativeFunction.hpp"

@@ -1,8 +1,8 @@
 #ifndef POISE_DICTIONARY_HPP
 #define POISE_DICTIONARY_HPP
 
-#include "PoiseHashable.hpp"
-#include "../../PoiseObject.hpp"
+#include "Hashable.hpp"
+#include "../../Object.hpp"
 
 #include <span>
 

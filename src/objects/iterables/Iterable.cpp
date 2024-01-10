@@ -2,7 +2,7 @@
 // Created by ryand on 13/12/2023.
 //
 
-#include "PoiseIterable.hpp"
+#include "Iterable.hpp"
 
 namespace poise::objects::iterables {
 Iterable::Iterable(usize initialSize, const runtime::Value& defaultValue)

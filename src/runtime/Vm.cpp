@@ -67,7 +67,7 @@ Vm::Vm(std::string mainFilePath)
 
                     return args.empty() ? "" : args[0_uz].toString();
                 })},
-        {types::Type::Dictionary, Value::createObject<objects::Type>(types::Type::Dictionary, "Dictionary",
+        {types::Type::Dict, Value::createObject<objects::Type>(types::Type::Dict, "Dict",
                 [](std::span<Value> args) -> Value {
                     for (auto i = 0_uz; i < args.size(); i++) {
                         if (args[i].type() != runtime::types::Type::Tuple) {
@@ -645,7 +645,7 @@ auto Vm::run() noexcept -> RunResult
                 case Op::AssignIndex: {
                     auto [collection, index, value] = popThree();
                     switch (collection.type()) {
-                        case types::Type::Dictionary: {
+                        case types::Type::Dict: {
                             collection.object()->asDictionary()->insertOrUpdate(std::move(index), std::move(value));
                             break;
                         }
@@ -672,7 +672,7 @@ auto Vm::run() noexcept -> RunResult
                 case Op::LoadIndex: {
                     auto [collection, index] = popTwo();
                     switch (collection.type()) {
-                        case types::Type::Dictionary: {
+                        case types::Type::Dict: {
                             stack.push_back(collection.object()->asDictionary()->at(index));
                             break;
                         }
@@ -844,7 +844,7 @@ auto Vm::run() noexcept -> RunResult
                             }
                             break;
                         }
-                        case types::Type::Dictionary: {
+                        case types::Type::Dict: {
                             if (isAtEnd) {
                                 firstLocal = Value::none();
                                 if (secondIteratorLocalIndex > 0_uz) {
@@ -900,7 +900,7 @@ auto Vm::run() noexcept -> RunResult
                             }
                             break;
                         }
-                        case types::Type::Dictionary: {
+                        case types::Type::Dict: {
                             if (isAtEnd) {
                                 firstLocal = Value::none();
                                 if (secondIteratorLocalIndex > 0_uz) {

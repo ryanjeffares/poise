@@ -1,8 +1,8 @@
 #ifndef POISE_TUPE_HPP
 #define POISE_TUPE_HPP
 
-#include "PoiseIterable.hpp"
-#include "../PoiseObject.hpp"
+#include "Iterable.hpp"
+#include "../Object.hpp"
 
 namespace poise::objects::iterables {
 class Tuple : public Object, public Iterable

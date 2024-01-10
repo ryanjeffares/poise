@@ -5,8 +5,8 @@
 #ifndef POISE_LIST_HPP
 #define POISE_LIST_HPP
 
-#include "../PoiseObject.hpp"
-#include "PoiseIterable.hpp"
+#include "../Object.hpp"
+#include "Iterable.hpp"
 
 namespace poise::objects::iterables {
 class List : public Object, public Iterable

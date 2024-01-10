@@ -2,9 +2,9 @@
 // Created by ryand on 13/12/2023.
 //
 
-#include "PoiseIterator.hpp"
-#include "PoiseIterable.hpp"
-#include "../PoiseException.hpp"
+#include "Iterator.hpp"
+#include "Iterable.hpp"
+#include "../Exception.hpp"
 
 #include <fmt/format.h>
 

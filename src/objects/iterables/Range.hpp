@@ -5,8 +5,8 @@
 #ifndef POISE_RANGE_HPP
 #define POISE_RANGE_HPP
 
-#include "PoiseIterable.hpp"
-#include "../PoiseObject.hpp"
+#include "Iterable.hpp"
+#include "../Object.hpp"
 
 namespace poise::objects::iterables {
 class Range : public Object, public Iterable

@@ -1,5 +1,5 @@
 #include "Value.hpp"
-#include "../objects/PoiseException.hpp"
+#include "../objects/Exception.hpp"
 
 #include <fmt/core.h>
 

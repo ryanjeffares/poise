@@ -2,7 +2,7 @@
 // Created by ryand on 03/12/2023.
 //
 
-#include "PoiseException.hpp"
+#include "Exception.hpp"
 
 namespace poise::objects {
 Exception::Exception(std::string message)

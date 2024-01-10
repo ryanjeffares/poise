@@ -3,7 +3,7 @@
 
 #include "../Poise.hpp"
 
-#include "PoiseObject.hpp"
+#include "Object.hpp"
 #include "../runtime/Op.hpp"
 #include "../runtime/Value.hpp"
 

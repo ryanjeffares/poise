@@ -3,7 +3,7 @@
 //
 
 #include "NamespaceManager.hpp"
-#include "../objects/PoiseFunction.hpp"
+#include "../objects/Function.hpp"
 
 #include <algorithm>
 

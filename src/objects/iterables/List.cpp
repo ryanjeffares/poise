@@ -2,10 +2,10 @@
 // Created by ryand on 13/12/2023.
 //
 
-#include "PoiseList.hpp"
-#include "../PoiseException.hpp"
-#include "hashables/PoiseDictionary.hpp"
-#include "PoiseRange.hpp"
+#include "List.hpp"
+#include "../Exception.hpp"
+#include "hashables/Dict.hpp"
+#include "Range.hpp"
 
 namespace poise::objects::iterables {
 
@@ -28,7 +28,7 @@ List::List(runtime::Value value)
             m_data = value.object()->asRange()->toVector();
             break;
         }
-        case runtime::types::Type::Dictionary: {
+        case runtime::types::Type::Dict: {
             m_data = value.object()->asDictionary()->toVector();
             break;
         }

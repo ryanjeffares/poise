@@ -755,7 +755,7 @@ auto Compiler::dict() -> void
     }
 
     const auto [numArgs, hasUnpack] = *args;
-    emitConstant(static_cast<u8>(runtime::types::Type::Dictionary));
+    emitConstant(static_cast<u8>(runtime::types::Type::Dict));
     emitConstant(numArgs);
     emitConstant(hasUnpack);
     emitOp(runtime::Op::ConstructBuiltin, m_previous->line());

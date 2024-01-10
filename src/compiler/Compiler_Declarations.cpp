@@ -4,7 +4,7 @@
 
 #include "Compiler.hpp"
 #include "Compiler_Macros.hpp"
-#include "../objects/PoiseType.hpp"
+#include "../objects/Type.hpp"
 
 namespace poise::compiler {
 auto Compiler::declaration() -> void

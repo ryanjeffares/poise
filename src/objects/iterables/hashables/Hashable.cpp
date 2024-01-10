@@ -1,4 +1,4 @@
-#include "PoiseHashable.hpp"
+#include "Hashable.hpp"
 
 namespace poise::objects::iterables::hashables {
 Hashable::Hashable()

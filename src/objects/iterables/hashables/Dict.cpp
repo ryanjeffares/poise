@@ -1,13 +1,13 @@
-#include "PoiseDictionary.hpp"
-#include "../PoiseTuple.hpp"
-#include "../../PoiseException.hpp"
+#include "Dict.hpp"
+#include "../Tuple.hpp"
+#include "../../Exception.hpp"
 
 namespace poise::objects::iterables::hashables {
 Dict::Dict(std::span<runtime::Value> pairs)
 {
     for (auto& pair : pairs) {
         auto tuple = pair.object()->asTuple();
-        POISE_ASSERT(tuple != nullptr, fmt::format("Expected Tuple to construct Dictionary but got {}", pair.type()));
+        POISE_ASSERT(tuple != nullptr, fmt::format("Expected Tuple to construct Dict but got {}", pair.type()));
         POISE_ASSERT(tuple->size() == 2_uz, fmt::format("Expected Tuple to have size 2 but got {}", tuple->size()));
         insertOrUpdate(std::move(tuple->atMut(0_uz)), std::move(tuple->atMut(1_uz)));
     }
@@ -99,7 +99,7 @@ auto Dict::toString() const noexcept -> std::string
 
 auto Dict::type() const noexcept -> runtime::types::Type
 {
-    return runtime::types::Type::Dictionary;
+    return runtime::types::Type::Dict;
 }
 
 auto Dict::iterable() const -> bool
@@ -146,7 +146,7 @@ auto Dict::at(const runtime::Value& key) const -> const runtime::Value&
             case CellState::NeverUsed:
                 throw Exception{
                     Exception::ExceptionType::KeyNotFound,
-                    fmt::format("{} was not present in the Dictionary", key)
+                    fmt::format("{} was not present in the Dict", key)
                 };
             case CellState::Occupied: {
                 const auto tuple = m_data[index].object()->asTuple();
