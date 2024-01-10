@@ -2,15 +2,12 @@
 // Created by ryand on 16/12/2023.
 //
 
-#include "../src/objects/PoiseException.hpp"
-#include "../src/objects/PoiseFunction.hpp"
-#include "../src/objects/iterables/PoiseList.hpp"
-#include "../src/objects/iterables/PoiseRange.hpp"
+#include "../src/objects/Objects.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 
 namespace poise::tests {
-TEST_CASE("Check some basic reference counting")
+TEST_CASE("Basic Reference Counting", "[objects]")
 {
     using namespace poise::runtime;
     using namespace poise::objects;
@@ -29,7 +26,7 @@ TEST_CASE("Check some basic reference counting")
     REQUIRE((function.object()->refCount() == 1_uz && exception.object()->refCount() == 2_uz));
 }
 
-TEST_CASE("PoiseList functions and iteration")
+TEST_CASE("PoiseList", "[objects]") 
 {
     using namespace poise::runtime;
     using namespace poise::objects::iterables;
@@ -82,7 +79,7 @@ TEST_CASE("PoiseList functions and iteration")
     REQUIRE(concatenated.object()->asList()->size() == 15_uz);
 }
 
-TEST_CASE("PoiseRange functions and iteration")
+TEST_CASE("PoiseRange", "[objects]") 
 {
     using namespace poise::runtime;
     using namespace poise::objects::iterables;
@@ -135,4 +132,64 @@ TEST_CASE("PoiseRange functions and iteration")
         REQUIRE(iterator.isAtEnd());
     }
 }
+
+TEST_CASE("PoiseTuple", "[objects]") 
+{
+    using namespace poise::runtime;
+    using namespace poise::objects::iterables;
+
+    PoiseTuple tuple{std::vector<Value>{Value{0}, Value{"Hello"}, Value{true}}};
+    REQUIRE(tuple.size() == 3_uz);
+    REQUIRE(tuple.at(0_uz) == 0);
+
+    PoiseIterator iterator{&tuple};
+    REQUIRE(!iterator.isAtEnd());
+
+    iterator.increment();
+
+    REQUIRE(iterator.value() == std::string{"Hello"});
 }
+
+TEST_CASE("PoiseDictionary", "[objects]") 
+{
+    using namespace poise::runtime;
+    using namespace poise::objects::iterables;
+    using namespace poise::objects::iterables::hashables;
+
+    std::vector<Value> pairs;
+    pairs.emplace_back(Value::createObject<PoiseTuple>("Ryan", 24));
+    pairs.emplace_back(Value::createObject<PoiseTuple>("Cat", 12));
+    pairs.emplace_back(Value::createObject<PoiseTuple>("Snake", 8));
+
+    PoiseDictionary dict{pairs};
+
+    REQUIRE(dict.capacity() == PoiseDictionary::s_initialCapacity);
+    REQUIRE(dict.size() == 3_uz);
+    REQUIRE(!dict.tryInsert("Ryan", 25));
+    REQUIRE(dict.tryInsert("Hotel", "Trivago"));
+    REQUIRE(dict.at("Ryan") == 24);
+    REQUIRE(dict.at("Cat") == 12);
+    REQUIRE(dict.at("Snake") == 8);
+    REQUIRE(dict.at("Hotel") == "Trivago");
+
+    dict.insertOrUpdate("Ryan2", 24);
+    dict.insertOrUpdate("Cat2", 12);
+    dict.insertOrUpdate("Snake2", 8);
+    dict.insertOrUpdate("Ryan3", 24);
+    dict.insertOrUpdate("Cat3", 12);
+    dict.insertOrUpdate("Snake3", 8);
+
+    REQUIRE(dict.capacity() == PoiseDictionary::s_initialCapacity * 2_uz);
+    REQUIRE(dict.size() == 10_uz);
+
+    PoiseIterator iterator{&dict};
+    REQUIRE(!iterator.isAtEnd());
+    iterator.increment();
+    REQUIRE(!iterator.isAtEnd());
+    for (auto i = 0_uz; i < dict.size() - 1_uz; i++) {
+        iterator.increment();
+    }
+    REQUIRE(iterator.isAtEnd());
+}
+} // namespace poise::tests
+

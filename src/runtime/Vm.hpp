@@ -11,7 +11,6 @@
 #include "Value.hpp"
 
 #include <unordered_map>
-#include <utility>
 #include <vector>
 
 namespace poise::runtime {
@@ -47,11 +46,14 @@ public:
 
 private:
     auto registerNatives() noexcept -> void;
-    auto registerIntNatives() noexcept -> void;
+
+    auto registerDictNatives() noexcept -> void;
     auto registerFloatNatives() noexcept -> void;
+    auto registerIntNatives() noexcept -> void;
     auto registerIterableNatives() noexcept -> void;
     auto registerListNatives() noexcept -> void;
     auto registerRangeNatives() noexcept -> void;
+    auto registerStringNatives() noexcept -> void;
 
     std::hash<std::string_view> m_nativeNameHasher;
     NativeFunctionMap m_nativeFunctionLookup;

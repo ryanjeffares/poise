@@ -27,6 +27,9 @@ auto formatter<Type>::format(Type type, format_context& context) const -> declty
         case Type::String:
             res = "String";
             break;
+        case Type::Dictionary:
+            res = "Dictionary";
+            break;
         case Type::Exception:
             res = "Exception";
             break;
@@ -41,6 +44,9 @@ auto formatter<Type>::format(Type type, format_context& context) const -> declty
             break;
         case Type::Range:
             res = "Range";
+            break;
+        case Type::Tuple:
+            res = "Tuple";
             break;
         case Type::Type:
             res = "Type";

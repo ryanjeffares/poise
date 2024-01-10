@@ -1,0 +1,56 @@
+import std::dict;
+import std::iterables;
+import std::list;
+import std::string;
+
+func main() {
+    final dict: Dict[String, Int] = {
+        ("Ryan", 24),
+        ("Cat", 12),
+        ("Snake", 8),
+    };
+
+    println(dict);
+
+    final names: List[String] = ["Ryan", "Syl", "Hays"];
+    names.append(none);
+
+    final name_size_lookup: Dict[String, Int] = {
+        ...names
+            .filter(|| (final item) => typeof(item) == String)
+            .map(|| (final name) => (name, name.length())),
+    };
+
+    // prints {("Ryan", 4), ("Hays", 4), ("Syl", 3)}
+    println(name_size_lookup);
+
+    for pair in name_size_lookup {
+        println(pair);
+    }
+
+    for key, value in name_size_lookup {
+        println("Key = " + key + ", Value = " + value);
+    }
+
+    final empty = {};
+    for k, v in empty {
+        println((k, v));
+    }
+
+    println(name_size_lookup["Ryan"]);
+    final err = try name_size_lookup[0];
+    println(err);
+
+    name_size_lookup["Ryan"] = 25;
+    println(name_size_lookup["Ryan"]);
+    name_size_lookup["New Item"] = 69;
+    println(name_size_lookup);
+
+    println(name_size_lookup.contains_key("Ryan"));
+    println(name_size_lookup.try_insert("Ryan", {}));
+    println(name_size_lookup.try_insert("Another New Item", (true, false)));
+
+    name_size_lookup.insert("Ryan", []);
+    println(name_size_lookup);
+}
+

@@ -39,5 +39,5 @@ func main() {
     println(range.end());
     println(range.increment());
     println(range.contains(4));
-    println(range.to_list());
+    println(List(range));
 }

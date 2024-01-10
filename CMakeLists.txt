@@ -25,7 +25,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
 
 if(MSVC)
     list(APPEND POISE_COMPILE_DEFINITIONS POISE_MSVC WIN32_LEAN_AND_MEAN)
-    set(POISE_COMPILE_OPTIONS /W4 /WX /external:templates- /external:W0 /std:c++20)
+    set(POISE_COMPILE_OPTIONS /W4 /WX /external:templates- /external:W0 /std:c++latest)
 else()
     list(APPEND POISE_COMPILE_DEFINITIONS POISE_GCC_CLANG)
     set(POISE_COMPILE_OPTIONS -Wall -Werror -Wpedantic -Wextra -Wconversion -std=c++20)

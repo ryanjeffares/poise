@@ -5,7 +5,6 @@
 #ifndef POISE_ITERATOR_HPP
 #define POISE_ITERATOR_HPP
 
-#include "../../Poise.hpp"
 #include "../PoiseObject.hpp"
 #include "../../runtime/Value.hpp"
 

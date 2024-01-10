@@ -3,10 +3,9 @@
 //
 
 #include "PoiseList.hpp"
-#include "PoiseRange.hpp"
 #include "../PoiseException.hpp"
-
-#include <ranges>
+#include "hashables/PoiseDictionary.hpp"
+#include "PoiseRange.hpp"
 
 namespace poise::objects::iterables {
 
@@ -27,6 +26,10 @@ PoiseList::PoiseList(runtime::Value value)
         }
         case runtime::types::Type::Range: {
             m_data = value.object()->asRange()->toVector();
+            break;
+        }
+        case runtime::types::Type::Dictionary: {
+            m_data = value.object()->asDictionary()->toVector();
             break;
         }
         default: {
@@ -93,11 +96,7 @@ auto PoiseList::toString() const noexcept -> std::string
 {
     std::string res = "[";
 
-#ifndef __cpp_lib_ranges_enumerate
     for (auto index = 0_uz; const auto& value : m_data) {
-#else
-    for (const auto [index, value] : m_data | std::views::enumerate) {
-#endif
         // TODO - check this recursively
         if (value.object() == this) {
             res.append("...");
@@ -111,13 +110,11 @@ auto PoiseList::toString() const noexcept -> std::string
             }
         }
 
-        if (static_cast<usize>(index) < m_data.size() - 1_uz) {
+        if (index < m_data.size() - 1_uz) {
             res.append(", ");
         }
 
-#ifndef __cpp_lib_ranges_enumerate
         index++;
-#endif
     }
 
     res.append("]");

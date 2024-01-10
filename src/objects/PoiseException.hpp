@@ -5,7 +5,6 @@
 #ifndef POISE_EXCEPTION_HPP
 #define POISE_EXCEPTION_HPP
 
-#include "../Poise.hpp"
 #include "PoiseObject.hpp"
 
 #include <exception>
@@ -28,6 +27,7 @@ public:
         InvalidOperand,
         InvalidType,
         IteratorOutOfBounds,
+        KeyNotFound,
     };
 
     explicit PoiseException(std::string message);

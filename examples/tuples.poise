@@ -1,0 +1,33 @@
+import std::iterables;
+
+func main() {
+    var tuple = (0, 1, 2);
+    println(typeof(tuple));
+    println(tuple);
+
+    tuple = (...tuple);
+    println(tuple);
+
+    final names = ["Ryan", "Syl", "Hays"];
+    println((...names));
+    println([...tuple]);
+    println(tuple.size());
+
+    tuple = (Tuple("Hello", false, [], ...names));
+    println(tuple);
+    for t in tuple {
+        println(t);
+        println(typeof(t));
+    }
+
+    for i in 0..tuple.size() {
+        println(tuple[i]);
+    }
+
+    try {
+        tuple[0] = "Hello";
+    } catch e {
+        println(e);
+    }
+}
+

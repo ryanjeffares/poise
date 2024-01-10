@@ -16,8 +16,8 @@ public:
     PoiseRange(runtime::Value start, runtime::Value end, runtime::Value increment, bool inclusive);
     ~PoiseRange() override = default;
 
-    [[nodiscard]] auto asIterable() noexcept -> iterables::PoiseIterable* override;
-    [[nodiscard]] auto asRange() noexcept -> iterables::PoiseRange* override;
+    [[nodiscard]] auto asIterable() noexcept -> PoiseIterable* override;
+    [[nodiscard]] auto asRange() noexcept -> PoiseRange* override;
 
     [[nodiscard]] auto toString() const noexcept -> std::string override;
     [[nodiscard]] auto type() const noexcept -> runtime::types::Type override;
@@ -39,6 +39,7 @@ public:
     [[nodiscard]] auto rangeInclusive() const noexcept -> runtime::Value;
 
     [[nodiscard]] auto toVector() const noexcept -> std::vector<runtime::Value>;
+
 private:
     static constexpr usize s_chunkSize = 8_uz;
 

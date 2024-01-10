@@ -3,53 +3,86 @@
 namespace poise::scanner {
 auto isLiteral(TokenType tokenType) noexcept -> bool
 {
-    return tokenType == TokenType::False ||
-           tokenType == TokenType::Float ||
-           tokenType == TokenType::Identifier ||
-           tokenType == TokenType::Int ||
-           tokenType == TokenType::None ||
-           tokenType == TokenType::String ||
-           tokenType == TokenType::True;
+    switch (tokenType) {
+        case TokenType::False:
+        case TokenType::Float:
+        case TokenType::Identifier:
+        case TokenType::Int:
+        case TokenType::None:
+        case TokenType::String:
+        case TokenType::True:
+            return true;
+        default:
+            return false;
+    }
 }
 
 auto isUnaryOp(TokenType tokenType) noexcept -> bool
 {
-    return tokenType == TokenType::Exclamation ||
-           tokenType == TokenType::Tilde ||
-           tokenType == TokenType::Minus ||
-           tokenType == TokenType::Plus;
+    switch (tokenType) {
+        case TokenType::Exclamation:
+        case TokenType::Tilde:
+        case TokenType::Minus:
+        case TokenType::Plus:
+            return true;
+        default:
+            return false;
+    }
 }
 
 auto isTypeIdent(TokenType tokenType) noexcept -> bool
 {
-    return tokenType == TokenType::BoolIdent ||
-           tokenType == TokenType::FloatIdent ||
-           tokenType == TokenType::IntIdent ||
-           tokenType == TokenType::NoneIdent ||
-           tokenType == TokenType::StringIdent ||
-           tokenType == TokenType::ExceptionIdent ||
-           tokenType == TokenType::FunctionIdent ||
-           tokenType == TokenType::ListIdent ||
-           tokenType == TokenType::RangeIdent;
+    switch (tokenType) {   
+        case TokenType::BoolIdent:
+        case TokenType::FloatIdent:
+        case TokenType::IntIdent:
+        case TokenType::NoneIdent:
+        case TokenType::StringIdent:
+        case TokenType::DictIdent:
+        case TokenType::ExceptionIdent:
+        case TokenType::FunctionIdent:
+        case TokenType::ListIdent:
+        case TokenType::RangeIdent:
+        case TokenType::TupleIdent:
+            return true;
+        default:
+            return false;
+    }
 }
 
-auto isGenericTypeIdent(TokenType tokenType) noexcept -> bool
+auto isGenericTypeIdent(TokenType tokenType) noexcept -> bool 
 {
-    return tokenType == TokenType::ListIdent;
+    switch (tokenType) {
+        case TokenType::ListIdent:
+        case TokenType::DictIdent:
+            return true;
+        default:
+            return false;
+    }
 }
 
 auto isPrimitiveTypeIdent(TokenType tokenType) noexcept -> bool
 {
-    return tokenType == TokenType::BoolIdent ||
-           tokenType == TokenType::FloatIdent ||
-           tokenType == TokenType::IntIdent ||
-           tokenType == TokenType::NoneIdent ||
-           tokenType == TokenType::StringIdent;
+    switch (tokenType) {
+        case TokenType::BoolIdent:
+        case TokenType::FloatIdent:
+        case TokenType::IntIdent:
+        case TokenType::NoneIdent:
+        case TokenType::StringIdent:
+            return true;
+        default:
+            return false;
+    }
 }
 
 auto isBuiltinFunction(TokenType tokenType) noexcept -> bool
 {
-    return tokenType == TokenType::TypeOf;
+    switch (tokenType) {
+        case TokenType::TypeOf:
+            return true;
+        default:
+            return false;
+    }
 }
 
 auto isValidStartOfExpression(TokenType tokenType) noexcept -> bool
@@ -60,7 +93,49 @@ auto isValidStartOfExpression(TokenType tokenType) noexcept -> bool
            isBuiltinFunction(tokenType) ||
            tokenType == TokenType::OpenParen ||         // for groupings
            tokenType == TokenType::Pipe ||              // for lambdas
-           tokenType == TokenType::OpenSquareBracket;   // for lists
+           tokenType == TokenType::OpenSquareBracket || // for lists
+           tokenType == TokenType::OpenBrace;           // for dicts 
+}
+
+auto builtinGenericTypeCount(TokenType tokenType) noexcept -> u8
+{
+    POISE_ASSERT(isGenericTypeIdent(tokenType), fmt::format("Expected type ident that can be generic but got {}", tokenType));
+
+    switch (tokenType) {
+        case TokenType::ListIdent:
+            return 1_u8;
+        case TokenType::DictIdent:
+            return 2_u8;
+        default:
+            return 0_u8;
+    }
+}
+
+auto builtinConstructorAllowedArgCount(TokenType tokenType) noexcept -> AllowedArgCount
+{
+    POISE_ASSERT(isTypeIdent(tokenType), fmt::format("Expected type ident but got {}", tokenType));
+
+    switch (tokenType) {   
+        case TokenType::NoneIdent:
+            return AllowedArgCount::None;
+        case TokenType::ExceptionIdent:
+        case TokenType::FunctionIdent:
+            return AllowedArgCount::One;
+        case TokenType::BoolIdent:
+        case TokenType::FloatIdent:
+        case TokenType::IntIdent:
+        case TokenType::StringIdent:
+            return AllowedArgCount::OneOrNone;
+        case TokenType::TupleIdent:
+            return AllowedArgCount::OneOrMore;
+        case TokenType::RangeIdent:
+            return AllowedArgCount::TwoOrThree;
+        case TokenType::DictIdent:
+        case TokenType::ListIdent:
+            return AllowedArgCount::Any;
+        default:
+            return AllowedArgCount::None;
+    }
 }
 }   // namespace poise::scanner
 
@@ -87,6 +162,9 @@ auto formatter<scanner::TokenType>::format(scanner::TokenType tokenType, format_
         case scanner::TokenType::StringIdent:
             result = "StringIdent";
             break;
+        case scanner::TokenType::DictIdent:
+            result = "DictIdent";
+            break;
         case scanner::TokenType::ExceptionIdent:
             result = "ExceptionIdent";
             break;
@@ -98,6 +176,9 @@ auto formatter<scanner::TokenType>::format(scanner::TokenType tokenType, format_
             break;
         case scanner::TokenType::RangeIdent:
             result = "RangeIdent";
+            break;
+        case scanner::TokenType::TupleIdent:
+            result = "TupleIdent";
             break;
         case scanner::TokenType::And:
             result = "And";

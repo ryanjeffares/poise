@@ -65,10 +65,12 @@ Scanner::Scanner(const std::filesystem::path& inFilePath)
         {"Int", TokenType::IntIdent},
         {"None", TokenType::NoneIdent},
         {"String", TokenType::StringIdent},
-        {"Function", TokenType::FunctionIdent},
+        {"Dict", TokenType::DictIdent},
         {"Exception", TokenType::ExceptionIdent},
+        {"Function", TokenType::FunctionIdent},
         {"List", TokenType::ListIdent},
         {"Range", TokenType::RangeIdent},
+        {"Tuple", TokenType::TupleIdent},
     }
 {
     std::ifstream inFileStream{inFilePath};

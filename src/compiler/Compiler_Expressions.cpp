@@ -23,7 +23,7 @@ auto Compiler::expression(bool canAssign, bool canUnpack) -> void
 
     // expressions can only start with a literal, unary op, or identifier
     if (scanner::isValidStartOfExpression(m_current->tokenType())) {
-        range(canAssign, canUnpack);
+        range(canAssign);
     } else if (match(scanner::TokenType::DotDotDot)) {
         if (!canUnpack) {
             errorAtPrevious("Unpacking is not allowed here");
@@ -49,13 +49,13 @@ auto Compiler::unpack() -> void
     emitOp(runtime::Op::Unpack, m_previous->line());
 }
 
-auto Compiler::range(bool canAssign, bool canUnpack) -> void
+auto Compiler::range(bool canAssign) -> void
 {
-    logicOr(canAssign, canUnpack);
+    logicOr(canAssign);
 
     if (match(scanner::TokenType::DotDot) || match(scanner::TokenType::DotDotEqual)) {
         const auto inclusive = m_previous->tokenType() == scanner::TokenType::DotDotEqual;
-        logicOr(canAssign, canUnpack);
+        logicOr(canAssign);
 
         if (match(scanner::TokenType::By)) {
             expression(false, false);
@@ -73,9 +73,9 @@ auto Compiler::range(bool canAssign, bool canUnpack) -> void
     }
 }
 
-auto Compiler::logicOr(bool canAssign, bool canUnpack) -> void
+auto Compiler::logicOr(bool canAssign) -> void
 {
-    logicAnd(canAssign, canUnpack);
+    logicAnd(canAssign);
 
     std::optional<JumpIndexes> jumpIndexes;
     if (check(scanner::TokenType::Or)) {
@@ -83,7 +83,7 @@ auto Compiler::logicOr(bool canAssign, bool canUnpack) -> void
     }
 
     while (match(scanner::TokenType::Or)) {
-        logicAnd(canAssign, canUnpack);
+        logicAnd(canAssign);
         emitOp(runtime::Op::LogicOr, m_previous->line());
     }
 
@@ -92,9 +92,9 @@ auto Compiler::logicOr(bool canAssign, bool canUnpack) -> void
     }
 }
 
-auto Compiler::logicAnd(bool canAssign, bool canUnpack) -> void
+auto Compiler::logicAnd(bool canAssign) -> void
 {
-    bitwiseOr(canAssign, canUnpack);
+    bitwiseOr(canAssign);
 
     std::optional<JumpIndexes> jumpIndexes;
     if (check(scanner::TokenType::And)) {
@@ -102,7 +102,7 @@ auto Compiler::logicAnd(bool canAssign, bool canUnpack) -> void
     }
 
     while (match(scanner::TokenType::And)) {
-        bitwiseOr(canAssign, canUnpack);
+        bitwiseOr(canAssign);
         emitOp(runtime::Op::LogicAnd, m_previous->line());
     }
 
@@ -111,78 +111,78 @@ auto Compiler::logicAnd(bool canAssign, bool canUnpack) -> void
     }
 }
 
-auto Compiler::bitwiseOr(bool canAssign, bool canUnpack) -> void
+auto Compiler::bitwiseOr(bool canAssign) -> void
 {
-    bitwiseXor(canAssign, canUnpack);
+    bitwiseXor(canAssign);
 
     while (match(scanner::TokenType::Pipe)) {
-        bitwiseXor(canAssign, canUnpack);
+        bitwiseXor(canAssign);
         emitOp(runtime::Op::BitwiseOr, m_previous->line());
     }
 }
 
-auto Compiler::bitwiseXor(bool canAssign, bool canUnpack) -> void
+auto Compiler::bitwiseXor(bool canAssign) -> void
 {
-    bitwiseAnd(canAssign, canUnpack);
+    bitwiseAnd(canAssign);
 
     while (match(scanner::TokenType::Caret)) {
-        bitwiseAnd(canAssign, canUnpack);
+        bitwiseAnd(canAssign);
         emitOp(runtime::Op::BitwiseXor, m_previous->line());
     }
 }
 
-auto Compiler::bitwiseAnd(bool canAssign, bool canUnpack) -> void
+auto Compiler::bitwiseAnd(bool canAssign) -> void
 {
-    equality(canAssign, canUnpack);
+    equality(canAssign);
 
     while (match(scanner::TokenType::Ampersand)) {
-        equality(canAssign, canUnpack);
+        equality(canAssign);
         emitOp(runtime::Op::BitwiseAnd, m_previous->line());
     }
 }
 
-auto Compiler::equality(bool canAssign, bool canUnpack) -> void
+auto Compiler::equality(bool canAssign) -> void
 {
-    comparison(canAssign, canUnpack);
+    comparison(canAssign);
 
     if (match(scanner::TokenType::EqualEqual)) {
-        comparison(canAssign, canUnpack);
+        comparison(canAssign);
         emitOp(runtime::Op::Equal, m_previous->line());
     } else if (match(scanner::TokenType::NotEqual)) {
-        comparison(canAssign, canUnpack);
+        comparison(canAssign);
         emitOp(runtime::Op::NotEqual, m_previous->line());
     }
 }
 
-auto Compiler::comparison(bool canAssign, bool canUnpack) -> void
+auto Compiler::comparison(bool canAssign) -> void
 {
-    shift(canAssign, canUnpack);
+    shift(canAssign);
 
     if (match(scanner::TokenType::Less)) {
-        shift(canAssign, canUnpack);
+        shift(canAssign);
         emitOp(runtime::Op::LessThan, m_previous->line());
     } else if (match(scanner::TokenType::LessEqual)) {
-        shift(canAssign, canUnpack);
+        shift(canAssign);
         emitOp(runtime::Op::LessEqual, m_previous->line());
     } else if (match(scanner::TokenType::Greater)) {
-        shift(canAssign, canUnpack);
+        shift(canAssign);
         emitOp(runtime::Op::GreaterThan, m_previous->line());
     } else if (match(scanner::TokenType::GreaterEqual)) {
-        shift(canAssign, canUnpack);
+        shift(canAssign);
         emitOp(runtime::Op::GreaterEqual, m_previous->line());
     }
 }
 
-auto Compiler::shift(bool canAssign, bool canUnpack) -> void
+auto Compiler::shift(bool canAssign) -> void
 {
-    term(canAssign, canUnpack);
+    term(canAssign);
 
     while (true) {
         if (match(scanner::TokenType::ShiftLeft)) {
-            term(canAssign, canUnpack);
+            term(canAssign);
             emitOp(runtime::Op::LeftShift, m_previous->line());
         } else if (match(scanner::TokenType::ShiftRight)) {
-            term(canAssign, canUnpack);
+            term(canAssign);
             emitOp(runtime::Op::RightShift, m_previous->line());
         } else {
             break;
@@ -190,16 +190,16 @@ auto Compiler::shift(bool canAssign, bool canUnpack) -> void
     }
 }
 
-auto Compiler::term(bool canAssign, bool canUnpack) -> void
+auto Compiler::term(bool canAssign) -> void
 {
-    factor(canAssign, canUnpack);
+    factor(canAssign);
 
     while (true) {
         if (match(scanner::TokenType::Plus)) {
-            factor(canAssign, canUnpack);
+            factor(canAssign);
             emitOp(runtime::Op::Addition, m_previous->line());
         } else if (match(scanner::TokenType::Minus)) {
-            factor(canAssign, canUnpack);
+            factor(canAssign);
             emitOp(runtime::Op::Subtraction, m_previous->line());
         } else {
             break;
@@ -207,19 +207,19 @@ auto Compiler::term(bool canAssign, bool canUnpack) -> void
     }
 }
 
-auto Compiler::factor(bool canAssign, bool canUnpack) -> void
+auto Compiler::factor(bool canAssign) -> void
 {
-    unary(canAssign, canUnpack);
+    unary(canAssign);
 
     while (true) {
         if (match(scanner::TokenType::Star)) {
-            unary(canAssign, canUnpack);
+            unary(canAssign);
             emitOp(runtime::Op::Multiply, m_previous->line());
         } else if (match(scanner::TokenType::Slash)) {
-            unary(canAssign, canUnpack);
+            unary(canAssign);
             emitOp(runtime::Op::Divide, m_previous->line());
         } else if (match(scanner::TokenType::Modulus)) {
-            unary(canAssign, canUnpack);
+            unary(canAssign);
             emitOp(runtime::Op::Modulus, m_previous->line());
         } else {
             break;
@@ -227,32 +227,32 @@ auto Compiler::factor(bool canAssign, bool canUnpack) -> void
     }
 }
 
-auto Compiler::unary(bool canAssign, bool canUnpack) -> void
+auto Compiler::unary(bool canAssign) -> void
 {
     if (match(scanner::TokenType::Minus)) {
         const auto line = m_previous->line();
-        unary(canAssign, canUnpack);
+        unary(canAssign);
         emitOp(runtime::Op::Negate, line);
     } else if (match(scanner::TokenType::Tilde)) {
         const auto line = m_previous->line();
-        unary(canAssign, canUnpack);
+        unary(canAssign);
         emitOp(runtime::Op::BitwiseNot, line);
     } else if (match(scanner::TokenType::Exclamation)) {
         const auto line = m_previous->line();
-        unary(canAssign, canUnpack);
+        unary(canAssign);
         emitOp(runtime::Op::LogicNot, line);
     } else if (match(scanner::TokenType::Plus)) {
         auto line = m_previous->line();
-        unary(canAssign, canUnpack);
+        unary(canAssign);
         emitOp(runtime::Op::Plus, line);
     } else {
-        call(canAssign, canUnpack);
+        call(canAssign);
     }
 }
 
-auto Compiler::call(bool canAssign, bool canUnpack) -> void
+auto Compiler::call(bool canAssign) -> void
 {
-    primary(canAssign, canUnpack);
+    primary(canAssign);
 
     while (true) {
         if (match(scanner::TokenType::OpenParen)) {
@@ -300,7 +300,7 @@ auto Compiler::call(bool canAssign, bool canUnpack) -> void
     }
 }
 
-auto Compiler::primary(bool canAssign, bool canUnpack) -> void
+auto Compiler::primary(bool canAssign) -> void
 {
     if (match(scanner::TokenType::False)) {
         emitConstant(false);
@@ -318,8 +318,7 @@ auto Compiler::primary(bool canAssign, bool canUnpack) -> void
     } else if (match(scanner::TokenType::String)) {
         parseString();
     } else if (match(scanner::TokenType::OpenParen)) {
-        expression(false, canUnpack);
-        RETURN_IF_NO_MATCH(scanner::TokenType::CloseParen, "Expected ')'");
+        tupleOrGrouping();
     } else if (match(scanner::TokenType::Identifier)) {
         identifier(canAssign);
     } else if (scanner::isTypeIdent(m_current->tokenType())) {
@@ -331,6 +330,8 @@ auto Compiler::primary(bool canAssign, bool canUnpack) -> void
         lambda();
     } else if (match(scanner::TokenType::OpenSquareBracket)) {
         list();
+    } else if (match(scanner::TokenType::OpenBrace)) {
+        dict();
     } else {
         errorAtCurrent("Invalid token at start of expression");
     }
@@ -502,16 +503,57 @@ auto Compiler::namespaceQualifiedCall() -> void
 auto Compiler::typeIdent() -> void
 {
     const auto tokenType = m_previous->tokenType();
+    const auto runtimeType = static_cast<runtime::types::Type>(tokenType);
 
     if (match(scanner::TokenType::OpenParen)) {
         // constructing an instance of the type
         if (const auto args = parseCallArgs(scanner::TokenType::CloseParen)) {
             const auto [numArgs, hasUnpack] = *args;
-            if (tokenType < scanner::TokenType::ListIdent) {
-                if (numArgs > 1) {
-                    errorAtPrevious(fmt::format("'{}' can only be constructed from a single argument but was given {}", static_cast<runtime::types::Type>(tokenType), numArgs));
-                    return;
+
+            const auto numContructorParams = scanner::builtinConstructorAllowedArgCount(tokenType);
+            switch (numContructorParams) {
+                case scanner::AllowedArgCount::None: {
+                    if (numArgs != 0_uz) {
+                        errorAtPrevious(fmt::format("{} takes no arguments", runtimeType));
+                        return;
+                    }
+
+                    break;
                 }
+                case scanner::AllowedArgCount::One: {
+                    if (numArgs != 1_uz) {
+                        errorAtPrevious(fmt::format("{} takes one argument", runtimeType));
+                        return;
+                    }
+
+                    break;
+                }
+                case scanner::AllowedArgCount::OneOrNone: {
+                    if (numArgs > 1_uz) {
+                        errorAtPrevious(fmt::format("{} takes one or no arguments", runtimeType));
+                        return;
+                    }
+
+                    break;
+                }
+                case scanner::AllowedArgCount::OneOrMore: {
+                    if (numArgs < 1_uz) {
+                        errorAtPrevious(fmt::format("{} takes one or more arguments", runtimeType));
+                        return;
+                    }
+
+                    break;
+                }
+                case scanner::AllowedArgCount::TwoOrThree: {
+                    if (numArgs < 2_uz || numArgs > 3_u8) {
+                        errorAtPrevious(fmt::format("{} takes two or three arguments", runtimeType));
+                        return;
+                    }
+
+                    break;
+                }
+                case scanner::AllowedArgCount::Any:
+                    break;
             }
 
             emitConstant(static_cast<u8>(tokenType));
@@ -672,9 +714,51 @@ auto Compiler::list() -> void
     }
 
     const auto [numArgs, hasUnpack] = *args;
+    emitConstant(static_cast<u8>(runtime::types::Type::List));
     emitConstant(numArgs);
     emitConstant(hasUnpack);
-    emitOp(runtime::Op::MakeList, m_previous->line());
+    emitOp(runtime::Op::ConstructBuiltin, m_previous->line());
+}
+
+auto Compiler::tupleOrGrouping() -> void
+{
+    if (match(scanner::TokenType::DotDotDot)) {
+        unpack();
+        emitConstant(static_cast<u8>(runtime::types::Type::Tuple));
+        emitConstant(1);
+        emitConstant(true);
+        emitOp(runtime::Op::ConstructBuiltin, m_previous->line());
+        RETURN_IF_NO_MATCH(scanner::TokenType::CloseParen, "Expected ')'");
+    } else {
+        expression(false, false);
+
+        if (match(scanner::TokenType::Comma)) {
+            if (const auto args = parseCallArgs(scanner::TokenType::CloseParen)) {
+                const auto [numArgs, hasUnpack] = *args;
+                emitConstant(static_cast<u8>(runtime::types::Type::Tuple));
+                emitConstant(numArgs + 1);
+                emitConstant(hasUnpack);
+                emitOp(runtime::Op::ConstructBuiltin, m_previous->line());
+            }
+        } else {
+            RETURN_IF_NO_MATCH(scanner::TokenType::CloseParen, "Expected ')'");
+        }
+    }
+    
+}
+
+auto Compiler::dict() -> void
+{
+    const auto args = parseCallArgs(scanner::TokenType::CloseBrace);
+    if (!args) {
+        return;
+    }
+
+    const auto [numArgs, hasUnpack] = *args;
+    emitConstant(static_cast<u8>(runtime::types::Type::Dictionary));
+    emitConstant(numArgs);
+    emitConstant(hasUnpack);
+    emitOp(runtime::Op::ConstructBuiltin, m_previous->line());
 }
 
 static auto getEscapeCharacter(char c) -> std::optional<char>

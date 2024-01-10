@@ -3,9 +3,7 @@
 //
 
 #include "Vm.hpp"
-#include "../objects/iterables/PoiseList.hpp"
-#include "../objects/iterables/PoiseRange.hpp"
-#include "../objects/PoiseException.hpp"
+#include "../objects/Objects.hpp"
 #include "Types.hpp"
 
 #include <fmt/ranges.h>
@@ -15,14 +13,14 @@
 namespace poise::runtime {
 using objects::PoiseException;
 
-auto throwIfWrongType(usize position, const Value& value, types::Type type) -> void
+static auto throwIfWrongType(usize position, const Value& value, types::Type type) -> void
 {
     if (value.type() != type) {
         throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("Expected {} at position {} but got {}", type, position, value.type()));
     }
 }
 
-auto throwIfWrongType(usize position, const Value& value, std::initializer_list<types::Type> types) -> void
+static auto throwIfWrongType(usize position, const Value& value, std::initializer_list<types::Type> types) -> void
 {
     if (std::none_of(types.begin(), types.end(), [&value](types::Type type) {
         return value.type() == type;
@@ -31,34 +29,42 @@ auto throwIfWrongType(usize position, const Value& value, std::initializer_list<
     }
 }
 
+static auto throwIfNotIterable(usize position, const Value& value) -> void {
+    if (value.object() == nullptr || value.object()->asIterable() == nullptr) {
+        throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("Expected iterable at position {} but got {}", position, value.type()));
+    }
+}
+
 auto Vm::registerNatives() noexcept -> void
 {
-    registerIntNatives();
+    registerDictNatives();
     registerFloatNatives();
+    registerIntNatives();
     registerIterableNatives();
     registerListNatives();
     registerRangeNatives();
+    registerStringNatives();
 }   // Vm::registerNatives()
 
-auto Vm::registerIntNatives() noexcept -> void
+auto Vm::registerDictNatives() noexcept -> void
 {
-    m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_INT_POW"), NativeFunction{
+    m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_DICT_CONTAINS_KEY"), NativeFunction{
         2, [](std::span<Value> args) -> Value {
-            throwIfWrongType(0, args[0], types::Type::Int);
-            throwIfWrongType(1, args[1], types::Type::Int);
-            return static_cast<i64>(std::pow(args[0].value<i64>(), args[1].value<i64>()));
+            throwIfWrongType(0, args[0], types::Type::Dictionary);
+            return args[0].object()->asDictionary()->containsKey(args[1_uz]);
         }});
 
-    m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_INT_SQRT"), NativeFunction{
-        1, [](std::span<Value> args) -> Value {
-            throwIfWrongType(0, args[0], types::Type::Int);
-            return static_cast<i64>(std::sqrt(args[0].value<i64>()));
+    m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_DICT_TRY_INSERT"), NativeFunction{
+        3, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0, args[0], types::Type::Dictionary);
+            return args[0].object()->asDictionary()->tryInsert(std::move(args[1_uz]), std::move(args[2_uz]));
         }});
 
-    m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_INT_ABS"), NativeFunction{
-        1, [](std::span<Value> args) -> Value {
-            throwIfWrongType(0, args[0], types::Type::Int);
-            return std::abs(args[0].value<i64>());
+    m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_DICT_INSERT"), NativeFunction{
+        3, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0, args[0], types::Type::Dictionary);
+            args[0].object()->asDictionary()->insertOrUpdate(std::move(args[1_uz]), std::move(args[2_uz]));
+            return Value::none();
         }});
 }
 
@@ -86,11 +92,34 @@ auto Vm::registerFloatNatives() noexcept -> void
         }});
 }
 
+auto Vm::registerIntNatives() noexcept -> void
+{
+    m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_INT_POW"), NativeFunction{
+        2, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0, args[0], types::Type::Int);
+            throwIfWrongType(1, args[1], types::Type::Int);
+            return static_cast<i64>(std::pow(args[0].value<i64>(), args[1].value<i64>()));
+        }});
+
+    m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_INT_SQRT"), NativeFunction{
+        1, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0, args[0], types::Type::Int);
+            return static_cast<i64>(std::sqrt(args[0].value<i64>()));
+        }});
+
+    m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_INT_ABS"), NativeFunction{
+        1, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0, args[0], types::Type::Int);
+            return std::abs(args[0].value<i64>());
+        }});
+}
+
+
 auto Vm::registerIterableNatives() noexcept -> void
 {
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_ITERABLE_SIZE"), NativeFunction{
         1, [](std::span<Value> args) -> Value {
-            throwIfWrongType(0, args[0], {types::Type::List, types::Type::Range});
+            throwIfNotIterable(0, args[0]);
             return args[0].object()->asIterable()->size();
         }});
 }
@@ -190,4 +219,14 @@ auto Vm::registerRangeNatives() noexcept -> void
             return args[0].object()->asRange()->rangeInclusive();
         }});
 }
+
+auto Vm::registerStringNatives() noexcept -> void
+{
+    m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_STRING_LENGTH"), NativeFunction{
+        1, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0, args[0], types::Type::String);
+            return args[0].string().size();
+        }});
+}
 }   // namespace poise::runtime
+

@@ -1,8 +1,11 @@
 add_library(poise_objects
+        iterables/hashables/PoiseDictionary.cpp
+        iterables/hashables/PoiseHashable.cpp
         iterables/PoiseIterable.cpp
         iterables/PoiseIterator.cpp
         iterables/PoiseList.cpp
         iterables/PoiseRange.cpp
+        iterables/PoiseTuple.cpp
         PoiseException.cpp
         PoiseFunction.cpp
         PoiseObject.cpp

@@ -14,17 +14,181 @@ using objects::PoiseException;
 Vm::Vm(std::string mainFilePath)
     : m_mainFilePath{std::move(mainFilePath)}
     , m_typeLookup{
-        {types::Type::Bool, Value::createObject<objects::PoiseType>(types::Type::Bool, "Bool")},
-        {types::Type::Float, Value::createObject<objects::PoiseType>(types::Type::Float, "Float")},
-        {types::Type::Int, Value::createObject<objects::PoiseType>(types::Type::Int, "Int")},
-        {types::Type::None, Value::createObject<objects::PoiseType>(types::Type::None, "None")},
-        {types::Type::String, Value::createObject<objects::PoiseType>(types::Type::String, "String")},
-        {types::Type::Exception, Value::createObject<objects::PoiseType>(types::Type::Exception, "Exception")},
-        {types::Type::Function, Value::createObject<objects::PoiseType>(types::Type::Function, "Function")},
-        {types::Type::Iterator, Value::createObject<objects::PoiseType>(types::Type::Iterator, "Iterator")},
-        {types::Type::List, Value::createObject<objects::PoiseType>(types::Type::List, "List")},
-        {types::Type::Range, Value::createObject<objects::PoiseType>(types::Type::Range, "Range")},
-        {types::Type::Type, Value::createObject<objects::PoiseType>(types::Type::Type, "Type")},
+        {types::Type::Bool, Value::createObject<objects::PoiseType>(types::Type::Bool, "Bool",
+                [](std::span<Value> args) -> Value {
+                    if (args.size() > 1_uz) {
+                        throw PoiseException{
+                            PoiseException::ExceptionType::IncorrectArgCount,
+                            fmt::format("Expected 1 or 0 args to Bool but got {}", args.size())
+                        };
+                    }
+
+                    return !args.empty() && args[0_uz].toBool();
+                })},
+        {types::Type::Float, Value::createObject<objects::PoiseType>(types::Type::Float, "Float",
+                [](std::span<Value> args) -> Value {
+                    if (args.size() > 1_uz) { 
+                        throw PoiseException{ 
+                            PoiseException::ExceptionType::IncorrectArgCount,
+                            fmt::format("Expected 1 or 0 args to Float but got {}", args.size())
+                        }; 
+                    } 
+
+                    return args.empty() ? 0.0 : args[0_uz].toFloat();
+                })},
+        {types::Type::Int, Value::createObject<objects::PoiseType>(types::Type::Int, "Int",
+                [](std::span<Value> args) -> Value {
+                    if (args.size() > 1_uz) { 
+                        throw PoiseException{ 
+                            PoiseException::ExceptionType::IncorrectArgCount,
+                            fmt::format("Expected 1 or 0 args to Int but got {}", args.size())
+                        }; 
+                    } 
+
+                    return args.empty() ? 0 : args[0_uz].toInt();
+                })},
+        {types::Type::None, Value::createObject<objects::PoiseType>(types::Type::None, "None",
+                [](std::span<Value> args) -> Value {
+                    return args.empty() 
+                        ? runtime::Value::none() 
+                        : throw PoiseException{ 
+                            PoiseException::ExceptionType::InvalidType,
+                            fmt::format("Expected no args to construct None but got {}", args.size())
+                        };
+                })},
+        {types::Type::String, Value::createObject<objects::PoiseType>(types::Type::String, "String",
+                [](std::span<Value> args) -> Value {
+                    if (args.size() > 1_uz) { 
+                        throw PoiseException{ 
+                            PoiseException::ExceptionType::IncorrectArgCount,
+                            fmt::format("Expected 1 or 0 args to String but got {}", args.size())
+                        }; 
+                    } 
+
+                    return args.empty() ? "" : args[0_uz].toString();
+                })},
+        {types::Type::Dictionary, Value::createObject<objects::PoiseType>(types::Type::Dictionary, "Dictionary",
+                [](std::span<Value> args) -> Value {
+                    for (auto i = 0_uz; i < args.size(); i++) {
+                        if (args[i].type() != runtime::types::Type::Tuple) {
+                            throw PoiseException{
+                                PoiseException::ExceptionType::InvalidType,
+                                fmt::format("Expected all args to construct Dict to be Tuple, but got {} at position {}", args[i].type(), i)
+                            };
+                        }
+                    }
+
+                    return runtime::Value::createObject<objects::iterables::hashables::PoiseDictionary>(args);
+                })},
+        {types::Type::Exception, Value::createObject<objects::PoiseType>(types::Type::Exception, "Exception",
+                [](std::span<Value> args) -> Value {
+                    if (args.size() != 1_uz) { 
+                        throw PoiseException{ 
+                            PoiseException::ExceptionType::IncorrectArgCount,
+                            fmt::format("Expected 1 arg to Exception but got {}", args.size())
+                        }; 
+                    } 
+
+                    return runtime::Value::createObject<PoiseException>(args[0].toString());
+                })},
+        {types::Type::Function, Value::createObject<objects::PoiseType>(types::Type::Function, "Function",
+                [](std::span<Value> args) -> Value {
+                    if (args.size() != 1_uz) {
+                        throw PoiseException{
+                            PoiseException::ExceptionType::IncorrectArgCount,
+                            fmt::format("Expected 1 arg to Function but got  {}", args.size())
+                        };
+                    }
+
+                    if (const auto object = args[0].object()) {
+                        if (const auto function = object->asFunction()) {
+                            return args[0];
+                        } else {
+                            throw PoiseException{
+                                PoiseException::ExceptionType::InvalidType,
+                                fmt::format("Function can only be constructed from Function or Lambda but got {}", args[0].type())
+                            };
+                        }
+                    } else {
+                        throw PoiseException{
+                            PoiseException::ExceptionType::InvalidType,
+                            "Function can only be constructed from Function or Lambda"
+                        };
+                    }
+                })},
+        {types::Type::Iterator, Value::createObject<objects::PoiseType>(types::Type::Iterator, "Iterator", nullptr)},
+        {types::Type::List, Value::createObject<objects::PoiseType>(types::Type::List, "List",
+                [](std::span<Value> args) -> Value {
+                    if (args.size() == 1_uz) {
+                        return runtime::Value::createObject<objects::iterables::PoiseList>(std::move(args[0]));
+                    } else {
+                        return runtime::Value::createObject<objects::iterables::PoiseList>(std::vector<runtime::Value>{
+                            std::make_move_iterator(args.begin()),
+                            std::make_move_iterator(args.end())
+                        });
+                    }
+                })},
+        {types::Type::Range, Value::createObject<objects::PoiseType>(types::Type::Range, "Range",
+                [](std::span<Value> args) -> Value {
+                    // last arg is whether the range is inclusive or not which is handled internally, user side it's 2 or 3 args
+                    if (args.size() < 3_uz || args.size() > 4_uz) {
+                        throw PoiseException{
+                            PoiseException::ExceptionType::IncorrectArgCount,
+                            fmt::format("Expected 2 or 3 args to Range but got {}", args.size())
+                        };
+                    }
+
+                    if (args[0].type() != runtime::types::Type::Int) {
+                        throw PoiseException{
+                            PoiseException::ExceptionType::InvalidType,
+                            fmt::format("Expected Int for range start but got {}", args[0].type())
+                        };
+                    }
+
+                    if (args[1].type() != runtime::types::Type::Int) {
+                        throw PoiseException{
+                            PoiseException::ExceptionType::InvalidType,
+                            fmt::format("Expected Int for range end but got {}", args[1].type())
+                        };
+                    }
+
+                    if (args.size() == 4_uz && args[2].type() != runtime::types::Type::Int) {
+                        throw PoiseException{
+                            PoiseException::ExceptionType::InvalidType,
+                            fmt::format("Expected Int for range increment but got {}", args[2].type())
+                        };
+                    }
+
+                    if (args.size() == 4_uz) {
+                        return runtime::Value::createObject<objects::iterables::PoiseRange>(
+                            std::move(args[0]),
+                            std::move(args[1]),
+                            std::move(args[2]),
+                            args[3].value<bool>()
+                        );
+                    } else {
+                        return runtime::Value::createObject<objects::iterables::PoiseRange>(
+                            std::move(args[0]),
+                            std::move(args[1]),
+                            1,
+                            args[2].value<bool>()
+                        );
+                    }
+
+                })},
+        {types::Type::Tuple, Value::createObject<objects::PoiseType>(types::Type::Tuple, "Tuple",
+                [](std::span<Value> args) -> Value {
+                    return runtime::Value::createObject<objects::iterables::PoiseTuple>(
+                        std::vector<runtime::Value>{
+                            std::make_move_iterator(args.begin()),
+                            std::make_move_iterator(args.end())
+                        }
+                    );
+                })},
+        {types::Type::Type, Value::createObject<objects::PoiseType>(types::Type::Type, "Type",
+                []([[maybe_unused]] std::span<Value> args) -> Value {
+                    throw PoiseException(PoiseException::ExceptionType::InvalidType, "Cannot construct Type");
+                })},
     }
 
 {
@@ -473,17 +637,6 @@ auto Vm::run() noexcept -> RunResult
                     stack.emplace_back(+value);
                     break;
                 }
-                case Op::MakeList: {
-                    auto numArgs = constantList[constantIndex++].value<usize>();
-                    const auto hasUnpack = constantList[constantIndex++].value<bool>();
-
-                    if (hasUnpack) {
-                        numArgs += pop().value<usize>() - 1_uz; // -1 for the pack, replace it with the size of the pack
-                    }
-
-                    stack.emplace_back(Value::createObject<objects::iterables::PoiseList>(popCallArgs(numArgs)));
-                    break;
-                }
                 case Op::MakeLambda: {
                     const auto lambda = constantList[constantIndex++].object()->asFunction();
                     stack.emplace_back(lambda->shallowClone());
@@ -492,6 +645,10 @@ auto Vm::run() noexcept -> RunResult
                 case Op::AssignIndex: {
                     auto [collection, index, value] = popThree();
                     switch (collection.type()) {
+                        case types::Type::Dictionary: {
+                            collection.object()->asDictionary()->insertOrUpdate(std::move(index), std::move(value));
+                            break;
+                        }
                         case types::Type::List: {
                             if (index.type() != types::Type::Int) {
                                 throw PoiseException(
@@ -515,6 +672,10 @@ auto Vm::run() noexcept -> RunResult
                 case Op::LoadIndex: {
                     auto [collection, index] = popTwo();
                     switch (collection.type()) {
+                        case types::Type::Dictionary: {
+                            stack.push_back(collection.object()->asDictionary()->at(index));
+                            break;
+                        }
                         case types::Type::List: {
                             if (index.type() != types::Type::Int) {
                                 throw PoiseException(
@@ -546,6 +707,17 @@ auto Vm::run() noexcept -> RunResult
                             std::string res;
                             res.push_back(s[static_cast<usize>(i)]);
                             stack.emplace_back(std::move(res));
+                            break;
+                        }
+                        case types::Type::Tuple: {
+                            if (index.type() != types::Type::Int) {
+                                throw PoiseException(
+                                    PoiseException::ExceptionType::InvalidType,
+                                    fmt::format("Expected Int to index Tuple but got {}", index.type())
+                                );
+                            }
+
+                            stack.push_back(collection.object()->asTuple()->at(index.value<isize>()));
                             break;
                         }
                         default: {
@@ -646,49 +818,119 @@ auto Vm::run() noexcept -> RunResult
                 case Op::InitIterator: {
                     auto value = pop();
                     if (value.object() == nullptr || !value.object()->iterable()) {
-                        throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("{} is not iterable", value.type()));
+                        throw PoiseException{
+                            PoiseException::ExceptionType::InvalidType,
+                            fmt::format("{} is not iterable", value.type())
+                        };
                     }
 
                     heldIterators.push(Value::createObject<objects::iterables::PoiseIterator>(value));
                     auto iteratorPtr = heldIterators.top().object()->asIterator();
+                    const auto isAtEnd = iteratorPtr->isAtEnd();
+                    stack.emplace_back(iteratorPtr->isAtEnd());
 
                     const auto firstIteratorLocalIndex = constantList[constantIndex++].value<usize>();
                     const auto secondIteratorLocalIndex = constantList[constantIndex++].value<usize>();
+                    auto& firstLocal = localVariables[firstIteratorLocalIndex + localIndexOffset];
+                    // this might not actually be an iterator if we're not using two iterators,
+                    // but it will definitely exist and just not be used if we only have one iterator
+                    auto& secondLocal = localVariables[secondIteratorLocalIndex + localIndexOffset];
 
-                    localVariables[firstIteratorLocalIndex + localIndexOffset] = iteratorPtr->isAtEnd() ? Value::none() : iteratorPtr->value();
-                    if (secondIteratorLocalIndex > 0_uz) {
-                        // even if there are no local variables before the loop, the second iterator would have an index of 1
-                        // so, we can do this check instead of some extra bool flag
-                        if (value.type() == types::Type::List) {
-                            localVariables[secondIteratorLocalIndex + localIndexOffset] = 0_i64;
-                        } else {
-                            throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("{} cannot have two iterators", value.type()));
+                    switch (value.type()) {
+                        case types::Type::List: {
+                            firstLocal = isAtEnd ? Value::none() : iteratorPtr->value();
+                            if (secondIteratorLocalIndex > 0_uz) {
+                                secondLocal = 0_i64;
+                            }
+                            break;
                         }
+                        case types::Type::Dictionary: {
+                            if (isAtEnd) {
+                                firstLocal = Value::none();
+                                if (secondIteratorLocalIndex > 0_uz) {
+                                    secondLocal = Value::none();
+                                }
+                            } else {
+                                if (secondIteratorLocalIndex > 0_uz) {
+                                    const auto pair = iteratorPtr->value().object()->asTuple();
+                                    firstLocal = pair->at(0_uz);
+                                    secondLocal = pair->at(1_uz);
+                                } else {
+                                    firstLocal = iteratorPtr->value();
+                                }
+                            }
+                            break;
+                        }
+                        case types::Type::Range:
+                        case types::Type::Tuple: {
+                            firstLocal = isAtEnd ? Value::none() : iteratorPtr->value();
+                            if (secondIteratorLocalIndex > 0_uz) {
+                                throw PoiseException{
+                                    PoiseException::ExceptionType::InvalidType,
+                                    fmt::format("{} cannot have two iterators", value.type())
+                                };
+                            }
+                            break;
+                        }
+                        default:
+                            POISE_UNREACHABLE();
+                            break;
                     }
 
-                    stack.emplace_back(iteratorPtr->isAtEnd());
                     break;
                 }
                 case Op::IncrementIterator: {
                     auto iterator = heldIterators.top().object()->asIterator();
                     iterator->increment();
-                    stack.emplace_back(iterator->isAtEnd());
+                    const auto isAtEnd = iterator->isAtEnd();
+                    stack.emplace_back(isAtEnd);
+
                     const auto firstIteratorLocalIndex = constantList[constantIndex++].value<usize>();
                     const auto secondIteratorLocalIndex = constantList[constantIndex++].value<usize>();
-                    if (iterator->isAtEnd()) {
-                        localVariables[firstIteratorLocalIndex + localIndexOffset] = Value::none();
-                        heldIterators.pop();
-                    } else {
-                        localVariables[firstIteratorLocalIndex + localIndexOffset] = iterator->value();
+                    auto& firstLocal = localVariables[firstIteratorLocalIndex + localIndexOffset];
+                    // this might not actually be an iterator if we're not using two iterators,
+                    // but it will definitely exist and just not be used if we only have one iterator
+                    auto& secondLocal = localVariables[secondIteratorLocalIndex + localIndexOffset];
+
+                    switch (iterator->iterableValue().type()) {
+                        case types::Type::List: {
+                            firstLocal = isAtEnd ? Value::none() : iterator->value();
+                            if (secondIteratorLocalIndex > 0_uz) {
+                                secondLocal = secondLocal.value<i64>() + 1_i64;
+                            }
+                            break;
+                        }
+                        case types::Type::Dictionary: {
+                            if (isAtEnd) {
+                                firstLocal = Value::none();
+                                if (secondIteratorLocalIndex > 0_uz) {
+                                    secondLocal = Value::none();
+                                }
+                            } else {
+                                if (secondIteratorLocalIndex > 0_uz) {
+                                    const auto pair = iterator->value().object()->asTuple();
+                                    firstLocal = pair->at(0_uz);
+                                    secondLocal = pair->at(1_uz);
+                                } else {
+                                    firstLocal = iterator->value();
+                                }
+                            }
+                            break;
+                        }
+                        case types::Type::Range:
+                        case types::Type::Tuple: {
+                            firstLocal = isAtEnd ? Value::none() : iterator->value();
+                            break;
+                        }
+                        default:
+                            POISE_UNREACHABLE();
+                            break;
                     }
 
-                    if (secondIteratorLocalIndex > 0_uz) {
-                        auto& local = localVariables[secondIteratorLocalIndex + localIndexOffset];
-                        // type was checked in InitIterator
-                        if (iterator->iterableValue().type() == types::Type::List) {
-                            local = local.value<i64>() + 1_i64;
-                        }
+                    if (isAtEnd) {
+                        heldIterators.pop();
                     }
+
                     break;
                 }
                 case Op::Jump: {

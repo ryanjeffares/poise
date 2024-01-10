@@ -95,6 +95,9 @@ auto formatter<PoiseException::ExceptionType>::format(PoiseException::ExceptionT
         case PoiseException::ExceptionType::IteratorOutOfBounds:
             res = "IteratorOutOfBoundsException";
             break;
+        case PoiseException::ExceptionType::KeyNotFound:
+            res = "KeyNotFoundException";
+            break;
     }
 
     return formatter<string_view>::format(res, context);

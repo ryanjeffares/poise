@@ -4,7 +4,6 @@
 #include "../Poise.hpp"
 #include "../runtime/Types.hpp"
 
-#include <cstddef>
 #include <string>
 
 namespace poise::runtime {
@@ -21,6 +20,11 @@ class PoiseIterable;
 class PoiseIterator;
 class PoiseList;
 class PoiseRange;
+class PoiseTuple;
+
+namespace hashables {
+class PoiseDictionary;
+}
 }
 
 class PoiseObject
@@ -37,12 +41,14 @@ public:
     [[nodiscard]] auto decrementRefCount() noexcept -> usize;
     [[nodiscard]] auto refCount() const noexcept -> usize;
 
+    [[nodiscard]] virtual auto asDictionary() noexcept -> iterables::hashables::PoiseDictionary*;
     [[nodiscard]] virtual auto asException() noexcept -> PoiseException*;
     [[nodiscard]] virtual auto asFunction() noexcept -> PoiseFunction*;
     [[nodiscard]] virtual auto asIterable() noexcept -> iterables::PoiseIterable*;
     [[nodiscard]] virtual auto asIterator() noexcept -> iterables::PoiseIterator*;
     [[nodiscard]] virtual auto asList() noexcept -> iterables::PoiseList*;
     [[nodiscard]] virtual auto asRange() noexcept -> iterables::PoiseRange*;
+    [[nodiscard]] virtual auto asTuple() noexcept -> iterables::PoiseTuple*;
     [[nodiscard]] virtual auto asType() noexcept -> PoiseType*;
 
     [[nodiscard]] virtual auto toString() const noexcept -> std::string = 0;
