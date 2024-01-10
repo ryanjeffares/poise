@@ -133,6 +133,7 @@ private:
     auto lambda() -> void;
     auto list() -> void;
     auto tupleOrGrouping() -> void;
+    auto dict() -> void;
 
     auto parseString() -> void;
     auto parseInt() -> void;

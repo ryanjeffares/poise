@@ -3,8 +3,9 @@
 //
 
 #include "PoiseList.hpp"
-#include "PoiseRange.hpp"
 #include "../PoiseException.hpp"
+#include "hashables/PoiseDictionary.hpp"
+#include "PoiseRange.hpp"
 
 namespace poise::objects::iterables {
 
@@ -25,6 +26,10 @@ PoiseList::PoiseList(runtime::Value value)
         }
         case runtime::types::Type::Range: {
             m_data = value.object()->asRange()->toVector();
+            break;
+        }
+        case runtime::types::Type::Dictionary: {
+            m_data = value.object()->asDictionary()->toVector();
             break;
         }
         default: {

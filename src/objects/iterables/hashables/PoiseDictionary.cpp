@@ -62,6 +62,16 @@ auto PoiseDictionary::unpack(std::vector<runtime::Value>& stack) const noexcept 
     }
 }
 
+auto PoiseDictionary::asDictionary() noexcept -> PoiseDictionary*
+{
+    return this;
+}
+
+auto PoiseDictionary::asIterable() noexcept -> PoiseIterable*
+{
+    return this;
+}
+
 auto PoiseDictionary::toString() const noexcept -> std::string
 {
     std::string res = "{";

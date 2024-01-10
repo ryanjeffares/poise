@@ -93,7 +93,8 @@ auto isValidStartOfExpression(TokenType tokenType) noexcept -> bool
            isBuiltinFunction(tokenType) ||
            tokenType == TokenType::OpenParen ||         // for groupings
            tokenType == TokenType::Pipe ||              // for lambdas
-           tokenType == TokenType::OpenSquareBracket;   // for lists
+           tokenType == TokenType::OpenSquareBracket || // for lists
+           tokenType == TokenType::OpenBrace;           // for dicts 
 }
 
 auto builtinGenericTypeCount(TokenType tokenType) noexcept -> u8

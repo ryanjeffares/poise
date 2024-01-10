@@ -637,17 +637,6 @@ auto Vm::run() noexcept -> RunResult
                     stack.emplace_back(+value);
                     break;
                 }
-                case Op::MakeList: {
-                    auto numArgs = constantList[constantIndex++].value<usize>();
-                    const auto hasUnpack = constantList[constantIndex++].value<bool>();
-
-                    if (hasUnpack) {
-                        numArgs += pop().value<usize>() - 1_uz; // -1 for the pack, replace it with the size of the pack
-                    }
-
-                    stack.emplace_back(Value::createObject<objects::iterables::PoiseList>(popCallArgs(numArgs)));
-                    break;
-                }
                 case Op::MakeLambda: {
                     const auto lambda = constantList[constantIndex++].object()->asFunction();
                     stack.emplace_back(lambda->shallowClone());
@@ -656,6 +645,10 @@ auto Vm::run() noexcept -> RunResult
                 case Op::AssignIndex: {
                     auto [collection, index, value] = popThree();
                     switch (collection.type()) {
+                        case types::Type::Dictionary: {
+                            collection.object()->asDictionary()->insertOrUpdate(std::move(index), std::move(value));
+                            break;
+                        }
                         case types::Type::List: {
                             if (index.type() != types::Type::Int) {
                                 throw PoiseException(
@@ -679,6 +672,10 @@ auto Vm::run() noexcept -> RunResult
                 case Op::LoadIndex: {
                     auto [collection, index] = popTwo();
                     switch (collection.type()) {
+                        case types::Type::Dictionary: {
+                            stack.push_back(collection.object()->asDictionary()->at(index));
+                            break;
+                        }
                         case types::Type::List: {
                             if (index.type() != types::Type::Int) {
                                 throw PoiseException(
@@ -688,17 +685,6 @@ auto Vm::run() noexcept -> RunResult
                             }
 
                             stack.push_back(collection.object()->asList()->at(index.value<isize>()));
-                            break;
-                        }
-                        case types::Type::Tuple: {
-                            if (index.type() != types::Type::Int) {
-                                throw PoiseException(
-                                    PoiseException::ExceptionType::InvalidType,
-                                    fmt::format("Expected Int to index Tuple but got {}", index.type())
-                                );
-                            }
-
-                            stack.push_back(collection.object()->asTuple()->at(index.value<isize>()));
                             break;
                         }
                         case types::Type::String: {
@@ -721,6 +707,17 @@ auto Vm::run() noexcept -> RunResult
                             std::string res;
                             res.push_back(s[static_cast<usize>(i)]);
                             stack.emplace_back(std::move(res));
+                            break;
+                        }
+                        case types::Type::Tuple: {
+                            if (index.type() != types::Type::Int) {
+                                throw PoiseException(
+                                    PoiseException::ExceptionType::InvalidType,
+                                    fmt::format("Expected Int to index Tuple but got {}", index.type())
+                                );
+                            }
+
+                            stack.push_back(collection.object()->asTuple()->at(index.value<isize>()));
                             break;
                         }
                         default: {
@@ -821,49 +818,119 @@ auto Vm::run() noexcept -> RunResult
                 case Op::InitIterator: {
                     auto value = pop();
                     if (value.object() == nullptr || !value.object()->iterable()) {
-                        throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("{} is not iterable", value.type()));
+                        throw PoiseException{
+                            PoiseException::ExceptionType::InvalidType,
+                            fmt::format("{} is not iterable", value.type())
+                        };
                     }
 
                     heldIterators.push(Value::createObject<objects::iterables::PoiseIterator>(value));
                     auto iteratorPtr = heldIterators.top().object()->asIterator();
+                    const auto isAtEnd = iteratorPtr->isAtEnd();
+                    stack.emplace_back(iteratorPtr->isAtEnd());
 
                     const auto firstIteratorLocalIndex = constantList[constantIndex++].value<usize>();
                     const auto secondIteratorLocalIndex = constantList[constantIndex++].value<usize>();
+                    auto& firstLocal = localVariables[firstIteratorLocalIndex + localIndexOffset];
+                    // this might not actually be an iterator if we're not using two iterators,
+                    // but it will definitely exist and just not be used if we only have one iterator
+                    auto& secondLocal = localVariables[secondIteratorLocalIndex + localIndexOffset];
 
-                    localVariables[firstIteratorLocalIndex + localIndexOffset] = iteratorPtr->isAtEnd() ? Value::none() : iteratorPtr->value();
-                    if (secondIteratorLocalIndex > 0_uz) {
-                        // even if there are no local variables before the loop, the second iterator would have an index of 1
-                        // so, we can do this check instead of some extra bool flag
-                        if (value.type() == types::Type::List) {
-                            localVariables[secondIteratorLocalIndex + localIndexOffset] = 0_i64;
-                        } else {
-                            throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("{} cannot have two iterators", value.type()));
+                    switch (value.type()) {
+                        case types::Type::List: {
+                            firstLocal = isAtEnd ? Value::none() : iteratorPtr->value();
+                            if (secondIteratorLocalIndex > 0_uz) {
+                                secondLocal = 0_i64;
+                            }
+                            break;
                         }
+                        case types::Type::Dictionary: {
+                            if (isAtEnd) {
+                                firstLocal = Value::none();
+                                if (secondIteratorLocalIndex > 0_uz) {
+                                    secondLocal = Value::none();
+                                }
+                            } else {
+                                if (secondIteratorLocalIndex > 0_uz) {
+                                    const auto pair = iteratorPtr->value().object()->asTuple();
+                                    firstLocal = pair->at(0_uz);
+                                    secondLocal = pair->at(1_uz);
+                                } else {
+                                    firstLocal = iteratorPtr->value();
+                                }
+                            }
+                            break;
+                        }
+                        case types::Type::Range:
+                        case types::Type::Tuple: {
+                            firstLocal = isAtEnd ? Value::none() : iteratorPtr->value();
+                            if (secondIteratorLocalIndex > 0_uz) {
+                                throw PoiseException{
+                                    PoiseException::ExceptionType::InvalidType,
+                                    fmt::format("{} cannot have two iterators", value.type())
+                                };
+                            }
+                            break;
+                        }
+                        default:
+                            POISE_UNREACHABLE();
+                            break;
                     }
 
-                    stack.emplace_back(iteratorPtr->isAtEnd());
                     break;
                 }
                 case Op::IncrementIterator: {
                     auto iterator = heldIterators.top().object()->asIterator();
                     iterator->increment();
-                    stack.emplace_back(iterator->isAtEnd());
+                    const auto isAtEnd = iterator->isAtEnd();
+                    stack.emplace_back(isAtEnd);
+
                     const auto firstIteratorLocalIndex = constantList[constantIndex++].value<usize>();
                     const auto secondIteratorLocalIndex = constantList[constantIndex++].value<usize>();
-                    if (iterator->isAtEnd()) {
-                        localVariables[firstIteratorLocalIndex + localIndexOffset] = Value::none();
-                        heldIterators.pop();
-                    } else {
-                        localVariables[firstIteratorLocalIndex + localIndexOffset] = iterator->value();
+                    auto& firstLocal = localVariables[firstIteratorLocalIndex + localIndexOffset];
+                    // this might not actually be an iterator if we're not using two iterators,
+                    // but it will definitely exist and just not be used if we only have one iterator
+                    auto& secondLocal = localVariables[secondIteratorLocalIndex + localIndexOffset];
+
+                    switch (iterator->iterableValue().type()) {
+                        case types::Type::List: {
+                            firstLocal = isAtEnd ? Value::none() : iterator->value();
+                            if (secondIteratorLocalIndex > 0_uz) {
+                                secondLocal = secondLocal.value<i64>() + 1_i64;
+                            }
+                            break;
+                        }
+                        case types::Type::Dictionary: {
+                            if (isAtEnd) {
+                                firstLocal = Value::none();
+                                if (secondIteratorLocalIndex > 0_uz) {
+                                    secondLocal = Value::none();
+                                }
+                            } else {
+                                if (secondIteratorLocalIndex > 0_uz) {
+                                    const auto pair = iterator->value().object()->asTuple();
+                                    firstLocal = pair->at(0_uz);
+                                    secondLocal = pair->at(1_uz);
+                                } else {
+                                    firstLocal = iterator->value();
+                                }
+                            }
+                            break;
+                        }
+                        case types::Type::Range:
+                        case types::Type::Tuple: {
+                            firstLocal = isAtEnd ? Value::none() : iterator->value();
+                            break;
+                        }
+                        default:
+                            POISE_UNREACHABLE();
+                            break;
                     }
 
-                    if (secondIteratorLocalIndex > 0_uz) {
-                        auto& local = localVariables[secondIteratorLocalIndex + localIndexOffset];
-                        // type was checked in InitIterator
-                        if (iterator->iterableValue().type() == types::Type::List) {
-                            local = local.value<i64>() + 1_i64;
-                        }
+                    if (isAtEnd) {
+                        heldIterators.pop();
                     }
+
                     break;
                 }
                 case Op::Jump: {

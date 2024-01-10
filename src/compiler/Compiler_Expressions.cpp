@@ -330,6 +330,8 @@ auto Compiler::primary(bool canAssign) -> void
         lambda();
     } else if (match(scanner::TokenType::OpenSquareBracket)) {
         list();
+    } else if (match(scanner::TokenType::OpenBrace)) {
+        dict();
     } else {
         errorAtCurrent("Invalid token at start of expression");
     }
@@ -712,9 +714,10 @@ auto Compiler::list() -> void
     }
 
     const auto [numArgs, hasUnpack] = *args;
+    emitConstant(static_cast<u8>(runtime::types::Type::List));
     emitConstant(numArgs);
     emitConstant(hasUnpack);
-    emitOp(runtime::Op::MakeList, m_previous->line());
+    emitOp(runtime::Op::ConstructBuiltin, m_previous->line());
 }
 
 auto Compiler::tupleOrGrouping() -> void
@@ -742,6 +745,20 @@ auto Compiler::tupleOrGrouping() -> void
         }
     }
     
+}
+
+auto Compiler::dict() -> void
+{
+    const auto args = parseCallArgs(scanner::TokenType::CloseBrace);
+    if (!args) {
+        return;
+    }
+
+    const auto [numArgs, hasUnpack] = *args;
+    emitConstant(static_cast<u8>(runtime::types::Type::Dictionary));
+    emitConstant(numArgs);
+    emitConstant(hasUnpack);
+    emitOp(runtime::Op::ConstructBuiltin, m_previous->line());
 }
 
 static auto getEscapeCharacter(char c) -> std::optional<char>

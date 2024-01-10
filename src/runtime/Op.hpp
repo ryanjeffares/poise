@@ -56,7 +56,6 @@ enum class Op : u8
     BitwiseNot,
     Negate,
     Plus,
-    MakeList,
     MakeLambda,
     AssignIndex,
     LoadIndex,

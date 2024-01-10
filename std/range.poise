@@ -23,12 +23,3 @@ export func contains(this final Range range, final value): Bool {
     return value % range.increment() == 0;
 }
 
-export func to_list(this final Range range): List {
-    final res = [];
-
-    for i in range {
-        res.append(i);
-    }
-
-    return res;
-}
