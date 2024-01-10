@@ -30,7 +30,7 @@ public:
     [[nodiscard]] auto namespaceDisplayName(NamespaceHash namespaceHash) const noexcept -> std::string_view;
 
     auto addFunctionToNamespace(NamespaceHash namespaceHash, Value function) noexcept -> void;
-    [[nodiscard]] auto namespaceFunction(NamespaceHash namespaceHash, std::string_view functionName) const noexcept -> objects::PoiseFunction*;
+    [[nodiscard]] auto namespaceFunction(NamespaceHash namespaceHash, std::string_view functionName) const noexcept -> objects::Function*;
     [[nodiscard]] auto namespaceFunction(NamespaceHash namespaceHash, FunctionNameHash functionNameHash) const noexcept -> std::optional<runtime::Value>;
     [[nodiscard]] auto namespaceFunctions(NamespaceHash namespaceHash) const noexcept -> std::span<const runtime::Value>;
 

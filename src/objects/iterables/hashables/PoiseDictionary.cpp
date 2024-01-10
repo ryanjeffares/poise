@@ -3,7 +3,7 @@
 #include "../../PoiseException.hpp"
 
 namespace poise::objects::iterables::hashables {
-PoiseDictionary::PoiseDictionary(std::span<runtime::Value> pairs)
+Dict::Dict(std::span<runtime::Value> pairs)
 {
     for (auto& pair : pairs) {
         auto tuple = pair.object()->asTuple();
@@ -13,7 +13,7 @@ PoiseDictionary::PoiseDictionary(std::span<runtime::Value> pairs)
     }
 }
 
-auto PoiseDictionary::begin() noexcept -> IteratorType
+auto Dict::begin() noexcept -> IteratorType
 {
     for (auto i = 0_uz; i < m_capacity; i++) {
         if (m_cellStates[i] == CellState::Occupied) {
@@ -24,12 +24,12 @@ auto PoiseDictionary::begin() noexcept -> IteratorType
     return end();
 }
 
-auto PoiseDictionary::end() noexcept -> IteratorType
+auto Dict::end() noexcept -> IteratorType
 {
     return m_data.end();
 }
 
-auto PoiseDictionary::incrementIterator(IteratorType& iterator) noexcept -> void
+auto Dict::incrementIterator(IteratorType& iterator) noexcept -> void
 {
     usize index{};
     do {
@@ -38,22 +38,22 @@ auto PoiseDictionary::incrementIterator(IteratorType& iterator) noexcept -> void
     } while (!isAtEnd(iterator) && m_cellStates[index] != CellState::Occupied);
 }
 
-auto PoiseDictionary::isAtEnd(const IteratorType& iterator) noexcept -> bool
+auto Dict::isAtEnd(const IteratorType& iterator) noexcept -> bool
 {
     return iterator == end();
 }
 
-auto PoiseDictionary::size() const noexcept -> usize
+auto Dict::size() const noexcept -> usize
 {
     return m_size;
 }
 
-auto PoiseDictionary::ssize() const noexcept -> isize
+auto Dict::ssize() const noexcept -> isize
 {
     return static_cast<isize>(m_size);
 }
 
-auto PoiseDictionary::unpack(std::vector<runtime::Value>& stack) const noexcept -> void
+auto Dict::unpack(std::vector<runtime::Value>& stack) const noexcept -> void
 {
     for (auto i = 0_uz; i < m_capacity; i++) {
         if (m_cellStates[i] == CellState::Occupied) {
@@ -62,17 +62,22 @@ auto PoiseDictionary::unpack(std::vector<runtime::Value>& stack) const noexcept 
     }
 }
 
-auto PoiseDictionary::asDictionary() noexcept -> PoiseDictionary*
+auto Dict::asDictionary() noexcept -> Dict*
 {
     return this;
 }
 
-auto PoiseDictionary::asIterable() noexcept -> PoiseIterable*
+auto Dict::asIterable() noexcept -> Iterable*
 {
     return this;
 }
 
-auto PoiseDictionary::toString() const noexcept -> std::string
+auto Dict::asHashable() noexcept -> Hashable*
+{
+    return this;
+}
+
+auto Dict::toString() const noexcept -> std::string
 {
     std::string res = "{";
     usize count = 0_uz;
@@ -92,17 +97,17 @@ auto PoiseDictionary::toString() const noexcept -> std::string
     return res;
 }
 
-auto PoiseDictionary::type() const noexcept -> runtime::types::Type
+auto Dict::type() const noexcept -> runtime::types::Type
 {
     return runtime::types::Type::Dictionary;
 }
 
-auto PoiseDictionary::iterable() const -> bool
+auto Dict::iterable() const -> bool
 {
     return true;
 }
 
-auto PoiseDictionary::containsKey(const runtime::Value& key) const noexcept -> bool
+auto Dict::containsKey(const runtime::Value& key) const noexcept -> bool
 {
     const auto hash = key.hash();
     auto index = hash % m_capacity;
@@ -131,7 +136,7 @@ auto PoiseDictionary::containsKey(const runtime::Value& key) const noexcept -> b
     }
 }
 
-auto PoiseDictionary::at(const runtime::Value& key) const -> const runtime::Value&
+auto Dict::at(const runtime::Value& key) const -> const runtime::Value&
 {
     const auto hash = key.hash();
     auto index = hash % m_capacity;
@@ -139,8 +144,8 @@ auto PoiseDictionary::at(const runtime::Value& key) const -> const runtime::Valu
     while (true) {
         switch (m_cellStates[index]) {
             case CellState::NeverUsed:
-                throw PoiseException{
-                    PoiseException::ExceptionType::KeyNotFound,
+                throw Exception{
+                    Exception::ExceptionType::KeyNotFound,
                     fmt::format("{} was not present in the Dictionary", key)
                 };
             case CellState::Occupied: {
@@ -163,12 +168,12 @@ auto PoiseDictionary::at(const runtime::Value& key) const -> const runtime::Valu
     }
 }
 
-auto PoiseDictionary::capacity() const noexcept -> usize
+auto Dict::capacity() const noexcept -> usize
 {
     return m_capacity;
 }
 
-auto PoiseDictionary::tryInsert(runtime::Value key, runtime::Value value) noexcept -> bool
+auto Dict::tryInsert(runtime::Value key, runtime::Value value) noexcept -> bool
 {
     if (containsKey(key)) {
         return false;
@@ -201,7 +206,7 @@ auto PoiseDictionary::tryInsert(runtime::Value key, runtime::Value value) noexce
     }
 }
 
-auto PoiseDictionary::insertOrUpdate(runtime::Value key, runtime::Value value) noexcept -> void
+auto Dict::insertOrUpdate(runtime::Value key, runtime::Value value) noexcept -> void
 {
     const auto hash = key.hash();
     auto index = hash % m_capacity;
@@ -230,7 +235,7 @@ auto PoiseDictionary::insertOrUpdate(runtime::Value key, runtime::Value value) n
     }
 }
 
-auto PoiseDictionary::growAndRehash() noexcept -> void
+auto Dict::growAndRehash() noexcept -> void
 {
     auto pairs = toVector();
     m_capacity *= 2_uz;
@@ -250,9 +255,9 @@ auto PoiseDictionary::growAndRehash() noexcept -> void
     // no need to invalidate iterators, the caller will always do that
 }
 
-auto PoiseDictionary::addPair(usize index, bool isNewKey, runtime::Value key, runtime::Value value) noexcept -> void
+auto Dict::addPair(usize index, bool isNewKey, runtime::Value key, runtime::Value value) noexcept -> void
 {
-    m_data[index] = runtime::Value::createObject<PoiseTuple>(std::move(key), std::move(value));
+    m_data[index] = runtime::Value::createObject<Tuple>(std::move(key), std::move(value));
     m_cellStates[index] = CellState::Occupied;
 
     invalidateIterators();

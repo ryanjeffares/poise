@@ -29,8 +29,8 @@ public:
 
     explicit Vm(std::string mainFilePath);
 
-    auto setCurrentFunction(objects::PoiseFunction* function) noexcept -> void;
-    [[nodiscard]] auto currentFunction() const noexcept -> objects::PoiseFunction*;
+    auto setCurrentFunction(objects::Function* function) noexcept -> void;
+    [[nodiscard]] auto currentFunction() const noexcept -> objects::Function*;
 
     [[nodiscard]] auto nativeFunctionHash(std::string_view functionName) const noexcept -> std::optional<NativeNameHash>;
     [[nodiscard]] auto nativeFunctionArity(NativeNameHash hash) const noexcept -> u8;
@@ -63,7 +63,7 @@ private:
     std::vector<OpLine> m_globalOps;
     std::vector<Value> m_globalConstants;
 
-    objects::PoiseFunction* m_currentFunction{nullptr};
+    objects::Function* m_currentFunction{nullptr};
 
     NamespaceManager m_namespaceManager;
     

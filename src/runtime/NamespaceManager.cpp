@@ -49,7 +49,7 @@ auto NamespaceManager::addFunctionToNamespace(NamespaceHash namespaceHash, Value
     m_namespaceFunctionLookup[namespaceHash].emplace_back(std::move(function));
 }
 
-auto NamespaceManager::namespaceFunction(NamespaceHash namespaceHash, std::string_view functionName) const noexcept -> objects::PoiseFunction*
+auto NamespaceManager::namespaceFunction(NamespaceHash namespaceHash, std::string_view functionName) const noexcept -> objects::Function*
 {
     POISE_ASSERT(m_namespaceFunctionLookup.contains(namespaceHash), "Namespace not found");
 

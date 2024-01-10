@@ -5,7 +5,7 @@
 #include <fmt/ranges.h>
 
 namespace poise::objects {
-PoiseType::PoiseType(runtime::types::Type type, std::string name, ConstructorFn constructorFunction)
+Type::Type(runtime::types::Type type, std::string name, ConstructorFn constructorFunction)
     : m_type{type}
     , m_typeName{std::move(name)}
     , m_constructorFunction{constructorFunction}
@@ -13,32 +13,32 @@ PoiseType::PoiseType(runtime::types::Type type, std::string name, ConstructorFn 
 
 }
 
-auto PoiseType::toString() const noexcept -> std::string
+auto Type::toString() const noexcept -> std::string
 {
     return fmt::format("<type instance '{}' at {}>", m_typeName, fmt::ptr(this));
 }
 
-auto PoiseType::type() const noexcept -> runtime::types::Type
+auto Type::type() const noexcept -> runtime::types::Type
 {
     return runtime::types::Type::Type;
 }
 
-auto PoiseType::asType() noexcept -> PoiseType*
+auto Type::asType() noexcept -> Type*
 {
     return this;
 }
 
-auto PoiseType::heldType() const noexcept -> runtime::types::Type
+auto Type::heldType() const noexcept -> runtime::types::Type
 {
     return m_type;
 }
 
-auto PoiseType::typeName() const noexcept -> std::string_view
+auto Type::typeName() const noexcept -> std::string_view
 {
     return m_typeName;
 }
 
-auto PoiseType::isPrimitiveType() const noexcept -> bool
+auto Type::isPrimitiveType() const noexcept -> bool
 {
     return heldType() == runtime::types::Type::Bool ||
            heldType() == runtime::types::Type::Float ||
@@ -47,18 +47,18 @@ auto PoiseType::isPrimitiveType() const noexcept -> bool
            heldType() == runtime::types::Type::String;
 }
 
-auto PoiseType::construct(std::span<runtime::Value> args) const -> runtime::Value
+auto Type::construct(std::span<runtime::Value> args) const -> runtime::Value
 {
     POISE_ASSERT(m_constructorFunction != nullptr, fmt::format("Constructor function not assigned for {}", heldType()));
     return m_constructorFunction(args);
 }
 
-auto PoiseType::addExtensionFunction(runtime::Value extensionFunction) -> void
+auto Type::addExtensionFunction(runtime::Value extensionFunction) -> void
 {
     m_extensionFunctions.emplace_back(std::move(extensionFunction));
 }
 
-auto PoiseType::findExtensionFunction(usize functionNameHash) const -> std::optional<runtime::Value>
+auto Type::findExtensionFunction(usize functionNameHash) const -> std::optional<runtime::Value>
 {
     const auto count = std::count_if(m_extensionFunctions.cbegin(), m_extensionFunctions.cend(), [functionNameHash] (const runtime::Value& value) {
         return value.object()->asFunction()->nameHash() == functionNameHash;
@@ -81,13 +81,13 @@ auto PoiseType::findExtensionFunction(usize functionNameHash) const -> std::opti
                 }
             }
 
-            throw PoiseException(PoiseException::ExceptionType::AmbiguousCall,
+            throw Exception(Exception::ExceptionType::AmbiguousCall,
                 fmt::format("Ambiguous extension function call: '{}()' defined in {}", functionName, fmt::join(filePaths.begin(), filePaths.end(), " and ")));
         }
     }
 }
 
-auto PoiseType::findExtensionFunction(std::string_view functionName) const -> std::optional<runtime::Value>
+auto Type::findExtensionFunction(std::string_view functionName) const -> std::optional<runtime::Value>
 {
     if (const auto it = std::find_if(m_extensionFunctions.cbegin(), m_extensionFunctions.cend(), [functionName](const runtime::Value& value) {
         return value.object()->asFunction()->name() == functionName;

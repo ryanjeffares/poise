@@ -11,21 +11,21 @@
 #include <vector>
 
 namespace poise::objects::iterables {
-class PoiseIterable;
+class Iterable;
 
-class PoiseIterator : public PoiseObject
+class Iterator : public Object
 {
 public:
     using IteratorType = std::vector<runtime::Value>::iterator;
     using DifferenceType = IteratorType::difference_type;
 
-    explicit PoiseIterator(runtime::Value iterable);
+    explicit Iterator(runtime::Value iterable);
     // only for testing
-    explicit PoiseIterator(PoiseIterable* iterable);
+    explicit Iterator(Iterable* iterable);
 
-    ~PoiseIterator() override;
+    ~Iterator() override;
 
-    [[nodiscard]] auto asIterator() noexcept -> PoiseIterator* override;
+    [[nodiscard]] auto asIterator() noexcept -> Iterator* override;
 
     [[nodiscard]] auto toString() const noexcept -> std::string override;
     [[nodiscard]] auto type() const noexcept -> runtime::types::Type override;
@@ -38,13 +38,13 @@ public:
     [[nodiscard]] auto iterator() noexcept -> IteratorType&;
     [[nodiscard]] auto value() const -> const runtime::Value&;
     [[nodiscard]] auto iterableValue() const noexcept -> const runtime::Value&;
-    [[nodiscard]] auto iterablePtr() const noexcept -> PoiseIterable*;
+    [[nodiscard]] auto iterablePtr() const noexcept -> Iterable*;
 
 private:
     auto throwIfInvalid() const -> void;
 
     runtime::Value m_iterableValue;
-    PoiseIterable* m_iterablePtr;
+    Iterable* m_iterablePtr;
     IteratorType m_iterator;
     bool m_isValid;
 };

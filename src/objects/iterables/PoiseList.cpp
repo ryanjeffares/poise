@@ -9,7 +9,7 @@
 
 namespace poise::objects::iterables {
 
-PoiseList::PoiseList(runtime::Value value)
+List::List(runtime::Value value)
 {
     switch (value.type()) {
         case runtime::types::Type::String: {
@@ -39,42 +39,42 @@ PoiseList::PoiseList(runtime::Value value)
     }
 }
 
-PoiseList::PoiseList(std::vector<runtime::Value> data) : PoiseIterable{std::move(data)}
+List::List(std::vector<runtime::Value> data) : Iterable{std::move(data)}
 {
 
 }
 
-auto PoiseList::begin() noexcept -> IteratorType
+auto List::begin() noexcept -> IteratorType
 {
     return m_data.begin();
 }
 
-auto PoiseList::end() noexcept -> IteratorType
+auto List::end() noexcept -> IteratorType
 {
     return m_data.end();
 }
 
-auto PoiseList::incrementIterator(PoiseIterable::IteratorType& iterator) noexcept -> void
+auto List::incrementIterator(Iterable::IteratorType& iterator) noexcept -> void
 {
     iterator++;
 }
 
-auto PoiseList::isAtEnd(const PoiseIterable::IteratorType& iterator) noexcept -> bool
+auto List::isAtEnd(const Iterable::IteratorType& iterator) noexcept -> bool
 {
     return iterator == end();
 }
 
-auto PoiseList::size() const noexcept -> usize
+auto List::size() const noexcept -> usize
 {
     return m_data.size();
 }
 
-auto PoiseList::ssize() const noexcept -> isize
+auto List::ssize() const noexcept -> isize
 {
     return std::ssize(m_data);
 }
 
-auto PoiseList::unpack(std::vector<runtime::Value> &stack) const noexcept -> void
+auto List::unpack(std::vector<runtime::Value> &stack) const noexcept -> void
 {
     for (const auto& value : m_data) {
         stack.push_back(value);
@@ -82,17 +82,17 @@ auto PoiseList::unpack(std::vector<runtime::Value> &stack) const noexcept -> voi
     stack.emplace_back(size());
 }
 
-auto PoiseList::asIterable() noexcept -> PoiseIterable*
+auto List::asIterable() noexcept -> Iterable*
 {
     return this;
 }
 
-auto PoiseList::asList() noexcept -> PoiseList*
+auto List::asList() noexcept -> List*
 {
     return this;
 }
 
-auto PoiseList::toString() const noexcept -> std::string
+auto List::toString() const noexcept -> std::string
 {
     std::string res = "[";
 
@@ -121,46 +121,46 @@ auto PoiseList::toString() const noexcept -> std::string
     return res;
 }
 
-auto PoiseList::type() const noexcept -> runtime::types::Type
+auto List::type() const noexcept -> runtime::types::Type
 {
     return runtime::types::Type::List;
 }
 
-auto PoiseList::iterable() const noexcept -> bool
+auto List::iterable() const noexcept -> bool
 {
     return true;
 }
 
-auto PoiseList::empty() const noexcept -> bool
+auto List::empty() const noexcept -> bool
 {
     return m_data.empty();
 }
 
-auto PoiseList::at(isize index) const -> const runtime::Value&
+auto List::at(isize index) const -> const runtime::Value&
 {
     if (index >= ssize() || index < 0_iz) {
-        throw PoiseException(PoiseException::ExceptionType::IndexOutOfBounds, fmt::format("The index is {} but the size is {}", index, size()));
+        throw Exception(Exception::ExceptionType::IndexOutOfBounds, fmt::format("The index is {} but the size is {}", index, size()));
     }
 
     return m_data[static_cast<usize>(index)];
 }
 
-auto PoiseList::at(isize index) -> runtime::Value&
+auto List::at(isize index) -> runtime::Value&
 {
     if (index >= ssize() || index < 0_iz) {
-        throw PoiseException(PoiseException::ExceptionType::IndexOutOfBounds, fmt::format("The index is {} but the size is {}", index, size()));
+        throw Exception(Exception::ExceptionType::IndexOutOfBounds, fmt::format("The index is {} but the size is {}", index, size()));
     }
 
     return m_data[static_cast<usize>(index)];
 }
 
-auto PoiseList::append(runtime::Value value) noexcept -> void
+auto List::append(runtime::Value value) noexcept -> void
 {
     m_data.emplace_back(std::move(value));
     invalidateIterators();
 }
 
-auto PoiseList::insert(usize index, runtime::Value value) noexcept -> bool
+auto List::insert(usize index, runtime::Value value) noexcept -> bool
 {
     if (index >= m_data.size()) {
         return false;
@@ -171,7 +171,7 @@ auto PoiseList::insert(usize index, runtime::Value value) noexcept -> bool
     return true;
 }
 
-auto PoiseList::remove(const runtime::Value& value) noexcept -> i64
+auto List::remove(const runtime::Value& value) noexcept -> i64
 {
     const auto res = static_cast<i64>(std::erase(m_data, value));
     if (res > 0) {
@@ -180,7 +180,7 @@ auto PoiseList::remove(const runtime::Value& value) noexcept -> i64
     return res;
 }
 
-auto PoiseList::removeFirst(const runtime::Value& value) noexcept -> bool
+auto List::removeFirst(const runtime::Value& value) noexcept -> bool
 {
     const auto it = std::find(m_data.cbegin(), m_data.cend(), value);
     if (it == m_data.cend()) {
@@ -192,7 +192,7 @@ auto PoiseList::removeFirst(const runtime::Value& value) noexcept -> bool
     return true;
 }
 
-auto PoiseList::removeAt(usize index) noexcept -> bool
+auto List::removeAt(usize index) noexcept -> bool
 {
     if (index >= m_data.size()) {
         return false;
@@ -203,29 +203,29 @@ auto PoiseList::removeAt(usize index) noexcept -> bool
     return true;
 }
 
-auto PoiseList::clear() noexcept -> void
+auto List::clear() noexcept -> void
 {
     m_data.clear();
     invalidateIterators();
 }
 
-auto PoiseList::repeat(isize n) const -> runtime::Value
+auto List::repeat(isize n) const -> runtime::Value
 {
     if (n < 0_iz) {
-        throw PoiseException(PoiseException::ExceptionType::ArgumentOutOfRange, fmt::format("Number of repeats must be positive but got {}", n));
+        throw Exception(Exception::ExceptionType::ArgumentOutOfRange, fmt::format("Number of repeats must be positive but got {}", n));
     }
     std::vector<runtime::Value> data;
     data.resize(m_data.size() * static_cast<usize>(n));
     for (auto i = 0_iz; i < n; i++) {
         std::copy(m_data.begin(), m_data.end(), std::next(data.begin(), i * std::ssize(m_data)));
     }
-    return runtime::Value::createObject<PoiseList>(std::move(data));
+    return runtime::Value::createObject<List>(std::move(data));
 }
 
-auto PoiseList::concat(const PoiseList& other) const noexcept -> runtime::Value
+auto List::concat(const List& other) const noexcept -> runtime::Value
 {
     std::vector<runtime::Value> data = m_data;
     data.insert(data.end(), other.data().begin(), other.data().end());
-    return runtime::Value::createObject<PoiseList>(std::move(data));
+    return runtime::Value::createObject<List>(std::move(data));
 }
 }   // namespace poise::objects::iterables

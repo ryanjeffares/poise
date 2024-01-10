@@ -9,12 +9,12 @@
 #include "PoiseIterable.hpp"
 
 namespace poise::objects::iterables {
-class PoiseList : public PoiseObject, public PoiseIterable
+class List : public Object, public Iterable
 {
 public:
-    explicit PoiseList(runtime::Value value);
-    explicit PoiseList(std::vector<runtime::Value> data);
-    ~PoiseList() override = default;
+    explicit List(runtime::Value value);
+    explicit List(std::vector<runtime::Value> data);
+    ~List() override = default;
 
     [[nodiscard]] auto begin() noexcept -> IteratorType override;
     [[nodiscard]] auto end() noexcept -> IteratorType override;
@@ -24,8 +24,8 @@ public:
     [[nodiscard]] auto ssize() const noexcept -> isize override;
     auto unpack(std::vector<runtime::Value>& stack) const noexcept -> void override;
 
-    [[nodiscard]] auto asIterable() noexcept -> PoiseIterable* override;
-    [[nodiscard]] auto asList() noexcept -> PoiseList* override;
+    [[nodiscard]] auto asIterable() noexcept -> Iterable* override;
+    [[nodiscard]] auto asList() noexcept -> List* override;
 
     [[nodiscard]] auto toString() const noexcept -> std::string override;
     [[nodiscard]] auto type() const noexcept -> runtime::types::Type override;
@@ -44,7 +44,7 @@ public:
     auto clear() noexcept -> void;
 
     [[nodiscard]] auto repeat(isize n) const -> runtime::Value;
-    [[nodiscard]] auto concat(const PoiseList& other) const noexcept -> runtime::Value;
+    [[nodiscard]] auto concat(const List& other) const noexcept -> runtime::Value;
 };
 }   // namespace poise::objects::iterables
 

@@ -11,12 +11,12 @@
 #include <cmath>
 
 namespace poise::runtime {
-using objects::PoiseException;
+using objects::Exception;
 
 static auto throwIfWrongType(usize position, const Value& value, types::Type type) -> void
 {
     if (value.type() != type) {
-        throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("Expected {} at position {} but got {}", type, position, value.type()));
+        throw Exception(Exception::ExceptionType::InvalidType, fmt::format("Expected {} at position {} but got {}", type, position, value.type()));
     }
 }
 
@@ -25,13 +25,13 @@ static auto throwIfWrongType(usize position, const Value& value, std::initialize
     if (std::none_of(types.begin(), types.end(), [&value](types::Type type) {
         return value.type() == type;
     })) {
-        throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("Expected {} at position {} but got {}", fmt::join(types, " or "), position, value.type()));
+        throw Exception(Exception::ExceptionType::InvalidType, fmt::format("Expected {} at position {} but got {}", fmt::join(types, " or "), position, value.type()));
     }
 }
 
 static auto throwIfNotIterable(usize position, const Value& value) -> void {
     if (value.object() == nullptr || value.object()->asIterable() == nullptr) {
-        throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("Expected iterable at position {} but got {}", position, value.type()));
+        throw Exception(Exception::ExceptionType::InvalidType, fmt::format("Expected iterable at position {} but got {}", position, value.type()));
     }
 }
 

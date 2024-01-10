@@ -9,93 +9,93 @@
 #include <stack>
 
 namespace poise::runtime {
-using objects::PoiseException;
+using objects::Exception;
 
 Vm::Vm(std::string mainFilePath)
     : m_mainFilePath{std::move(mainFilePath)}
     , m_typeLookup{
-        {types::Type::Bool, Value::createObject<objects::PoiseType>(types::Type::Bool, "Bool",
+        {types::Type::Bool, Value::createObject<objects::Type>(types::Type::Bool, "Bool",
                 [](std::span<Value> args) -> Value {
                     if (args.size() > 1_uz) {
-                        throw PoiseException{
-                            PoiseException::ExceptionType::IncorrectArgCount,
+                        throw Exception{
+                            Exception::ExceptionType::IncorrectArgCount,
                             fmt::format("Expected 1 or 0 args to Bool but got {}", args.size())
                         };
                     }
 
                     return !args.empty() && args[0_uz].toBool();
                 })},
-        {types::Type::Float, Value::createObject<objects::PoiseType>(types::Type::Float, "Float",
+        {types::Type::Float, Value::createObject<objects::Type>(types::Type::Float, "Float",
                 [](std::span<Value> args) -> Value {
                     if (args.size() > 1_uz) { 
-                        throw PoiseException{ 
-                            PoiseException::ExceptionType::IncorrectArgCount,
+                        throw Exception{ 
+                            Exception::ExceptionType::IncorrectArgCount,
                             fmt::format("Expected 1 or 0 args to Float but got {}", args.size())
                         }; 
                     } 
 
                     return args.empty() ? 0.0 : args[0_uz].toFloat();
                 })},
-        {types::Type::Int, Value::createObject<objects::PoiseType>(types::Type::Int, "Int",
+        {types::Type::Int, Value::createObject<objects::Type>(types::Type::Int, "Int",
                 [](std::span<Value> args) -> Value {
                     if (args.size() > 1_uz) { 
-                        throw PoiseException{ 
-                            PoiseException::ExceptionType::IncorrectArgCount,
+                        throw Exception{ 
+                            Exception::ExceptionType::IncorrectArgCount,
                             fmt::format("Expected 1 or 0 args to Int but got {}", args.size())
                         }; 
                     } 
 
                     return args.empty() ? 0 : args[0_uz].toInt();
                 })},
-        {types::Type::None, Value::createObject<objects::PoiseType>(types::Type::None, "None",
+        {types::Type::None, Value::createObject<objects::Type>(types::Type::None, "None",
                 [](std::span<Value> args) -> Value {
                     return args.empty() 
                         ? runtime::Value::none() 
-                        : throw PoiseException{ 
-                            PoiseException::ExceptionType::InvalidType,
+                        : throw Exception{ 
+                            Exception::ExceptionType::InvalidType,
                             fmt::format("Expected no args to construct None but got {}", args.size())
                         };
                 })},
-        {types::Type::String, Value::createObject<objects::PoiseType>(types::Type::String, "String",
+        {types::Type::String, Value::createObject<objects::Type>(types::Type::String, "String",
                 [](std::span<Value> args) -> Value {
                     if (args.size() > 1_uz) { 
-                        throw PoiseException{ 
-                            PoiseException::ExceptionType::IncorrectArgCount,
+                        throw Exception{ 
+                            Exception::ExceptionType::IncorrectArgCount,
                             fmt::format("Expected 1 or 0 args to String but got {}", args.size())
                         }; 
                     } 
 
                     return args.empty() ? "" : args[0_uz].toString();
                 })},
-        {types::Type::Dictionary, Value::createObject<objects::PoiseType>(types::Type::Dictionary, "Dictionary",
+        {types::Type::Dictionary, Value::createObject<objects::Type>(types::Type::Dictionary, "Dictionary",
                 [](std::span<Value> args) -> Value {
                     for (auto i = 0_uz; i < args.size(); i++) {
                         if (args[i].type() != runtime::types::Type::Tuple) {
-                            throw PoiseException{
-                                PoiseException::ExceptionType::InvalidType,
+                            throw Exception{
+                                Exception::ExceptionType::InvalidType,
                                 fmt::format("Expected all args to construct Dict to be Tuple, but got {} at position {}", args[i].type(), i)
                             };
                         }
                     }
 
-                    return runtime::Value::createObject<objects::iterables::hashables::PoiseDictionary>(args);
+                    return runtime::Value::createObject<objects::iterables::hashables::Dict>(args);
                 })},
-        {types::Type::Exception, Value::createObject<objects::PoiseType>(types::Type::Exception, "Exception",
+        {types::Type::Exception, Value::createObject<objects::Type>(types::Type::Exception, "Exception",
                 [](std::span<Value> args) -> Value {
                     if (args.size() != 1_uz) { 
-                        throw PoiseException{ 
-                            PoiseException::ExceptionType::IncorrectArgCount,
+                        throw Exception{ 
+                            Exception::ExceptionType::IncorrectArgCount,
                             fmt::format("Expected 1 arg to Exception but got {}", args.size())
                         }; 
                     } 
 
-                    return runtime::Value::createObject<PoiseException>(args[0_uz].toString());
+                    return runtime::Value::createObject<Exception>(args[0_uz].toString());
                 })},
-        {types::Type::Function, Value::createObject<objects::PoiseType>(types::Type::Function, "Function",
+        {types::Type::Function, Value::createObject<objects::Type>(types::Type::Function, "Function",
                 [](std::span<Value> args) -> Value {
                     if (args.size() != 1_uz) {
-                        throw PoiseException{
-                            PoiseException::ExceptionType::IncorrectArgCount,
+                        throw Exception{
+                            Exception::ExceptionType::IncorrectArgCount,
                             fmt::format("Expected 1 arg to Function but got  {}", args.size())
                         };
                     }
@@ -104,70 +104,70 @@ Vm::Vm(std::string mainFilePath)
                         if (const auto function = object->asFunction()) {
                             return args[0_uz];
                         } else {
-                            throw PoiseException{
-                                PoiseException::ExceptionType::InvalidType,
+                            throw Exception{
+                                Exception::ExceptionType::InvalidType,
                                 fmt::format("Function can only be constructed from Function or Lambda but got {}", args[0_uz].type())
                             };
                         }
                     } else {
-                        throw PoiseException{
-                            PoiseException::ExceptionType::InvalidType,
+                        throw Exception{
+                            Exception::ExceptionType::InvalidType,
                             "Function can only be constructed from Function or Lambda"
                         };
                     }
                 })},
-        {types::Type::Iterator, Value::createObject<objects::PoiseType>(types::Type::Iterator, "Iterator", nullptr)},
-        {types::Type::List, Value::createObject<objects::PoiseType>(types::Type::List, "List",
+        {types::Type::Iterator, Value::createObject<objects::Type>(types::Type::Iterator, "Iterator", nullptr)},
+        {types::Type::List, Value::createObject<objects::Type>(types::Type::List, "List",
                 [](std::span<Value> args) -> Value {
                     if (args.size() == 1_uz) {
-                        return runtime::Value::createObject<objects::iterables::PoiseList>(std::move(args[0_uz]));
+                        return runtime::Value::createObject<objects::iterables::List>(std::move(args[0_uz]));
                     } else {
-                        return runtime::Value::createObject<objects::iterables::PoiseList>(std::vector<runtime::Value>{
+                        return runtime::Value::createObject<objects::iterables::List>(std::vector<runtime::Value>{
                             std::make_move_iterator(args.begin()),
                             std::make_move_iterator(args.end())
                         });
                     }
                 })},
-        {types::Type::Range, Value::createObject<objects::PoiseType>(types::Type::Range, "Range",
+        {types::Type::Range, Value::createObject<objects::Type>(types::Type::Range, "Range",
                 [](std::span<Value> args) -> Value {
                     // last arg is whether the range is inclusive or not which is handled internally, user side it's 2 or 3 args
                     if (args.size() < 3_uz || args.size() > 4_uz) {
-                        throw PoiseException{
-                            PoiseException::ExceptionType::IncorrectArgCount,
+                        throw Exception{
+                            Exception::ExceptionType::IncorrectArgCount,
                             fmt::format("Expected 2 or 3 args to Range but got {}", args.size())
                         };
                     }
 
                     if (args[0_uz].type() != runtime::types::Type::Int) {
-                        throw PoiseException{
-                            PoiseException::ExceptionType::InvalidType,
+                        throw Exception{
+                            Exception::ExceptionType::InvalidType,
                             fmt::format("Expected Int for range start but got {}", args[0_uz].type())
                         };
                     }
 
                     if (args[1_uz].type() != runtime::types::Type::Int) {
-                        throw PoiseException{
-                            PoiseException::ExceptionType::InvalidType,
+                        throw Exception{
+                            Exception::ExceptionType::InvalidType,
                             fmt::format("Expected Int for range end but got {}", args[1_uz].type())
                         };
                     }
 
                     if (args.size() == 4_uz && args[2_uz].type() != runtime::types::Type::Int) {
-                        throw PoiseException{
-                            PoiseException::ExceptionType::InvalidType,
+                        throw Exception{
+                            Exception::ExceptionType::InvalidType,
                             fmt::format("Expected Int for range increment but got {}", args[2_uz].type())
                         };
                     }
 
                     if (args.size() == 4_uz) {
-                        return runtime::Value::createObject<objects::iterables::PoiseRange>(
+                        return runtime::Value::createObject<objects::iterables::Range>(
                             std::move(args[0_uz]),
                             std::move(args[1_uz]),
                             std::move(args[2_uz]),
                             args[3_uz].value<bool>()
                         );
                     } else {
-                        return runtime::Value::createObject<objects::iterables::PoiseRange>(
+                        return runtime::Value::createObject<objects::iterables::Range>(
                             std::move(args[0_uz]),
                             std::move(args[1_uz]),
                             1,
@@ -176,18 +176,18 @@ Vm::Vm(std::string mainFilePath)
                     }
 
                 })},
-        {types::Type::Tuple, Value::createObject<objects::PoiseType>(types::Type::Tuple, "Tuple",
+        {types::Type::Tuple, Value::createObject<objects::Type>(types::Type::Tuple, "Tuple",
                 [](std::span<Value> args) -> Value {
-                    return runtime::Value::createObject<objects::iterables::PoiseTuple>(
+                    return runtime::Value::createObject<objects::iterables::Tuple>(
                         std::vector<runtime::Value>{
                             std::make_move_iterator(args.begin()),
                             std::make_move_iterator(args.end())
                         }
                     );
                 })},
-        {types::Type::Type, Value::createObject<objects::PoiseType>(types::Type::Type, "Type",
+        {types::Type::Type, Value::createObject<objects::Type>(types::Type::Type, "Type",
                 []([[maybe_unused]] std::span<Value> args) -> Value {
-                    throw PoiseException(PoiseException::ExceptionType::InvalidType, "Cannot construct Type");
+                    throw Exception(Exception::ExceptionType::InvalidType, "Cannot construct Type");
                 })},
     }
 
@@ -195,12 +195,12 @@ Vm::Vm(std::string mainFilePath)
     registerNatives();
 }
 
-auto Vm::setCurrentFunction(objects::PoiseFunction* function) noexcept -> void
+auto Vm::setCurrentFunction(objects::Function* function) noexcept -> void
 {
     m_currentFunction = function;
 }
 
-auto Vm::currentFunction() const noexcept -> objects::PoiseFunction*
+auto Vm::currentFunction() const noexcept -> objects::Function*
 {
     return m_currentFunction;
 }
@@ -264,8 +264,8 @@ auto Vm::run() noexcept -> RunResult
 
         usize callSiteLine;
 
-        objects::PoiseFunction* callerFunction;
-        objects::PoiseFunction* calleeFunction;
+        objects::Function* callerFunction;
+        objects::Function* calleeFunction;
     };
 
     std::vector<CallStackEntry> callStack{{
@@ -401,8 +401,8 @@ auto Vm::run() noexcept -> RunResult
                     const auto numUnpacked = pop().value<usize>();
 
                     if (numDeclarations != numUnpacked) {
-                        throw PoiseException(
-                            PoiseException::ExceptionType::IncorrectArgCount,
+                        throw Exception(
+                            Exception::ExceptionType::IncorrectArgCount,
                             fmt::format("Expected {} values to assign but unpacked {}", numDeclarations, numUnpacked)
                         );
                     }
@@ -450,7 +450,7 @@ auto Vm::run() noexcept -> RunResult
                     if (auto function = m_namespaceManager.namespaceFunction(namespaceHash, functionNameHash)) {
                         stack.push_back(std::move(*function));
                     } else {
-                        throw PoiseException(PoiseException::ExceptionType::FunctionNotFound, fmt::format("Function '{}' not found in namespace '{}'", functionName, m_namespaceManager.namespaceDisplayName(namespaceHash)));
+                        throw Exception(Exception::ExceptionType::FunctionNotFound, fmt::format("Function '{}' not found in namespace '{}'", functionName, m_namespaceManager.namespaceDisplayName(namespaceHash)));
                     }
 
                     break;
@@ -473,7 +473,7 @@ auto Vm::run() noexcept -> RunResult
                         const auto p = function->object()->asFunction();
                         if (currentFunction->namespaceHash() != p->namespaceHash()) {
                             if (!m_namespaceManager.namespaceHasImportedNamespace(currentFunction->namespaceHash(), p->namespaceHash())) {
-                                throw PoiseException(PoiseException::ExceptionType::FunctionNotFound, fmt::format("Extension function '{}' not found for type '{}' - are you missing an import?", p->name(), type->typeName()));
+                                throw Exception(Exception::ExceptionType::FunctionNotFound, fmt::format("Extension function '{}' not found for type '{}' - are you missing an import?", p->name(), type->typeName()));
                             }
                         }
                         stack.push_back(std::move(*function));
@@ -481,7 +481,7 @@ auto Vm::run() noexcept -> RunResult
                             stack.push_back(std::move(value));
                         }
                     } else {
-                        throw PoiseException(PoiseException::ExceptionType::FunctionNotFound, fmt::format("Function '{}' not defined for type '{}'", memberName, type->typeName()));
+                        throw Exception(Exception::ExceptionType::FunctionNotFound, fmt::format("Function '{}' not defined for type '{}'", memberName, type->typeName()));
                     }
                     break;
                 }
@@ -502,16 +502,16 @@ auto Vm::run() noexcept -> RunResult
                 case Op::Throw: {
                     auto value = pop();
                     if (value.type() != types::Type::Exception) {
-                        throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("Only Exceptions can be thrown"));
+                        throw Exception(Exception::ExceptionType::InvalidType, fmt::format("Only Exceptions can be thrown"));
                     }
 
                     const auto exception = value.object()->asException();
-                    throw PoiseException(exception->exceptionType(), std::string{exception->message()});
+                    throw Exception(exception->exceptionType(), std::string{exception->message()});
                 }
                 case Op::Unpack: {
                     auto value = pop();
                     if (value.object() == nullptr || value.object()->asIterable() == nullptr) {
-                        throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("{} cannot be unpacked", value.type()));
+                        throw Exception(Exception::ExceptionType::InvalidType, fmt::format("{} cannot be unpacked", value.type()));
                     }
                     value.object()->asIterable()->unpack(stack);
                     break;
@@ -651,8 +651,8 @@ auto Vm::run() noexcept -> RunResult
                         }
                         case types::Type::List: {
                             if (index.type() != types::Type::Int) {
-                                throw PoiseException(
-                                    PoiseException::ExceptionType::InvalidType,
+                                throw Exception(
+                                    Exception::ExceptionType::InvalidType,
                                     fmt::format("Expected Int to index List but got {}", index.type())
                                 );
                             }
@@ -661,8 +661,8 @@ auto Vm::run() noexcept -> RunResult
                             break;
                         }
                         default: {
-                            throw PoiseException(
-                                PoiseException::ExceptionType::InvalidType,
+                            throw Exception(
+                                Exception::ExceptionType::InvalidType,
                                 fmt::format("Cannot assign to {} at index", collection.type())
                             );
                         }
@@ -678,8 +678,8 @@ auto Vm::run() noexcept -> RunResult
                         }
                         case types::Type::List: {
                             if (index.type() != types::Type::Int) {
-                                throw PoiseException(
-                                    PoiseException::ExceptionType::InvalidType,
+                                throw Exception(
+                                    Exception::ExceptionType::InvalidType,
                                     fmt::format("Expected Int to index List but got {}", index.type())
                                 );
                             }
@@ -689,8 +689,8 @@ auto Vm::run() noexcept -> RunResult
                         }
                         case types::Type::String: {
                             if (index.type() != types::Type::Int) {
-                                throw PoiseException(
-                                    PoiseException::ExceptionType::InvalidType,
+                                throw Exception(
+                                    Exception::ExceptionType::InvalidType,
                                     fmt::format("Expected Int to index String but got {}", index.type())
                                 );
                             }
@@ -698,8 +698,8 @@ auto Vm::run() noexcept -> RunResult
                             const auto& s = collection.string();
                             const auto i = index.value<isize>(); 
                             if (i < 0_i64 || i >= std::ssize(s)) {
-                                throw PoiseException(
-                                    PoiseException::ExceptionType::IndexOutOfBounds,
+                                throw Exception(
+                                    Exception::ExceptionType::IndexOutOfBounds,
                                     fmt::format("The index is {} but the size is {}", i, s.size())
                                 );
                             }
@@ -711,8 +711,8 @@ auto Vm::run() noexcept -> RunResult
                         }
                         case types::Type::Tuple: {
                             if (index.type() != types::Type::Int) {
-                                throw PoiseException(
-                                    PoiseException::ExceptionType::InvalidType,
+                                throw Exception(
+                                    Exception::ExceptionType::InvalidType,
                                     fmt::format("Expected Int to index Tuple but got {}", index.type())
                                 );
                             }
@@ -721,8 +721,8 @@ auto Vm::run() noexcept -> RunResult
                             break;
                         }
                         default: {
-                            throw PoiseException(
-                                PoiseException::ExceptionType::InvalidType,
+                            throw Exception(
+                                Exception::ExceptionType::InvalidType,
                                 fmt::format("Cannot index {}", collection.type())
                             );
                         }
@@ -754,15 +754,15 @@ auto Vm::run() noexcept -> RunResult
                             numArgs = isDotCall ? numArgs + 1_u8 : numArgs;
                             if (hasVariadicParams) {
                                 if (numArgs < calleeFunction->arity()) {
-                                    throw PoiseException(
-                                        PoiseException::ExceptionType::IncorrectArgCount,
+                                    throw Exception(
+                                        Exception::ExceptionType::IncorrectArgCount,
                                         fmt::format("Function '{}' takes >={} args but was given {}", calleeFunction->name(), calleeFunction->arity(), numArgs)
                                     );
                                 }
                             } else {
                                 if (numArgs != calleeFunction->arity()) {
-                                    throw PoiseException(
-                                        PoiseException::ExceptionType::IncorrectArgCount,
+                                    throw Exception(
+                                        Exception::ExceptionType::IncorrectArgCount,
                                         fmt::format("Function '{}' takes {} args but was given {}", calleeFunction->name(), calleeFunction->arity(), numArgs)
                                     );
                                 }
@@ -784,17 +784,17 @@ auto Vm::run() noexcept -> RunResult
                                     variadicParams.emplace_back(std::move(args[i]));
                                 }
                                 args.resize(args.size() - variadicParams.size());
-                                args.emplace_back(Value::createObject<objects::iterables::PoiseList>(std::move(variadicParams)));
+                                args.emplace_back(Value::createObject<objects::iterables::List>(std::move(variadicParams)));
                             }
 
                             localVariables.insert(localVariables.end(), std::make_move_iterator(args.begin()), std::make_move_iterator(args.end()));
                         } else if (auto type = object->asType()) {
                             stack.emplace_back(type->construct(args));
                         } else {
-                            throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("{} is not callable", function));
+                            throw Exception(Exception::ExceptionType::InvalidType, fmt::format("{} is not callable", function));
                         }
                     } else {
-                        throw PoiseException(PoiseException::ExceptionType::InvalidType, fmt::format("{} is not callable", function.type()));
+                        throw Exception(Exception::ExceptionType::InvalidType, fmt::format("{} is not callable", function.type()));
                     }
 
                     break;
@@ -818,13 +818,13 @@ auto Vm::run() noexcept -> RunResult
                 case Op::InitIterator: {
                     auto value = pop();
                     if (value.object() == nullptr || !value.object()->iterable()) {
-                        throw PoiseException{
-                            PoiseException::ExceptionType::InvalidType,
+                        throw Exception{
+                            Exception::ExceptionType::InvalidType,
                             fmt::format("{} is not iterable", value.type())
                         };
                     }
 
-                    heldIterators.push(Value::createObject<objects::iterables::PoiseIterator>(value));
+                    heldIterators.push(Value::createObject<objects::iterables::Iterator>(value));
                     auto iteratorPtr = heldIterators.top().object()->asIterator();
                     const auto isAtEnd = iteratorPtr->isAtEnd();
                     stack.emplace_back(iteratorPtr->isAtEnd());
@@ -865,8 +865,8 @@ auto Vm::run() noexcept -> RunResult
                         case types::Type::Tuple: {
                             firstLocal = isAtEnd ? Value::none() : iteratorPtr->value();
                             if (secondIteratorLocalIndex > 0_uz) {
-                                throw PoiseException{
-                                    PoiseException::ExceptionType::InvalidType,
+                                throw Exception{
+                                    Exception::ExceptionType::InvalidType,
                                     fmt::format("{} cannot have two iterators", value.type())
                                 };
                             }
@@ -987,7 +987,7 @@ auto Vm::run() noexcept -> RunResult
                     break;
                 }
             }
-        } catch (const PoiseException& exception) {
+        } catch (const Exception& exception) {
             const auto inTryBlock = !tryBlockStateStack.empty();
 
             if (inTryBlock) {
@@ -1004,7 +1004,7 @@ auto Vm::run() noexcept -> RunResult
                 tryBlockStateStack.pop();
 
                 stack.resize(stackSize);
-                stack.push_back(Value::createObject<PoiseException>(exception.exceptionType(), std::string{exception.message()}));
+                stack.push_back(Value::createObject<Exception>(exception.exceptionType(), std::string{exception.message()}));
             } else {
                 fmt::print(stderr, fmt::emphasis::bold | fmt::fg(fmt::color::red), "Runtime Error: ");
                 fmt::print(stderr, "{}\n", exception.toString());

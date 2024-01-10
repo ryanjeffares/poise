@@ -9,15 +9,15 @@
 #include "../PoiseObject.hpp"
 
 namespace poise::objects::iterables {
-class PoiseRange : public PoiseObject, public PoiseIterable
+class Range : public Object, public Iterable
 {
 public:
     // all values are required to be checked to be numbers before this is called
-    PoiseRange(runtime::Value start, runtime::Value end, runtime::Value increment, bool inclusive);
-    ~PoiseRange() override = default;
+    Range(runtime::Value start, runtime::Value end, runtime::Value increment, bool inclusive);
+    ~Range() override = default;
 
-    [[nodiscard]] auto asIterable() noexcept -> PoiseIterable* override;
-    [[nodiscard]] auto asRange() noexcept -> PoiseRange* override;
+    [[nodiscard]] auto asIterable() noexcept -> Iterable* override;
+    [[nodiscard]] auto asRange() noexcept -> Range* override;
 
     [[nodiscard]] auto toString() const noexcept -> std::string override;
     [[nodiscard]] auto type() const noexcept -> runtime::types::Type override;

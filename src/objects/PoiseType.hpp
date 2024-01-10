@@ -8,18 +8,18 @@
 #include <span>
 
 namespace poise::objects {
-class PoiseType : public PoiseObject
+class Type : public Object
 {
 public:
     using ConstructorFn = runtime::Value(*)(std::span<runtime::Value>);
 
-    PoiseType(runtime::types::Type type, std::string name, ConstructorFn constructorFunction);
-    ~PoiseType() override = default;
+    Type(runtime::types::Type type, std::string name, ConstructorFn constructorFunction);
+    ~Type() override = default;
 
     [[nodiscard]] auto toString() const noexcept -> std::string override;
     [[nodiscard]] auto type() const noexcept -> runtime::types::Type override;
 
-    [[nodiscard]] auto asType() noexcept -> PoiseType* override;
+    [[nodiscard]] auto asType() noexcept -> Type* override;
 
     [[nodiscard]] auto heldType() const noexcept -> runtime::types::Type;
     [[nodiscard]] auto typeName() const noexcept -> std::string_view;

@@ -12,16 +12,16 @@
 #include <span>
 
 namespace poise::objects::iterables {
-class PoiseIterable
+class Iterable
 {
 public:
-    using IteratorType = PoiseIterator::IteratorType;
+    using IteratorType = Iterator::IteratorType;
     using DifferenceType = std::vector<runtime::Value>::difference_type;
 
-    PoiseIterable() = default;
-    explicit PoiseIterable(usize initialSize, const runtime::Value& defaultValue = runtime::Value::none());
-    explicit PoiseIterable(std::vector<runtime::Value> data);
-    virtual ~PoiseIterable();
+    Iterable() = default;
+    explicit Iterable(usize initialSize, const runtime::Value& defaultValue = runtime::Value::none());
+    explicit Iterable(std::vector<runtime::Value> data);
+    virtual ~Iterable();
 
     [[nodiscard]] virtual auto begin() noexcept -> IteratorType = 0;
     [[nodiscard]] virtual auto end() noexcept -> IteratorType = 0;
@@ -31,15 +31,15 @@ public:
     [[nodiscard]] virtual auto ssize() const noexcept -> isize = 0;
     virtual auto unpack(std::vector<runtime::Value>& stack) const noexcept -> void = 0;
 
-    auto addIterator(PoiseIterator* iterator) noexcept -> void;
-    auto removeIterator(PoiseIterator* iterator) noexcept -> void;
+    auto addIterator(Iterator* iterator) noexcept -> void;
+    auto removeIterator(Iterator* iterator) noexcept -> void;
     [[nodiscard]] auto data() const noexcept -> std::span<const runtime::Value>;
 
 protected:
     auto invalidateIterators() noexcept -> void;
 
     std::vector<runtime::Value> m_data;
-    std::vector<PoiseIterator*> m_activeIterators;
+    std::vector<Iterator*> m_activeIterators;
 };
 }   // namespace poise::objects::iterables
 

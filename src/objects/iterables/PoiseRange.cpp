@@ -7,7 +7,7 @@
 #include <fmt/format.h>
 
 namespace poise::objects::iterables {
-PoiseRange::PoiseRange(runtime::Value start, runtime::Value end, runtime::Value increment, bool inclusive)
+Range::Range(runtime::Value start, runtime::Value end, runtime::Value increment, bool inclusive)
     : m_inclusive{inclusive}
     , m_start{std::move(start)}
     , m_end{std::move(end)}
@@ -27,32 +27,32 @@ PoiseRange::PoiseRange(runtime::Value start, runtime::Value end, runtime::Value 
     }
 }
 
-auto PoiseRange::asIterable() noexcept -> PoiseIterable*
+auto Range::asIterable() noexcept -> Iterable*
 {
     return this;
 }
 
-auto PoiseRange::asRange() noexcept -> PoiseRange*
+auto Range::asRange() noexcept -> Range*
 {
     return this;
 }
 
-auto PoiseRange::toString() const noexcept -> std::string
+auto Range::toString() const noexcept -> std::string
 {
     return fmt::format("{}{}{} by {}", m_start, m_inclusive ? "..=" : "..", m_end, m_increment);
 }
 
-auto PoiseRange::type() const noexcept -> runtime::types::Type
+auto Range::type() const noexcept -> runtime::types::Type
 {
     return runtime::types::Type::Range;
 }
 
-auto PoiseRange::iterable() const -> bool
+auto Range::iterable() const -> bool
 {
     return true;
 }
 
-auto PoiseRange::size() const noexcept -> usize
+auto Range::size() const noexcept -> usize
 {
     if (m_isInfiniteLoop) {
         return 0_uz;
@@ -66,12 +66,12 @@ auto PoiseRange::size() const noexcept -> usize
     return static_cast<usize>(range / i);
 }
 
-auto PoiseRange::ssize() const noexcept -> isize
+auto Range::ssize() const noexcept -> isize
 {
     return static_cast<isize>(size());
 }
 
-auto PoiseRange::unpack(std::vector<runtime::Value>& stack) const noexcept -> void
+auto Range::unpack(std::vector<runtime::Value>& stack) const noexcept -> void
 {
     if (m_isInfiniteLoop) {
         stack.emplace_back(0);
@@ -95,17 +95,17 @@ auto PoiseRange::unpack(std::vector<runtime::Value>& stack) const noexcept -> vo
     stack.emplace_back(size());
 }
 
-auto PoiseRange::begin() noexcept -> PoiseIterable::IteratorType
+auto Range::begin() noexcept -> Iterable::IteratorType
 {
     return m_data.begin();
 }
 
-auto PoiseRange::end() noexcept -> PoiseIterable::IteratorType
+auto Range::end() noexcept -> Iterable::IteratorType
 {
     return m_data.end();
 }
 
-auto PoiseRange::incrementIterator(PoiseIterable::IteratorType& iterator) noexcept -> void
+auto Range::incrementIterator(Iterable::IteratorType& iterator) noexcept -> void
 {
     iterator++;
 
@@ -131,37 +131,37 @@ auto PoiseRange::incrementIterator(PoiseIterable::IteratorType& iterator) noexce
     }
 }
 
-auto PoiseRange::isAtEnd(const PoiseIterable::IteratorType& iterator) noexcept -> bool
+auto Range::isAtEnd(const Iterable::IteratorType& iterator) noexcept -> bool
 {
     return iterator == end();
 }
 
-auto PoiseRange::isInfiniteLoop() const noexcept -> bool
+auto Range::isInfiniteLoop() const noexcept -> bool
 {
     return m_isInfiniteLoop;
 }
 
-auto PoiseRange::rangeStart() const noexcept -> runtime::Value
+auto Range::rangeStart() const noexcept -> runtime::Value
 {
     return m_start;
 }
 
-auto PoiseRange::rangeEnd() const noexcept -> runtime::Value
+auto Range::rangeEnd() const noexcept -> runtime::Value
 {
     return m_end;
 }
 
-auto PoiseRange::rangeIncrement() const noexcept -> runtime::Value
+auto Range::rangeIncrement() const noexcept -> runtime::Value
 {
     return m_increment;
 }
 
-auto PoiseRange::rangeInclusive() const noexcept -> runtime::Value
+auto Range::rangeInclusive() const noexcept -> runtime::Value
 {
     return m_inclusive;
 }
 
-auto PoiseRange::fillData(i64 value, i64 increment) -> void
+auto Range::fillData(i64 value, i64 increment) -> void
 {
     const auto size = m_data.size();
     m_data.resize(size + s_chunkSize);
@@ -172,7 +172,7 @@ auto PoiseRange::fillData(i64 value, i64 increment) -> void
     }
 }
 
-auto PoiseRange::toVector() const noexcept -> std::vector<runtime::Value>
+auto Range::toVector() const noexcept -> std::vector<runtime::Value>
 {
     if (m_isInfiniteLoop) {
         return {};

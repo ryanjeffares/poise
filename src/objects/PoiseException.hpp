@@ -10,7 +10,7 @@
 #include <exception>
 
 namespace poise::objects {
-class PoiseException : public PoiseObject, public std::exception
+class Exception : public Object, public std::exception
 {
 public:
     enum class ExceptionType
@@ -30,14 +30,14 @@ public:
         KeyNotFound,
     };
 
-    explicit PoiseException(std::string message);
-    PoiseException(ExceptionType exceptionType, std::string message);
-    ~PoiseException() override = default;
+    explicit Exception(std::string message);
+    Exception(ExceptionType exceptionType, std::string message);
+    ~Exception() override = default;
 
     [[nodiscard]] auto toString() const noexcept -> std::string override;
     [[nodiscard]] auto type() const noexcept -> runtime::types::Type override;
 
-    [[nodiscard]] auto asException() noexcept -> PoiseException* override;
+    [[nodiscard]] auto asException() noexcept -> Exception* override;
 
     [[nodiscard]] auto what() const noexcept -> const char* override;
 
@@ -52,9 +52,9 @@ private:
 
 namespace fmt {
 template<>
-struct formatter<poise::objects::PoiseException::ExceptionType> : formatter<string_view>
+struct formatter<poise::objects::Exception::ExceptionType> : formatter<string_view>
 {
-    auto format(poise::objects::PoiseException::ExceptionType exceptionType, format_context& context) -> decltype(context.out());
+    auto format(poise::objects::Exception::ExceptionType exceptionType, format_context& context) -> decltype(context.out());
 };
 }   // namespace fmt
 

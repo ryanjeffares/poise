@@ -7,11 +7,11 @@
 #include <span>
 
 namespace poise::objects::iterables::hashables {
-class PoiseDictionary : public PoiseObject, public PoiseHashable
+class Dict : public Object, public Hashable
 {
 public:
-    PoiseDictionary(std::span<runtime::Value> pairs);
-    ~PoiseDictionary() override = default;
+    Dict(std::span<runtime::Value> pairs);
+    ~Dict() override = default;
 
     [[nodiscard]] auto begin() noexcept -> IteratorType override;
     [[nodiscard]] auto end() noexcept -> IteratorType override;
@@ -21,8 +21,9 @@ public:
     [[nodiscard]] auto ssize() const noexcept -> isize override;
     auto unpack(std::vector<runtime::Value>& stack) const noexcept -> void override;
 
-    [[nodiscard]] auto asDictionary() noexcept -> PoiseDictionary* override;
-    [[nodiscard]] auto asIterable() noexcept -> PoiseIterable* override;
+    [[nodiscard]] auto asDictionary() noexcept -> Dict* override;
+    [[nodiscard]] auto asIterable() noexcept -> Iterable* override;
+    [[nodiscard]] auto asHashable() noexcept -> Hashable* override;
 
     [[nodiscard]] auto toString() const noexcept -> std::string override;
     [[nodiscard]] auto type() const noexcept -> runtime::types::Type override;

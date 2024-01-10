@@ -12,8 +12,8 @@ TEST_CASE("Basic Reference Counting", "[objects]")
     using namespace poise::runtime;
     using namespace poise::objects;
 
-    auto function = Value::createObject<PoiseFunction>("test", "", 0_uz, 0_u8, false, false);
-    auto exception = Value::createObject<PoiseException>("Test");
+    auto function = Value::createObject<Function>("test", "", 0_uz, 0_u8, false, false);
+    auto exception = Value::createObject<Exception>("Test");
 
     {
         function.object()->asFunction()->addCapture(exception);
@@ -31,9 +31,9 @@ TEST_CASE("PoiseList", "[objects]")
     using namespace poise::runtime;
     using namespace poise::objects::iterables;
 
-    PoiseList list{std::vector<runtime::Value>{}};
+    List list{std::vector<runtime::Value>{}};
     REQUIRE(list.empty());
-    PoiseIterator emptyIterator{&list};
+    Iterator emptyIterator{&list};
     REQUIRE(emptyIterator.isAtEnd());
 
     for (auto i = 0; i < 20; i++) {
@@ -55,7 +55,7 @@ TEST_CASE("PoiseList", "[objects]")
     REQUIRE(list.removeAt(0));
     REQUIRE(list.at(0_uz) == 2);
 
-    PoiseIterator iterator{&list};
+    Iterator iterator{&list};
     REQUIRE(iterator.value() == 2);
 
     for (auto i = 0; i < 10; i++) {
@@ -68,9 +68,9 @@ TEST_CASE("PoiseList", "[objects]")
     REQUIRE(list.empty());
     REQUIRE(!iterator.valid());
 
-    PoiseList fromString{"Hello"};
+    List fromString{"Hello"};
     REQUIRE(fromString.size() == 5_uz);
-    PoiseList fromRange{Value::createObject<PoiseRange>(0, 10, 1, false)};
+    List fromRange{Value::createObject<Range>(0, 10, 1, false)};
     REQUIRE(fromRange.size() == 10_uz);
 
     auto repeated = fromString.repeat(10);
@@ -85,11 +85,11 @@ TEST_CASE("PoiseRange", "[objects]")
     using namespace poise::objects::iterables;
 
     {
-        PoiseRange range{0, 10, 1, false};
+        Range range{0, 10, 1, false};
         REQUIRE(!range.isInfiniteLoop());
         REQUIRE(range.size() == 10_uz);
 
-        PoiseIterator iterator{&range};
+        Iterator iterator{&range};
         REQUIRE(!iterator.isAtEnd());
         REQUIRE(iterator.valid());
 
@@ -108,17 +108,17 @@ TEST_CASE("PoiseRange", "[objects]")
     }
 
     {
-        PoiseRange range{0, -10, 1, false};
+        Range range{0, -10, 1, false};
         REQUIRE(range.isInfiniteLoop());
         REQUIRE(range.size() == 0_uz);
 
-        PoiseIterator iterator{&range};
+        Iterator iterator{&range};
         REQUIRE(iterator.isAtEnd());
     }
 
     {
-        PoiseRange range{0, 10, 1, true};
-        PoiseIterator iterator{&range};
+        Range range{0, 10, 1, true};
+        Iterator iterator{&range};
 
         for (auto i = 0; i < 10; i++) {
             iterator.increment();
@@ -138,11 +138,11 @@ TEST_CASE("PoiseTuple", "[objects]")
     using namespace poise::runtime;
     using namespace poise::objects::iterables;
 
-    PoiseTuple tuple{std::vector<Value>{Value{0}, Value{"Hello"}, Value{true}}};
+    Tuple tuple{std::vector<Value>{Value{0}, Value{"Hello"}, Value{true}}};
     REQUIRE(tuple.size() == 3_uz);
     REQUIRE(tuple.at(0_uz) == 0);
 
-    PoiseIterator iterator{&tuple};
+    Iterator iterator{&tuple};
     REQUIRE(!iterator.isAtEnd());
 
     iterator.increment();
@@ -157,13 +157,13 @@ TEST_CASE("PoiseDictionary", "[objects]")
     using namespace poise::objects::iterables::hashables;
 
     std::vector<Value> pairs;
-    pairs.emplace_back(Value::createObject<PoiseTuple>("Ryan", 24));
-    pairs.emplace_back(Value::createObject<PoiseTuple>("Cat", 12));
-    pairs.emplace_back(Value::createObject<PoiseTuple>("Snake", 8));
+    pairs.emplace_back(Value::createObject<Tuple>("Ryan", 24));
+    pairs.emplace_back(Value::createObject<Tuple>("Cat", 12));
+    pairs.emplace_back(Value::createObject<Tuple>("Snake", 8));
 
-    PoiseDictionary dict{pairs};
+    Dict dict{pairs};
 
-    REQUIRE(dict.capacity() == PoiseDictionary::s_initialCapacity);
+    REQUIRE(dict.capacity() == Dict::s_initialCapacity);
     REQUIRE(dict.size() == 3_uz);
     REQUIRE(!dict.tryInsert("Ryan", 25));
     REQUIRE(dict.tryInsert("Hotel", "Trivago"));
@@ -179,10 +179,10 @@ TEST_CASE("PoiseDictionary", "[objects]")
     dict.insertOrUpdate("Cat3", 12);
     dict.insertOrUpdate("Snake3", 8);
 
-    REQUIRE(dict.capacity() == PoiseDictionary::s_initialCapacity * 2_uz);
+    REQUIRE(dict.capacity() == Dict::s_initialCapacity * 2_uz);
     REQUIRE(dict.size() == 10_uz);
 
-    PoiseIterator iterator{&dict};
+    Iterator iterator{&dict};
     REQUIRE(!iterator.isAtEnd());
     iterator.increment();
     REQUIRE(!iterator.isAtEnd());

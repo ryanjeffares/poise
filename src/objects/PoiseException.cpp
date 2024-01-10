@@ -5,46 +5,46 @@
 #include "PoiseException.hpp"
 
 namespace poise::objects {
-PoiseException::PoiseException(std::string message)
+Exception::Exception(std::string message)
     : m_exceptionType{ExceptionType::Exception}
     , m_message{std::move(message)}
 {
 
 }
 
-PoiseException::PoiseException(PoiseException::ExceptionType exceptionType, std::string message)
+Exception::Exception(Exception::ExceptionType exceptionType, std::string message)
     : m_exceptionType{exceptionType}
     , m_message{std::move(message)}
 {
 
 }
 
-auto PoiseException::toString() const noexcept -> std::string
+auto Exception::toString() const noexcept -> std::string
 {
     return fmt::format("{}: {}", exceptionType(), message());
 }
 
-auto PoiseException::type() const noexcept -> runtime::types::Type
+auto Exception::type() const noexcept -> runtime::types::Type
 {
     return runtime::types::Type::Exception;
 }
 
-auto PoiseException::asException() noexcept -> PoiseException*
+auto Exception::asException() noexcept -> Exception*
 {
     return this;
 }
 
-auto PoiseException::what() const noexcept -> const char*
+auto Exception::what() const noexcept -> const char*
 {
     return m_message.c_str();
 }
 
-auto PoiseException::exceptionType() const noexcept -> ExceptionType
+auto Exception::exceptionType() const noexcept -> ExceptionType
 {
     return m_exceptionType;
 }
 
-auto PoiseException::message() const noexcept -> std::string_view
+auto Exception::message() const noexcept -> std::string_view
 {
     return m_message;
 }
@@ -54,48 +54,48 @@ namespace fmt
 {
 using namespace poise::objects;
 
-auto formatter<PoiseException::ExceptionType>::format(PoiseException::ExceptionType exceptionType, fmt::format_context& context) -> decltype(context.out())
+auto formatter<Exception::ExceptionType>::format(Exception::ExceptionType exceptionType, fmt::format_context& context) -> decltype(context.out())
 {
     string_view res = "unknown";
 
     switch (exceptionType) {
-        case PoiseException::ExceptionType::ArgumentOutOfRange:
+        case Exception::ExceptionType::ArgumentOutOfRange:
             res = "ArgumentOutOfRangeException";
             break;
-        case PoiseException::ExceptionType::AmbiguousCall:
+        case Exception::ExceptionType::AmbiguousCall:
             res = "AmbiguousCallException";
             break;
-        case PoiseException::ExceptionType::Exception:
+        case Exception::ExceptionType::Exception:
             res = "Exception";
             break;
-        case PoiseException::ExceptionType::FunctionNotFound:
+        case Exception::ExceptionType::FunctionNotFound:
             res = "FunctionNotFoundException";
             break;
-        case PoiseException::ExceptionType::IncorrectArgCount:
+        case Exception::ExceptionType::IncorrectArgCount:
             res = "IncorrectArgCountException";
             break;
-        case PoiseException::ExceptionType::IndexOutOfBounds:
+        case Exception::ExceptionType::IndexOutOfBounds:
             res = "IndexOutOfBoundsException";
             break;
-        case PoiseException::ExceptionType::InvalidArgument:
+        case Exception::ExceptionType::InvalidArgument:
             res = "InvalidArgumentException";
             break;
-        case PoiseException::ExceptionType::InvalidCast:
+        case Exception::ExceptionType::InvalidCast:
             res = "InvalidCastException";
             break;
-        case PoiseException::ExceptionType::InvalidIterator:
+        case Exception::ExceptionType::InvalidIterator:
             res = "InvalidIteratorException";
             break;
-        case PoiseException::ExceptionType::InvalidOperand:
+        case Exception::ExceptionType::InvalidOperand:
             res = "InvalidOperandException";
             break;
-        case PoiseException::ExceptionType::InvalidType:
+        case Exception::ExceptionType::InvalidType:
             res = "InvalidTypeException";
             break;
-        case PoiseException::ExceptionType::IteratorOutOfBounds:
+        case Exception::ExceptionType::IteratorOutOfBounds:
             res = "IteratorOutOfBoundsException";
             break;
-        case PoiseException::ExceptionType::KeyNotFound:
+        case Exception::ExceptionType::KeyNotFound:
             res = "KeyNotFoundException";
             break;
     }

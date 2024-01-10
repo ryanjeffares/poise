@@ -1,21 +1,21 @@
 #include "PoiseHashable.hpp"
 
 namespace poise::objects::iterables::hashables {
-PoiseHashable::PoiseHashable()
-    : PoiseIterable{s_initialCapacity, runtime::Value::none()}
+Hashable::Hashable()
+    : Iterable{s_initialCapacity, runtime::Value::none()}
     , m_cellStates(s_initialCapacity, CellState::NeverUsed)
 {
 
 }
 
-PoiseHashable::PoiseHashable(usize initialCapacity, const runtime::Value& defaultValue)
-    : PoiseIterable{initialCapacity, defaultValue}
+Hashable::Hashable(usize initialCapacity, const runtime::Value& defaultValue)
+    : Iterable{initialCapacity, defaultValue}
     , m_cellStates(initialCapacity, CellState::NeverUsed)
 {
 
 }
 
-auto PoiseHashable::toVector() const noexcept -> std::vector<runtime::Value>
+auto Hashable::toVector() const noexcept -> std::vector<runtime::Value>
 {
     std::vector<runtime::Value> res;
     res.reserve(size());

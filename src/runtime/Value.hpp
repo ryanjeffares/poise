@@ -33,7 +33,7 @@ template<typename T>
 concept Primitive = IsBool<T> || IsFloatingPoint<T> || IsInteger<T> || IsString<T> || IsNone<T>;
 
 template<typename T>
-concept Object = std::is_base_of_v<objects::PoiseObject, T>;
+concept Object = std::is_base_of_v<objects::Object, T>;
 
 class Value
 {
@@ -127,7 +127,7 @@ public:
 
     [[nodiscard]] auto string() const noexcept -> const std::string&;
     [[nodiscard]] auto string() noexcept -> std::string&;
-    [[nodiscard]] auto object() const noexcept -> objects::PoiseObject*;
+    [[nodiscard]] auto object() const noexcept -> objects::Object*;
     [[nodiscard]] auto type() const noexcept -> types::Type;
     [[nodiscard]] auto hash() const noexcept -> usize;
 
@@ -173,7 +173,7 @@ private:
 
     union
     {
-        objects::PoiseObject* object;
+        objects::Object* object;
         std::nullptr_t none;
         std::string* string;
         i64 integer;

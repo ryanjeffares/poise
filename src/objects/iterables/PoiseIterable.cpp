@@ -5,25 +5,24 @@
 #include "PoiseIterable.hpp"
 
 namespace poise::objects::iterables {
-
-PoiseIterable::PoiseIterable(usize initialSize, const runtime::Value& defaultValue)
+Iterable::Iterable(usize initialSize, const runtime::Value& defaultValue)
     : m_data(initialSize, defaultValue)
 {
 
 }
 
-PoiseIterable::PoiseIterable(std::vector<runtime::Value> data)
+Iterable::Iterable(std::vector<runtime::Value> data)
     : m_data{std::move(data)}
 {
 
 }
 
-PoiseIterable::~PoiseIterable()
+Iterable::~Iterable()
 {
     invalidateIterators();
 }
 
-auto PoiseIterable::addIterator(PoiseIterator* iterator) noexcept -> void
+auto Iterable::addIterator(Iterator* iterator) noexcept -> void
 {
 #ifdef POISE_DEBUG
     const auto it = std::find(m_activeIterators.cbegin(), m_activeIterators.cend(), iterator);
@@ -33,7 +32,7 @@ auto PoiseIterable::addIterator(PoiseIterator* iterator) noexcept -> void
     m_activeIterators.push_back(iterator);
 }
 
-auto PoiseIterable::removeIterator(PoiseIterator* iterator) noexcept -> void
+auto Iterable::removeIterator(Iterator* iterator) noexcept -> void
 {
     [[maybe_unused]] const auto cnt = std::erase(m_activeIterators, iterator);
 #ifdef POISE_DEBUG
@@ -41,12 +40,12 @@ auto PoiseIterable::removeIterator(PoiseIterator* iterator) noexcept -> void
 #endif
 }
 
-auto PoiseIterable::data() const noexcept -> std::span<const runtime::Value>
+auto Iterable::data() const noexcept -> std::span<const runtime::Value>
 {
     return m_data;
 }
 
-auto PoiseIterable::invalidateIterators() noexcept -> void
+auto Iterable::invalidateIterators() noexcept -> void
 {
     for (auto iterator : m_activeIterators) {
         iterator->invalidate();

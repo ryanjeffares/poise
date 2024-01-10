@@ -7,21 +7,20 @@
 #include "../runtime/Op.hpp"
 #include "../runtime/Value.hpp"
 
-#include <cstdint>
 #include <span>
 #include <vector>
 
 namespace poise::objects {
-class PoiseFunction : public PoiseObject
+class Function : public Object
 {
 public:
-    PoiseFunction(std::string name, std::filesystem::path filePath, usize namespaceHash, u8 arity, bool isExported, bool hasPack);
-    ~PoiseFunction() override = default;
+    Function(std::string name, std::filesystem::path filePath, usize namespaceHash, u8 arity, bool isExported, bool hasPack);
+    ~Function() override = default;
 
     [[nodiscard]] auto toString() const noexcept -> std::string override;
     [[nodiscard]] auto type() const noexcept -> runtime::types::Type override;
 
-    auto asFunction() noexcept -> PoiseFunction* override;
+    auto asFunction() noexcept -> Function* override;
 
     auto emitOp(runtime::Op op, usize line) noexcept -> void;
     auto emitConstant(runtime::Value value) noexcept -> void;
@@ -49,7 +48,7 @@ public:
     auto printOps() const -> void;
 
 private:
-    auto copyData(const PoiseFunction& other) -> void;
+    auto copyData(const Function& other) -> void;
 
     std::string m_name;
     std::filesystem::path m_filePath;

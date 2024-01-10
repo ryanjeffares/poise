@@ -4,11 +4,11 @@
 #include "../PoiseIterable.hpp"
 
 namespace poise::objects::iterables::hashables {
-class PoiseHashable : public PoiseIterable
+class Hashable : public Iterable
 {
 public:
-    PoiseHashable();
-    PoiseHashable(usize initialCapacity, const runtime::Value& defaultValue = runtime::Value::none());
+    Hashable();
+    Hashable(usize initialCapacity, const runtime::Value& defaultValue = runtime::Value::none());
 
     [[nodiscard]] auto toVector() const noexcept -> std::vector<runtime::Value>;
 

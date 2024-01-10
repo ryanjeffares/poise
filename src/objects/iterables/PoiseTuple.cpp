@@ -2,48 +2,48 @@
 #include "../PoiseException.hpp"
 
 namespace poise::objects::iterables {
-PoiseTuple::PoiseTuple(std::vector<runtime::Value> data) : PoiseIterable{std::move(data)}
+Tuple::Tuple(std::vector<runtime::Value> data) : Iterable{std::move(data)}
 {
 
 }
 
-PoiseTuple::PoiseTuple(runtime::Value key, runtime::Value value)
+Tuple::Tuple(runtime::Value key, runtime::Value value)
 {
     m_data.emplace_back(std::move(key));
     m_data.emplace_back(std::move(value));
 }
 
-auto PoiseTuple::begin() noexcept -> IteratorType 
+auto Tuple::begin() noexcept -> IteratorType 
 {
     return m_data.begin();
 }
 
-auto PoiseTuple::end() noexcept -> IteratorType
+auto Tuple::end() noexcept -> IteratorType
 {
     return m_data.end();
 }
 
-auto PoiseTuple::incrementIterator(IteratorType& iterator) noexcept -> void
+auto Tuple::incrementIterator(IteratorType& iterator) noexcept -> void
 {
     iterator++;
 }
 
-auto PoiseTuple::isAtEnd(const IteratorType& iterator) noexcept -> bool
+auto Tuple::isAtEnd(const IteratorType& iterator) noexcept -> bool
 {
     return iterator == end();
 }
 
-auto PoiseTuple::size() const noexcept -> usize
+auto Tuple::size() const noexcept -> usize
 {
     return m_data.size();
 }
 
-auto PoiseTuple::ssize() const noexcept -> isize
+auto Tuple::ssize() const noexcept -> isize
 {
     return std::ssize(m_data);
 }
 
-auto PoiseTuple::unpack(std::vector<runtime::Value>& stack) const noexcept -> void
+auto Tuple::unpack(std::vector<runtime::Value>& stack) const noexcept -> void
 {
     for (const auto& value : m_data) {
         stack.push_back(value);
@@ -52,17 +52,17 @@ auto PoiseTuple::unpack(std::vector<runtime::Value>& stack) const noexcept -> vo
     stack.emplace_back(size());
 }
 
-auto PoiseTuple::asIterable() noexcept -> PoiseIterable*
+auto Tuple::asIterable() noexcept -> Iterable*
 {
     return this;
 }
 
-auto PoiseTuple::asTuple() noexcept -> PoiseTuple*
+auto Tuple::asTuple() noexcept -> Tuple*
 {
     return this;
 }
 
-auto PoiseTuple::toString() const noexcept -> std::string
+auto Tuple::toString() const noexcept -> std::string
 {
     std::string res = "(";
 
@@ -91,21 +91,21 @@ auto PoiseTuple::toString() const noexcept -> std::string
     return res;
 }
 
-auto PoiseTuple::type() const noexcept -> runtime::types::Type
+auto Tuple::type() const noexcept -> runtime::types::Type
 {
     return runtime::types::Type::Tuple;
 }
 
-auto PoiseTuple::iterable() const noexcept -> bool
+auto Tuple::iterable() const noexcept -> bool
 {
     return true;
 }
 
-auto PoiseTuple::at(isize index) const -> const runtime::Value&
+auto Tuple::at(isize index) const -> const runtime::Value&
 {
     if (index >= ssize() || index < 0_iz) {
-        throw PoiseException{
-            PoiseException::ExceptionType::IndexOutOfBounds,
+        throw Exception{
+            Exception::ExceptionType::IndexOutOfBounds,
             fmt::format("The index was {} but the size is {}", index, size())
         };
     }
@@ -113,11 +113,11 @@ auto PoiseTuple::at(isize index) const -> const runtime::Value&
     return m_data[static_cast<usize>(index)];
 }
 
-auto PoiseTuple::atMut(isize index) -> runtime::Value&
+auto Tuple::atMut(isize index) -> runtime::Value&
 {
     if (index >= ssize() || index < 0_iz) {
-        throw PoiseException{
-            PoiseException::ExceptionType::IndexOutOfBounds,
+        throw Exception{
+            Exception::ExceptionType::IndexOutOfBounds,
             fmt::format("The index was {} but the size is {}", index, size())
         };
     }

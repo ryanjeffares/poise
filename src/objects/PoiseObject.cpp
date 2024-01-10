@@ -1,67 +1,72 @@
 #include "PoiseObject.hpp"
 
 namespace poise::objects {
-auto PoiseObject::incrementRefCount() noexcept -> usize
+auto Object::incrementRefCount() noexcept -> usize
 {
     return ++m_refCount;
 }
 
-auto PoiseObject::decrementRefCount() noexcept -> usize
+auto Object::decrementRefCount() noexcept -> usize
 {
     return --m_refCount;
 }
 
-auto PoiseObject::refCount() const noexcept -> usize
+auto Object::refCount() const noexcept -> usize
 {
     return m_refCount;
 }
 
-auto PoiseObject::asDictionary() noexcept -> iterables::hashables::PoiseDictionary*
+auto Object::asIterable() noexcept -> iterables::Iterable*
 {
     return nullptr;
 }
 
-auto PoiseObject::asException() noexcept -> PoiseException*
+auto Object::asHashable() noexcept -> iterables::hashables::Hashable*
 {
     return nullptr;
 }
 
-auto PoiseObject::asFunction() noexcept -> PoiseFunction*
+auto Object::asDictionary() noexcept -> iterables::hashables::Dict*
 {
     return nullptr;
 }
 
-auto PoiseObject::asIterable() noexcept -> iterables::PoiseIterable*
+auto Object::asException() noexcept -> Exception*
 {
     return nullptr;
 }
 
-auto PoiseObject::asIterator() noexcept -> iterables::PoiseIterator*
+auto Object::asFunction() noexcept -> Function*
 {
     return nullptr;
 }
 
-auto PoiseObject::asList() noexcept -> iterables::PoiseList*
+auto Object::asIterator() noexcept -> iterables::Iterator*
 {
     return nullptr;
 }
 
-auto PoiseObject::asRange() noexcept -> iterables::PoiseRange*
+auto Object::asList() noexcept -> iterables::List*
 {
     return nullptr;
 }
 
-auto PoiseObject::asTuple() noexcept -> iterables::PoiseTuple*
+auto Object::asRange() noexcept -> iterables::Range*
 {
     return nullptr;
 }
 
-auto PoiseObject::asType() noexcept -> PoiseType*
+auto Object::asTuple() noexcept -> iterables::Tuple*
 {
     return nullptr;
 }
 
-auto PoiseObject::iterable() const -> bool
+auto Object::asType() noexcept -> Type*
+{
+    return nullptr;
+}
+
+auto Object::iterable() const -> bool
 {
     return false;
 }
