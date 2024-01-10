@@ -17,7 +17,7 @@ auto Dict::begin() noexcept -> IteratorType
 {
     for (auto i = 0_uz; i < m_capacity; i++) {
         if (m_cellStates[i] == CellState::Occupied) {
-            return m_data.begin() + i;
+            return m_data.begin() + static_cast<isize>(i);
         }
     }
 
@@ -34,7 +34,7 @@ auto Dict::incrementIterator(IteratorType& iterator) noexcept -> void
     usize index{};
     do {
         iterator++;
-        index = std::distance(m_data.begin(), iterator);
+        index = static_cast<usize>(std::distance(m_data.begin(), iterator));
     } while (!isAtEnd(iterator) && m_cellStates[index] != CellState::Occupied);
 }
 

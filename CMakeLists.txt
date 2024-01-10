@@ -40,4 +40,4 @@ if (POISE_BOOST_PATH)
 endif()
 
 add_subdirectory(src poise)
-add_subdirectory(tests poise_tests)
+add_subdirectory(tests poise-tests)

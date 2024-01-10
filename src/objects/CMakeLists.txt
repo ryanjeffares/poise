@@ -1,4 +1,4 @@
-add_library(poise_objects
+add_library(poise-objects
         iterables/hashables/Dict.cpp
         iterables/hashables/Hashable.cpp
         iterables/Iterable.cpp
@@ -12,7 +12,7 @@ add_library(poise_objects
         Type.cpp
 )
 
-target_compile_definitions(poise_objects PRIVATE ${POISE_COMPILE_DEFINITIONS})
-target_compile_options(poise_objects PRIVATE ${POISE_COMPILE_OPTIONS})
-target_include_directories(poise_objects PRIVATE ${POISE_INCLUDE_DIRECTORIES})
-target_link_libraries(poise_objects PRIVATE fmt::fmt)
+target_compile_definitions(poise-objects PRIVATE ${POISE_COMPILE_DEFINITIONS})
+target_compile_options(poise-objects PRIVATE ${POISE_COMPILE_OPTIONS})
+target_include_directories(poise-objects PRIVATE ${POISE_INCLUDE_DIRECTORIES})
+target_link_libraries(poise-objects PRIVATE fmt::fmt)
