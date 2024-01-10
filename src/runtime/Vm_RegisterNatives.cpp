@@ -49,21 +49,21 @@ auto Vm::registerNatives() noexcept -> void
 auto Vm::registerDictNatives() noexcept -> void
 {
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_DICT_CONTAINS_KEY"), NativeFunction{
-        2, [](std::span<Value> args) -> Value {
-            throwIfWrongType(0, args[0], types::Type::Dictionary);
-            return args[0].object()->asDictionary()->containsKey(args[1_uz]);
+        2_u8, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0_uz, args[0_uz], types::Type::Dictionary);
+            return args[0_uz].object()->asDictionary()->containsKey(args[1_uz]);
         }});
 
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_DICT_TRY_INSERT"), NativeFunction{
-        3, [](std::span<Value> args) -> Value {
-            throwIfWrongType(0, args[0], types::Type::Dictionary);
-            return args[0].object()->asDictionary()->tryInsert(std::move(args[1_uz]), std::move(args[2_uz]));
+        3_u8, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0_uz, args[0_uz], types::Type::Dictionary);
+            return args[0_uz].object()->asDictionary()->tryInsert(std::move(args[1_uz]), std::move(args[2_uz]));
         }});
 
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_DICT_INSERT"), NativeFunction{
-        3, [](std::span<Value> args) -> Value {
-            throwIfWrongType(0, args[0], types::Type::Dictionary);
-            args[0].object()->asDictionary()->insertOrUpdate(std::move(args[1_uz]), std::move(args[2_uz]));
+        3_u8, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0_uz, args[0_uz], types::Type::Dictionary);
+            args[0_uz].object()->asDictionary()->insertOrUpdate(std::move(args[1_uz]), std::move(args[2_uz]));
             return Value::none();
         }});
 }
@@ -71,46 +71,46 @@ auto Vm::registerDictNatives() noexcept -> void
 auto Vm::registerFloatNatives() noexcept -> void
 {
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_FLOAT_POW"), NativeFunction{
-        2, [](std::span<Value> args) -> Value {
-            throwIfWrongType(0, args[0], types::Type::Float);
-            throwIfWrongType(1, args[1], {types::Type::Float, types::Type::Int});
-            return static_cast<f64>(std::pow(args[0].value<f64>(), args[1].type() == types::Type::Float
-                                                                   ? args[1].value<f64>()
-                                                                   : static_cast<f64>(args[1].value<i64>())));
+        2_u8, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0_uz, args[0_uz], types::Type::Float);
+            throwIfWrongType(1_uz, args[1_uz], {types::Type::Float, types::Type::Int});
+            return static_cast<f64>(std::pow(args[0_uz].value<f64>(), args[1_uz].type() == types::Type::Float
+                                                                   ? args[1_uz].value<f64>()
+                                                                   : static_cast<f64>(args[1_uz].value<i64>())));
         }});
 
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_FLOAT_SQRT"), NativeFunction{
-        1, [](std::span<Value> args) -> Value {
-            throwIfWrongType(0, args[0], types::Type::Float);
-            return static_cast<f64>(std::sqrt(args[0].value<f64>()));
+        1_u8, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0_uz, args[0_uz], types::Type::Float);
+            return static_cast<f64>(std::sqrt(args[0_uz].value<f64>()));
         }});
 
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_FLOAT_ABS"), NativeFunction{
-        1, [](std::span<Value> args) -> Value {
-            throwIfWrongType(0, args[0], types::Type::Float);
-            return std::abs(args[0].value<f64>());
+        1_u8, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0_uz, args[0_uz], types::Type::Float);
+            return std::abs(args[0_uz].value<f64>());
         }});
 }
 
 auto Vm::registerIntNatives() noexcept -> void
 {
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_INT_POW"), NativeFunction{
-        2, [](std::span<Value> args) -> Value {
-            throwIfWrongType(0, args[0], types::Type::Int);
-            throwIfWrongType(1, args[1], types::Type::Int);
-            return static_cast<i64>(std::pow(args[0].value<i64>(), args[1].value<i64>()));
+        2_u8, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0_uz, args[0_uz], types::Type::Int);
+            throwIfWrongType(1_uz, args[1_uz], types::Type::Int);
+            return static_cast<i64>(std::pow(args[0_uz].value<i64>(), args[1_uz].value<i64>()));
         }});
 
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_INT_SQRT"), NativeFunction{
-        1, [](std::span<Value> args) -> Value {
-            throwIfWrongType(0, args[0], types::Type::Int);
-            return static_cast<i64>(std::sqrt(args[0].value<i64>()));
+        1_u8, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0_uz, args[0_uz], types::Type::Int);
+            return static_cast<i64>(std::sqrt(args[0_uz].value<i64>()));
         }});
 
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_INT_ABS"), NativeFunction{
-        1, [](std::span<Value> args) -> Value {
-            throwIfWrongType(0, args[0], types::Type::Int);
-            return std::abs(args[0].value<i64>());
+        1_u8, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0_uz, args[0_uz], types::Type::Int);
+            return std::abs(args[0_uz].value<i64>());
         }});
 }
 
@@ -118,114 +118,114 @@ auto Vm::registerIntNatives() noexcept -> void
 auto Vm::registerIterableNatives() noexcept -> void
 {
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_ITERABLE_SIZE"), NativeFunction{
-        1, [](std::span<Value> args) -> Value {
-            throwIfNotIterable(0, args[0]);
-            return args[0].object()->asIterable()->size();
+        1_u8, [](std::span<Value> args) -> Value {
+            throwIfNotIterable(0_uz, args[0_uz]);
+            return args[0_uz].object()->asIterable()->size();
         }});
 }
 
 auto Vm::registerListNatives() noexcept -> void
 {
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_LIST_EMPTY"), NativeFunction{
-        1, [](std::span<Value> args) -> Value {
-            throwIfWrongType(0, args[0], types::Type::List);
-            return args[0].object()->asList()->empty();
+        1_u8, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0_uz, args[0_uz], types::Type::List);
+            return args[0_uz].object()->asList()->empty();
         }});
 
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_LIST_APPEND"), NativeFunction{
-        2, [](std::span<Value> args) -> Value {
-            throwIfWrongType(0, args[0], types::Type::List);
-            args[0].object()->asList()->append(std::move(args[1]));
+        2_u8, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0_uz, args[0_uz], types::Type::List);
+            args[0_uz].object()->asList()->append(std::move(args[1_uz]));
             return Value::none();
         }});
 
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_LIST_INSERT"), NativeFunction{
-        3, [](std::span<Value> args) -> Value {
-            throwIfWrongType(0, args[0], types::Type::List);
-            throwIfWrongType(1, args[1], types::Type::Int);
-            return args[0].object()->asList()->insert(args[1].value<usize>(), std::move(args[2]));
+        3_u8, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0_uz, args[0_uz], types::Type::List);
+            throwIfWrongType(1_uz, args[1_uz], types::Type::Int);
+            return args[0_uz].object()->asList()->insert(args[1_uz].value<usize>(), std::move(args[2_uz]));
         }});
 
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_LIST_REMOVE"), NativeFunction{
-        2, [](std::span<Value> args) -> Value {
-            throwIfWrongType(0, args[0], types::Type::List);
-            return args[0].object()->asList()->remove(args[1]);
+        2_u8, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0_uz, args[0_uz], types::Type::List);
+            return args[0_uz].object()->asList()->remove(args[1_uz]);
         }});
 
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_LIST_REMOVE_FIRST"), NativeFunction{
-        2, [](std::span<Value> args) -> Value {
-            throwIfWrongType(0, args[0], types::Type::List);
-            return args[0].object()->asList()->removeFirst(args[1]);
+        2_u8, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0_uz, args[0_uz], types::Type::List);
+            return args[0_uz].object()->asList()->removeFirst(args[1_uz]);
         }});
 
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_LIST_REMOVE_AT"), NativeFunction{
-        2, [](std::span<Value> args) -> Value {
-            throwIfWrongType(0, args[0], types::Type::List);
-            throwIfWrongType(1, args[1], types::Type::Int);
-            return args[0].object()->asList()->removeAt(args[1].value<usize>());
+        2_u8, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0_uz, args[0_uz], types::Type::List);
+            throwIfWrongType(1_uz, args[1_uz], types::Type::Int);
+            return args[0_uz].object()->asList()->removeAt(args[1_uz].value<usize>());
         }});
 
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_LIST_CLEAR"), NativeFunction{
-        1, [](std::span<Value> args) -> Value {
-            throwIfWrongType(0, args[0], types::Type::List);
-            args[0].object()->asList()->clear();
+        1_u8, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0_uz, args[0_uz], types::Type::List);
+            args[0_uz].object()->asList()->clear();
             return Value::none();
         }});
 
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_LIST_REPEAT"), NativeFunction{
-        2, [](std::span<Value> args) -> Value {
-            throwIfWrongType(0, args[0], types::Type::List);
-            throwIfWrongType(1, args[1], types::Type::Int);
-            return args[0].object()->asList()->repeat(args[1].value<isize>());
+        2_u8, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0_uz, args[0_uz], types::Type::List);
+            throwIfWrongType(1_uz, args[1_uz], types::Type::Int);
+            return args[0_uz].object()->asList()->repeat(args[1_uz].value<isize>());
         }});
 
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_LIST_CONCAT"), NativeFunction{
-        2, [](std::span<Value> args) -> Value {
-            throwIfWrongType(0, args[0], types::Type::List);
-            throwIfWrongType(1, args[1], types::Type::List);
-            return args[0].object()->asList()->concat(*args[1].object()->asList());
+        2_u8, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0_uz, args[0_uz], types::Type::List);
+            throwIfWrongType(1_uz, args[1_uz], types::Type::List);
+            return args[0_uz].object()->asList()->concat(*args[1_uz].object()->asList());
         }});
 }
 
 auto Vm::registerRangeNatives() noexcept -> void
 {
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_RANGE_IS_INFINITE_LOOP"), NativeFunction{
-        1, [](std::span<Value> args) -> Value {
-            throwIfWrongType(0, args[0], types::Type::Range);
-            return args[0].object()->asRange()->isInfiniteLoop();
+        1_u8, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0_uz, args[0_uz], types::Type::Range);
+            return args[0_uz].object()->asRange()->isInfiniteLoop();
         }});
 
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_RANGE_START"), NativeFunction{
-        1, [](std::span<Value> args) -> Value {
-            throwIfWrongType(0, args[0], types::Type::Range);
-            return args[0].object()->asRange()->rangeStart();
+        1_u8, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0_uz, args[0_uz], types::Type::Range);
+            return args[0_uz].object()->asRange()->rangeStart();
         }});
 
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_RANGE_END"), NativeFunction{
-        1, [](std::span<Value> args) -> Value {
-            throwIfWrongType(0, args[0], types::Type::Range);
-            return args[0].object()->asRange()->rangeEnd();
+        1_u8, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0_uz, args[0_uz], types::Type::Range);
+            return args[0_uz].object()->asRange()->rangeEnd();
         }});
 
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_RANGE_INCREMENT"), NativeFunction{
-        1, [](std::span<Value> args) -> Value {
-            throwIfWrongType(0, args[0], types::Type::Range);
-            return args[0].object()->asRange()->rangeIncrement();
+        1_u8, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0_uz, args[0_uz], types::Type::Range);
+            return args[0_uz].object()->asRange()->rangeIncrement();
         }});
 
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_RANGE_INCLUSIVE"), NativeFunction{
-        1, [](std::span<Value> args) -> Value {
-            throwIfWrongType(0, args[0], types::Type::Range);
-            return args[0].object()->asRange()->rangeInclusive();
+        1_u8, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0_uz, args[0_uz], types::Type::Range);
+            return args[0_uz].object()->asRange()->rangeInclusive();
         }});
 }
 
 auto Vm::registerStringNatives() noexcept -> void
 {
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_STRING_LENGTH"), NativeFunction{
-        1, [](std::span<Value> args) -> Value {
-            throwIfWrongType(0, args[0], types::Type::String);
-            return args[0].string().size();
+        1_u8, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0_uz, args[0_uz], types::Type::String);
+            return args[0_uz].string().size();
         }});
 }
 }   // namespace poise::runtime

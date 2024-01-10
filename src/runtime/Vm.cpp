@@ -89,7 +89,7 @@ Vm::Vm(std::string mainFilePath)
                         }; 
                     } 
 
-                    return runtime::Value::createObject<PoiseException>(args[0].toString());
+                    return runtime::Value::createObject<PoiseException>(args[0_uz].toString());
                 })},
         {types::Type::Function, Value::createObject<objects::PoiseType>(types::Type::Function, "Function",
                 [](std::span<Value> args) -> Value {
@@ -100,13 +100,13 @@ Vm::Vm(std::string mainFilePath)
                         };
                     }
 
-                    if (const auto object = args[0].object()) {
+                    if (const auto object = args[0_uz].object()) {
                         if (const auto function = object->asFunction()) {
-                            return args[0];
+                            return args[0_uz];
                         } else {
                             throw PoiseException{
                                 PoiseException::ExceptionType::InvalidType,
-                                fmt::format("Function can only be constructed from Function or Lambda but got {}", args[0].type())
+                                fmt::format("Function can only be constructed from Function or Lambda but got {}", args[0_uz].type())
                             };
                         }
                     } else {
@@ -120,7 +120,7 @@ Vm::Vm(std::string mainFilePath)
         {types::Type::List, Value::createObject<objects::PoiseType>(types::Type::List, "List",
                 [](std::span<Value> args) -> Value {
                     if (args.size() == 1_uz) {
-                        return runtime::Value::createObject<objects::iterables::PoiseList>(std::move(args[0]));
+                        return runtime::Value::createObject<objects::iterables::PoiseList>(std::move(args[0_uz]));
                     } else {
                         return runtime::Value::createObject<objects::iterables::PoiseList>(std::vector<runtime::Value>{
                             std::make_move_iterator(args.begin()),
@@ -138,40 +138,40 @@ Vm::Vm(std::string mainFilePath)
                         };
                     }
 
-                    if (args[0].type() != runtime::types::Type::Int) {
+                    if (args[0_uz].type() != runtime::types::Type::Int) {
                         throw PoiseException{
                             PoiseException::ExceptionType::InvalidType,
-                            fmt::format("Expected Int for range start but got {}", args[0].type())
+                            fmt::format("Expected Int for range start but got {}", args[0_uz].type())
                         };
                     }
 
-                    if (args[1].type() != runtime::types::Type::Int) {
+                    if (args[1_uz].type() != runtime::types::Type::Int) {
                         throw PoiseException{
                             PoiseException::ExceptionType::InvalidType,
-                            fmt::format("Expected Int for range end but got {}", args[1].type())
+                            fmt::format("Expected Int for range end but got {}", args[1_uz].type())
                         };
                     }
 
-                    if (args.size() == 4_uz && args[2].type() != runtime::types::Type::Int) {
+                    if (args.size() == 4_uz && args[2_uz].type() != runtime::types::Type::Int) {
                         throw PoiseException{
                             PoiseException::ExceptionType::InvalidType,
-                            fmt::format("Expected Int for range increment but got {}", args[2].type())
+                            fmt::format("Expected Int for range increment but got {}", args[2_uz].type())
                         };
                     }
 
                     if (args.size() == 4_uz) {
                         return runtime::Value::createObject<objects::iterables::PoiseRange>(
-                            std::move(args[0]),
-                            std::move(args[1]),
-                            std::move(args[2]),
-                            args[3].value<bool>()
+                            std::move(args[0_uz]),
+                            std::move(args[1_uz]),
+                            std::move(args[2_uz]),
+                            args[3_uz].value<bool>()
                         );
                     } else {
                         return runtime::Value::createObject<objects::iterables::PoiseRange>(
-                            std::move(args[0]),
-                            std::move(args[1]),
+                            std::move(args[0_uz]),
+                            std::move(args[1_uz]),
                             1,
-                            args[2].value<bool>()
+                            args[2_uz].value<bool>()
                         );
                     }
 
