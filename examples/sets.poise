@@ -22,15 +22,21 @@ func main() {
     println(b);
 
     println(a.is_subset(b));
+    println(a <= b);
     println(b.is_superset(a));
+    println(b >= a);
 
     println(a.union(b));
+    println(a | b);
     println(a.intersection(b));
+    println(a & b);
     println(b.difference(a));
+    println(b - a);
 
     a.insert(-1);
     a.insert(-2);
     a.insert(-3);
 
     println(a.symmetric_difference(b));
+    println(a ^ b);
 }

@@ -1,5 +1,6 @@
 #include "Value.hpp"
 #include "../objects/Exception.hpp"
+#include "../objects/iterables/hashables/Set.hpp"
 
 #include <fmt/core.h>
 
@@ -261,6 +262,13 @@ auto Value::operator|(const Value& other) const -> Value
                     throw Exception(Exception::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for |: '{}' and '{}'", type(), other.type()));
             }
         }
+        case TypeInternal::Object: {
+            if (type() == types::Type::Set && other.type() == types::Type::Set) {
+                return object()->asSet()->unionWith(*other.object()->asSet());
+            }
+
+            [[fallthrough]];
+        }
         default:
             throw Exception(Exception::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for |: '{}' and '{}'", type(), other.type()));
     }
@@ -277,6 +285,13 @@ auto Value::operator^(const Value& other) const -> Value
                     throw Exception(Exception::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for ^: '{}' and '{}'", type(), other.type()));
             }
         }
+        case TypeInternal::Object: {
+            if (type() == types::Type::Set && other.type() == types::Type::Set) {
+                return object()->asSet()->symmetricDifference(*other.object()->asSet());
+            }
+
+            [[fallthrough]];
+        }
         default:
             throw Exception(Exception::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for ^: '{}' and '{}'", type(), other.type()));
     }
@@ -292,6 +307,13 @@ auto Value::operator&(const Value& other) const -> Value
                 default:
                     throw Exception(Exception::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for &: '{}' and '{}'", type(), other.type()));
             }
+        }
+        case TypeInternal::Object: {
+            if (type() == types::Type::Set && other.type() == types::Type::Set) {
+                return object()->asSet()->intersection(*other.object()->asSet());
+            }
+
+            [[fallthrough]];
         }
         default:
             throw Exception(Exception::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for &: '{}' and '{}'", type(), other.type()));
@@ -382,6 +404,13 @@ auto Value::operator-(const Value& other) const -> Value
                 default:
                     throw Exception(Exception::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for -: '{}' and '{}'", type(), other.type()));
             }
+        }
+        case TypeInternal::Object: {
+            if (type() == types::Type::Set && other.type() == types::Type::Set) {
+                return object()->asSet()->difference(*other.object()->asSet());
+            }
+
+            [[fallthrough]];
         }
         default:
             throw Exception(Exception::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for -: '{}' and '{}'", type(), other.type()));
@@ -639,6 +668,13 @@ auto Value::operator<=(const Value& other) const -> bool
                     throw Exception(Exception::ExceptionType::InvalidOperand, fmt::format("Invalid operand type for <=: '{}' and '{}'", type(), other.type()));
             }
         }
+        case TypeInternal::Object: {
+            if (type() == types::Type::Set && other.type() == types::Type::Set) {
+                return object()->asSet()->isSubset(*other.object()->asSet());
+            }
+
+            [[fallthrough]];
+        }
         default:
             throw Exception(Exception::ExceptionType::InvalidOperand, fmt::format("Invalid operand type for <=: '{}' and '{}'", type(), other.type()));
     }
@@ -651,7 +687,11 @@ auto Value::operator>(const Value& other) const -> bool
 
 auto Value::operator>=(const Value& other) const -> bool
 {
-    return !(*this < other);
+    if (type() == types::Type::Set && other.type() == types::Type::Set) {
+        return object()->asSet()->isSuperset(*other.object()->asSet());
+    } else {
+        return !(*this < other);
+    }
 }
 
 auto Value::operator||(const Value& other) const noexcept -> bool
