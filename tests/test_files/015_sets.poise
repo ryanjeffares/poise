@@ -14,4 +14,23 @@ func main() {
     println(set.contains("Ryan"));
     println(set.contains("Something"));
     println(set.contains(numbers));
+
+
+    final a = Set(0, 1, 2);
+    final b = Set(0, 1, 2, 3, 4, 5);
+    println(a);
+    println(b);
+
+    println(a.is_subset(b));
+    println(b.is_superset(a));
+
+    println(a.union(b));
+    println(a.intersection(b));
+    println(b.difference(a));
+
+    a.insert(-1);
+    a.insert(-2);
+    a.insert(-3);
+
+    println(a.symmetric_difference(b));
 }

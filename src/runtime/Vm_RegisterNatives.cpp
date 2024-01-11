@@ -201,6 +201,60 @@ auto Vm::registerSetNatives() noexcept -> void
             throwIfWrongType(0_uz, args[0_uz], types::Type::Set);
             return args[0_uz].object()->asSet()->contains(args[1_uz]);
         }});
+
+    m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_SET_IS_SUBSET"), NativeFunction{
+        2_u8, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0_uz, args[0_uz], types::Type::Set);
+            throwIfWrongType(1_uz, args[1_uz], types::Type::Set);
+            const auto a = args[0_uz].object()->asSet();
+            const auto b = args[1_uz].object()->asSet();
+            return a->isSubset(*b);
+        }});
+
+    m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_SET_IS_SUPERSET"), NativeFunction{
+        2_u8, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0_uz, args[0_uz], types::Type::Set);
+            throwIfWrongType(1_uz, args[1_uz], types::Type::Set);
+            const auto a = args[0_uz].object()->asSet();
+            const auto b = args[1_uz].object()->asSet();
+            return a->isSuperset(*b);
+        }});
+
+    m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_SET_UNION"), NativeFunction{
+        2_u8, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0_uz, args[0_uz], types::Type::Set);
+            throwIfWrongType(1_uz, args[1_uz], types::Type::Set);
+            const auto a = args[0_uz].object()->asSet();
+            const auto b = args[1_uz].object()->asSet();
+            return a->unionWith(*b);
+        }});
+
+    m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_SET_INTERSECTION"), NativeFunction{
+        2_u8, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0_uz, args[0_uz], types::Type::Set);
+            throwIfWrongType(1_uz, args[1_uz], types::Type::Set);
+            const auto a = args[0_uz].object()->asSet();
+            const auto b = args[1_uz].object()->asSet();
+            return a->intersection(*b);
+        }});
+
+    m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_SET_DIFFERENCE"), NativeFunction{
+        2_u8, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0_uz, args[0_uz], types::Type::Set);
+            throwIfWrongType(1_uz, args[1_uz], types::Type::Set);
+            const auto a = args[0_uz].object()->asSet();
+            const auto b = args[1_uz].object()->asSet();
+            return a->difference(*b);
+        }});
+
+    m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_SET_SYMMETRIC_DIFFERENCE"), NativeFunction{
+        2_u8, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0_uz, args[0_uz], types::Type::Set);
+            throwIfWrongType(1_uz, args[1_uz], types::Type::Set);
+            const auto a = args[0_uz].object()->asSet();
+            const auto b = args[1_uz].object()->asSet();
+            return a->symmetricDifference(*b);
+        }});
 }
 
 auto Vm::registerRangeNatives() noexcept -> void

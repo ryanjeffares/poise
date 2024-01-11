@@ -1,3 +1,11 @@
 export func contains(this final Set set, final value): Bool => __NATIVE_SET_CONTAINS(set, value);
 export func insert(this final Set set, final value): Bool => __NATIVE_SET_INSERT(set, value);
 
+export func is_subset(this final Set set, final other: Set): Bool => __NATIVE_SET_IS_SUBSET(set, other);
+export func is_superset(this final Set set, final other: Set): Bool => __NATIVE_SET_IS_SUPERSET(set, other);
+
+export func union(this final Set set, final other: Set): Bool => __NATIVE_SET_UNION(set, other);
+export func intersection(this final Set set, final other: Set): Bool => __NATIVE_SET_INTERSECTION(set, other);
+export func difference(this final Set set, final other: Set): Bool => __NATIVE_SET_DIFFERENCE(set, other);
+export func symmetric_difference(this final Set set, final other: Set): Bool => __NATIVE_SET_SYMMETRIC_DIFFERENCE(set, other);
+

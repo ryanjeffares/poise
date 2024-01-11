@@ -244,14 +244,16 @@ auto Dict::growAndRehash() noexcept -> void
 
 auto Dict::addPair(usize index, bool isNewKey, runtime::Value key, runtime::Value value) noexcept -> void
 {
-    if (isNewKey && static_cast<f32>(size()) / static_cast<f32>(capacity()) >= s_threshold) {
-        growAndRehash();
-    }
-
-    m_size++;
     m_data[index] = runtime::Value::createObject<Tuple>(std::move(key), std::move(value));
     m_cellStates[index] = CellState::Occupied;
     invalidateIterators();
+
+    if (isNewKey) {
+        m_size++;
+        if (static_cast<f32>(size()) / static_cast<f32>(capacity()) >= s_threshold) {
+            growAndRehash();
+        }
+    }
 }
 } // namespace poise::objects::iterables::hashables
 

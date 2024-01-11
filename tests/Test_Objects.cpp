@@ -231,6 +231,24 @@ TEST_CASE("Set", "[objects]")
         iterator.increment();
     }
     REQUIRE(iterator.isAtEnd());
+
+    Set a{std::vector<Value>{0, 1, 2}};
+    Set b{std::vector<Value>{0, 1, 2, 3, 4, 5}};
+
+    REQUIRE(a.isSubset(b));
+    REQUIRE(b.isSuperset(a));
+    REQUIRE(a.isSubset(a));
+    REQUIRE(b.isSuperset(b));
+
+    REQUIRE(a.unionWith(b).object()->asSet()->size() == 6_uz);
+    REQUIRE(a.intersection(b).object()->asSet()->size() == 3_uz);
+    REQUIRE(b.difference(a).object()->asSet()->size() == 3_uz);
+
+    a.tryInsert(-1);
+    a.tryInsert(-2);
+    a.tryInsert(-3);
+
+    REQUIRE(a.symmetricDifference(b).object()->asSet()->size() == 6_uz);
 }
 } // namespace poise::tests
 

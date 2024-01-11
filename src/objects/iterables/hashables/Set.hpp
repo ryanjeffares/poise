@@ -26,6 +26,14 @@ public:
     [[nodiscard]] auto contains(const runtime::Value& value) const noexcept -> bool;
     auto tryInsert(runtime::Value value) noexcept -> bool;
 
+    [[nodiscard]] auto isSubset(const Set& other) const noexcept -> bool;
+    [[nodiscard]] auto isSuperset(const Set& other) const noexcept -> bool;
+
+    [[nodiscard]] auto unionWith(const Set& other) const noexcept -> runtime::Value;
+    [[nodiscard]] auto intersection(const Set& other) const noexcept -> runtime::Value;
+    [[nodiscard]] auto difference(const Set& other) const noexcept -> runtime::Value;
+    [[nodiscard]] auto symmetricDifference(const Set& other) const noexcept -> runtime::Value;
+
 protected:
     auto growAndRehash() noexcept -> void override;
 

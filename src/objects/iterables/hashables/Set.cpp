@@ -149,6 +149,110 @@ auto Set::tryInsert(runtime::Value value) noexcept -> bool
     }
 }
 
+auto Set::isSubset(const Set& other) const noexcept -> bool
+{
+    if (size() == 0_uz || this == &other) {
+        return true;
+    }
+
+    for (auto i = 0_uz; i < capacity(); i++) {
+        if (m_cellStates[i] == CellState::Occupied && !other.contains(m_data[i])) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+auto Set::isSuperset(const Set& other) const noexcept -> bool
+{
+    if (this == &other) {
+        return true;
+    }
+
+    for (auto i = 0_uz; i < other.capacity(); i++) {
+        if (other.m_cellStates[i] == CellState::Occupied && !contains(other.m_data[i])) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+auto Set::unionWith(const Set& other) const noexcept -> runtime::Value
+{
+    auto value = runtime::Value::createObject<Set>(std::vector<runtime::Value>{});
+    auto newSet = value.object()->asSet();
+
+    for (auto i = 0_uz; i < capacity(); i++) {
+        if (m_cellStates[i] == CellState::Occupied) {
+            newSet->tryInsert(m_data[i]);
+        }
+    }
+
+    for (auto i = 0_uz; i < other.capacity(); i++) {
+        if (other.m_cellStates[i] == CellState::Occupied) {
+            newSet->tryInsert(other.m_data[i]);
+        }
+    }
+
+    return value;
+} 
+
+auto Set::intersection(const Set& other) const noexcept -> runtime::Value
+{
+    auto value = runtime::Value::createObject<Set>(std::vector<runtime::Value>{});
+    auto newSet = value.object()->asSet();
+
+    for (auto i = 0_uz; i < capacity(); i++) {
+        if (m_cellStates[i] == CellState::Occupied && other.contains(m_data[i])) {
+            newSet->tryInsert(m_data[i]);
+        }
+    }
+
+    for (auto i = 0_uz; i < other.capacity(); i++) {
+        if (other.m_cellStates[i] == CellState::Occupied && contains(other.m_data[i])) {
+            newSet->tryInsert(other.m_data[i]);
+        }
+    }
+
+    return value;
+} 
+
+auto Set::difference(const Set& other) const noexcept -> runtime::Value
+{
+    auto value = runtime::Value::createObject<Set>(std::vector<runtime::Value>{});
+    auto newSet = value.object()->asSet();
+
+    for (auto i = 0_uz; i < capacity(); i++) {
+        if (m_cellStates[i] == CellState::Occupied && !other.contains(m_data[i])) {
+            newSet->tryInsert(m_data[i]);
+        }
+    }
+
+    return value;     
+} 
+
+auto Set::symmetricDifference(const Set& other) const noexcept -> runtime::Value
+{
+    auto value = runtime::Value::createObject<Set>(std::vector<runtime::Value>{});
+    auto newSet = value.object()->asSet();
+
+    for (auto i = 0_uz; i < capacity(); i++) {
+        if (m_cellStates[i] == CellState::Occupied && !other.contains(m_data[i])) {
+            newSet->tryInsert(m_data[i]);
+        }
+    }
+
+    for (auto i = 0_uz; i < other.capacity(); i++) {
+        if (other.m_cellStates[i] == CellState::Occupied && !contains(other.m_data[i])) {
+            newSet->tryInsert(other.m_data[i]);
+        }
+    }
+
+    return value;     
+} 
+
 auto Set::growAndRehash() noexcept -> void
 {
     auto values = toVector();
@@ -166,14 +270,16 @@ auto Set::growAndRehash() noexcept -> void
 
 auto Set::addValue(usize index, bool isNewValue, runtime::Value value) noexcept -> void
 {
-    if (isNewValue && static_cast<f32>(size()) / static_cast<f32>(capacity()) >= s_threshold) {
-        growAndRehash();
-    }
-
-    m_size++;
     m_data[index] = std::move(value);
     m_cellStates[index] = CellState::Occupied;
     invalidateIterators();
+
+    if (isNewValue) {
+        m_size++;
+        if (static_cast<f32>(size()) / static_cast<f32>(capacity()) >= s_threshold) {
+            growAndRehash();
+        }
+    }
 }
 } // namespace poise::objects::iterables::hashables
 
