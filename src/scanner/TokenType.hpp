@@ -19,6 +19,7 @@ enum class TokenType : u8
     FunctionIdent,
     ListIdent,
     RangeIdent,
+    SetIdent,
     TupleIdent,
 
     // keywords

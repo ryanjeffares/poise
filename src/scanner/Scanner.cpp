@@ -70,6 +70,7 @@ Scanner::Scanner(const std::filesystem::path& inFilePath)
         {"Function", TokenType::FunctionIdent},
         {"List", TokenType::ListIdent},
         {"Range", TokenType::RangeIdent},
+        {"Set", TokenType::SetIdent},
         {"Tuple", TokenType::TupleIdent},
     }
 {

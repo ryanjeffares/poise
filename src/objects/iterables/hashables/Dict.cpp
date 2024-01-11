@@ -15,7 +15,7 @@ Dict::Dict(std::span<runtime::Value> pairs)
 
 auto Dict::begin() noexcept -> IteratorType
 {
-    for (auto i = 0_uz; i < m_capacity; i++) {
+    for (auto i = 0_uz; i < capacity(); i++) {
         if (m_cellStates[i] == CellState::Occupied) {
             return m_data.begin() + static_cast<isize>(i);
         }
@@ -43,23 +43,15 @@ auto Dict::isAtEnd(const IteratorType& iterator) noexcept -> bool
     return iterator == end();
 }
 
-auto Dict::size() const noexcept -> usize
-{
-    return m_size;
-}
-
-auto Dict::ssize() const noexcept -> isize
-{
-    return static_cast<isize>(m_size);
-}
-
 auto Dict::unpack(std::vector<runtime::Value>& stack) const noexcept -> void
 {
-    for (auto i = 0_uz; i < m_capacity; i++) {
+    for (auto i = 0_uz; i < capacity(); i++) {
         if (m_cellStates[i] == CellState::Occupied) {
             stack.push_back(m_data[i]);
         }
     }
+
+    stack.emplace_back(size());
 }
 
 auto Dict::asDictionary() noexcept -> Dict*
@@ -81,14 +73,14 @@ auto Dict::toString() const noexcept -> std::string
 {
     std::string res = "{";
     usize count = 0_uz;
-    for (auto i = 0_uz; i < m_capacity; i++) {
+    for (auto i = 0_uz; i < capacity(); i++) {
         if (m_cellStates[i] != CellState::Occupied) {
             continue;
         }
 
         res.append(m_data[i].toString());
 
-        if (count++ < m_size - 1_uz) {
+        if (count++ < size() - 1_uz) {
             res.append(", ");
         }
     }
@@ -110,7 +102,7 @@ auto Dict::iterable() const -> bool
 auto Dict::containsKey(const runtime::Value& key) const noexcept -> bool
 {
     const auto hash = key.hash();
-    auto index = hash % m_capacity;
+    auto index = hash % capacity();
 
     while (true) {
         switch (m_cellStates[index]) {
@@ -125,7 +117,7 @@ auto Dict::containsKey(const runtime::Value& key) const noexcept -> bool
                 [[fallthrough]];
             }
             case CellState::Tombstone: {
-                index = (index + 1_uz) % m_capacity;
+                index = (index + 1_uz) % capacity();
                 break;
             }
             default: {
@@ -139,7 +131,7 @@ auto Dict::containsKey(const runtime::Value& key) const noexcept -> bool
 auto Dict::at(const runtime::Value& key) const -> const runtime::Value&
 {
     const auto hash = key.hash();
-    auto index = hash % m_capacity;
+    auto index = hash % capacity();
 
     while (true) {
         switch (m_cellStates[index]) {
@@ -157,7 +149,7 @@ auto Dict::at(const runtime::Value& key) const -> const runtime::Value&
                 [[fallthrough]];
             }
             case CellState::Tombstone: {
-                index = (index + 1_uz) % m_capacity;
+                index = (index + 1_uz) % capacity();
                 break;
             }
             default: {
@@ -168,11 +160,6 @@ auto Dict::at(const runtime::Value& key) const -> const runtime::Value&
     }
 }
 
-auto Dict::capacity() const noexcept -> usize
-{
-    return m_capacity;
-}
-
 auto Dict::tryInsert(runtime::Value key, runtime::Value value) noexcept -> bool
 {
     if (containsKey(key)) {
@@ -180,7 +167,7 @@ auto Dict::tryInsert(runtime::Value key, runtime::Value value) noexcept -> bool
     }
 
     const auto hash = key.hash();
-    auto index = hash % m_capacity;
+    auto index = hash % capacity();;
 
     while (true) {
         switch (m_cellStates[index]) {
@@ -195,7 +182,7 @@ auto Dict::tryInsert(runtime::Value key, runtime::Value value) noexcept -> bool
                     return false;
                 }
 
-                index = (index + 1_uz) % m_capacity;
+                index = (index + 1_uz) % capacity();
                 break;
             }
             default: {
@@ -209,7 +196,7 @@ auto Dict::tryInsert(runtime::Value key, runtime::Value value) noexcept -> bool
 auto Dict::insertOrUpdate(runtime::Value key, runtime::Value value) noexcept -> void
 {
     const auto hash = key.hash();
-    auto index = hash % m_capacity;
+    auto index = hash % capacity();
 
     while (true) {
         switch (m_cellStates[index]) {
@@ -224,7 +211,7 @@ auto Dict::insertOrUpdate(runtime::Value key, runtime::Value value) noexcept -> 
                     return;
                 }
 
-                index = (index + 1_uz) % m_capacity;
+                index = (index + 1_uz) % capacity();
                 break;
             }
             default: {
@@ -239,6 +226,7 @@ auto Dict::growAndRehash() noexcept -> void
 {
     auto pairs = toVector();
     m_capacity *= 2_uz;
+    m_size = 0_uz;
     m_data.resize(m_capacity);
     m_cellStates.resize(m_capacity);
     std::fill(m_data.begin(), m_data.end(), runtime::Value::none());
@@ -246,7 +234,6 @@ auto Dict::growAndRehash() noexcept -> void
 
     // these are things that were already in the dict, so there should be no duplicates
     // but insertOrUpdate does less than tryInsert
-    m_size = 0_uz;
     for (auto& pair : pairs) {
         auto tuple = pair.object()->asTuple();
         insertOrUpdate(std::move(tuple->atMut(0_uz)), std::move(tuple->atMut(1_uz)));
@@ -257,18 +244,14 @@ auto Dict::growAndRehash() noexcept -> void
 
 auto Dict::addPair(usize index, bool isNewKey, runtime::Value key, runtime::Value value) noexcept -> void
 {
+    if (isNewKey && static_cast<f32>(size()) / static_cast<f32>(capacity()) >= s_threshold) {
+        growAndRehash();
+    }
+
+    m_size++;
     m_data[index] = runtime::Value::createObject<Tuple>(std::move(key), std::move(value));
     m_cellStates[index] = CellState::Occupied;
-
     invalidateIterators();
-
-    if (isNewKey) {
-        m_size++;
-
-        if (static_cast<f32>(m_size) / static_cast<f32>(m_capacity) >= s_threshold) {
-            growAndRehash();
-        }
-    }
 }
 } // namespace poise::objects::iterables::hashables
 

@@ -1,0 +1,4 @@
+func main() {
+    final set = Set("Ryan", 42, none, true, 3.14, "Ryan");
+    println(set);
+}

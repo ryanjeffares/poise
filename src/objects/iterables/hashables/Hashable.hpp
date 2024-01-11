@@ -10,6 +10,9 @@ public:
     Hashable();
     Hashable(usize initialCapacity, const runtime::Value& defaultValue = runtime::Value::none());
 
+    [[nodiscard]] auto size() const noexcept -> usize override;
+    [[nodiscard]] auto ssize() const noexcept -> isize override;
+    [[nodiscard]] auto capacity() const noexcept -> usize;
     [[nodiscard]] auto toVector() const noexcept -> std::vector<runtime::Value>;
 
     static constexpr auto s_initialCapacity = 8_uz;

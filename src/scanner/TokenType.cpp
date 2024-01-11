@@ -43,6 +43,7 @@ auto isTypeIdent(TokenType tokenType) noexcept -> bool
         case TokenType::FunctionIdent:
         case TokenType::ListIdent:
         case TokenType::RangeIdent:
+        case TokenType::SetIdent:
         case TokenType::TupleIdent:
             return true;
         default:
@@ -53,8 +54,9 @@ auto isTypeIdent(TokenType tokenType) noexcept -> bool
 auto isGenericTypeIdent(TokenType tokenType) noexcept -> bool 
 {
     switch (tokenType) {
-        case TokenType::ListIdent:
         case TokenType::DictIdent:
+        case TokenType::ListIdent:
+        case TokenType::SetIdent:
             return true;
         default:
             return false;
@@ -103,6 +105,7 @@ auto builtinGenericTypeCount(TokenType tokenType) noexcept -> u8
 
     switch (tokenType) {
         case TokenType::ListIdent:
+        case TokenType::SetIdent:
             return 1_u8;
         case TokenType::DictIdent:
             return 2_u8;
@@ -132,6 +135,7 @@ auto builtinConstructorAllowedArgCount(TokenType tokenType) noexcept -> AllowedA
             return AllowedArgCount::TwoOrThree;
         case TokenType::DictIdent:
         case TokenType::ListIdent:
+        case TokenType::SetIdent:
             return AllowedArgCount::Any;
         default:
             return AllowedArgCount::None;
@@ -176,6 +180,9 @@ auto formatter<scanner::TokenType>::format(scanner::TokenType tokenType, format_
             break;
         case scanner::TokenType::RangeIdent:
             result = "RangeIdent";
+            break;
+        case scanner::TokenType::SetIdent:
+            result = "SetIdent";
             break;
         case scanner::TokenType::TupleIdent:
             result = "TupleIdent";

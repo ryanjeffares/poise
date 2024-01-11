@@ -56,6 +56,11 @@ auto Object::asRange() noexcept -> iterables::Range*
     return nullptr;
 }
 
+auto Object::asSet() noexcept -> iterables::hashables::Set*
+{
+    return nullptr;
+}
+
 auto Object::asTuple() noexcept -> iterables::Tuple*
 {
     return nullptr;

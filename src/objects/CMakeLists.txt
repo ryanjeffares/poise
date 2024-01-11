@@ -1,6 +1,7 @@
 add_library(poise-objects
         iterables/hashables/Dict.cpp
         iterables/hashables/Hashable.cpp
+        iterables/hashables/Set.cpp
         iterables/Iterable.cpp
         iterables/Iterator.cpp
         iterables/List.cpp

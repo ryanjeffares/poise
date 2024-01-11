@@ -17,8 +17,6 @@ public:
     [[nodiscard]] auto end() noexcept -> IteratorType override;
     auto incrementIterator(IteratorType& iterator) noexcept -> void override;
     auto isAtEnd(const IteratorType& iterator) noexcept -> bool override;
-    [[nodiscard]] auto size() const noexcept -> usize override;
-    [[nodiscard]] auto ssize() const noexcept -> isize override;
     auto unpack(std::vector<runtime::Value>& stack) const noexcept -> void override;
 
     [[nodiscard]] auto asDictionary() noexcept -> Dict* override;
@@ -31,7 +29,6 @@ public:
 
     [[nodiscard]] auto containsKey(const runtime::Value& key) const noexcept -> bool;
     [[nodiscard]] auto at(const runtime::Value& key) const -> const runtime::Value&;
-    [[nodiscard]] auto capacity() const noexcept -> usize;
 
     [[nodiscard]] auto tryInsert(runtime::Value key, runtime::Value value) noexcept -> bool;
     auto insertOrUpdate(runtime::Value key, runtime::Value value) noexcept -> void;

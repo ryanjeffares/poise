@@ -45,6 +45,9 @@ auto formatter<Type>::format(Type type, format_context& context) const -> declty
         case Type::Range:
             res = "Range";
             break;
+        case Type::Set:
+            res = "Set";
+            break;
         case Type::Tuple:
             res = "Tuple";
             break;

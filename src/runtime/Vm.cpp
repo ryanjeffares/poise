@@ -9,12 +9,14 @@
 #include <stack>
 
 namespace poise::runtime {
-using objects::Exception;
+using namespace objects;
+using namespace objects::iterables;
+using namespace objects::iterables::hashables;
 
 Vm::Vm(std::string mainFilePath)
     : m_mainFilePath{std::move(mainFilePath)}
     , m_typeLookup{
-        {types::Type::Bool, Value::createObject<objects::Type>(types::Type::Bool, "Bool",
+        {types::Type::Bool, Value::createObject<Type>(types::Type::Bool, "Bool",
                 [](std::span<Value> args) -> Value {
                     if (args.size() > 1_uz) {
                         throw Exception{
@@ -25,7 +27,7 @@ Vm::Vm(std::string mainFilePath)
 
                     return !args.empty() && args[0_uz].toBool();
                 })},
-        {types::Type::Float, Value::createObject<objects::Type>(types::Type::Float, "Float",
+        {types::Type::Float, Value::createObject<Type>(types::Type::Float, "Float",
                 [](std::span<Value> args) -> Value {
                     if (args.size() > 1_uz) { 
                         throw Exception{ 
@@ -36,7 +38,7 @@ Vm::Vm(std::string mainFilePath)
 
                     return args.empty() ? 0.0 : args[0_uz].toFloat();
                 })},
-        {types::Type::Int, Value::createObject<objects::Type>(types::Type::Int, "Int",
+        {types::Type::Int, Value::createObject<Type>(types::Type::Int, "Int",
                 [](std::span<Value> args) -> Value {
                     if (args.size() > 1_uz) { 
                         throw Exception{ 
@@ -47,7 +49,7 @@ Vm::Vm(std::string mainFilePath)
 
                     return args.empty() ? 0 : args[0_uz].toInt();
                 })},
-        {types::Type::None, Value::createObject<objects::Type>(types::Type::None, "None",
+        {types::Type::None, Value::createObject<Type>(types::Type::None, "None",
                 [](std::span<Value> args) -> Value {
                     return args.empty() 
                         ? runtime::Value::none() 
@@ -56,7 +58,7 @@ Vm::Vm(std::string mainFilePath)
                             fmt::format("Expected no args to construct None but got {}", args.size())
                         };
                 })},
-        {types::Type::String, Value::createObject<objects::Type>(types::Type::String, "String",
+        {types::Type::String, Value::createObject<Type>(types::Type::String, "String",
                 [](std::span<Value> args) -> Value {
                     if (args.size() > 1_uz) { 
                         throw Exception{ 
@@ -67,7 +69,7 @@ Vm::Vm(std::string mainFilePath)
 
                     return args.empty() ? "" : args[0_uz].toString();
                 })},
-        {types::Type::Dict, Value::createObject<objects::Type>(types::Type::Dict, "Dict",
+        {types::Type::Dict, Value::createObject<Type>(types::Type::Dict, "Dict",
                 [](std::span<Value> args) -> Value {
                     for (auto i = 0_uz; i < args.size(); i++) {
                         if (args[i].type() != runtime::types::Type::Tuple) {
@@ -78,9 +80,9 @@ Vm::Vm(std::string mainFilePath)
                         }
                     }
 
-                    return runtime::Value::createObject<objects::iterables::hashables::Dict>(args);
+                    return runtime::Value::createObject<Dict>(args);
                 })},
-        {types::Type::Exception, Value::createObject<objects::Type>(types::Type::Exception, "Exception",
+        {types::Type::Exception, Value::createObject<Type>(types::Type::Exception, "Exception",
                 [](std::span<Value> args) -> Value {
                     if (args.size() != 1_uz) { 
                         throw Exception{ 
@@ -91,7 +93,7 @@ Vm::Vm(std::string mainFilePath)
 
                     return runtime::Value::createObject<Exception>(args[0_uz].toString());
                 })},
-        {types::Type::Function, Value::createObject<objects::Type>(types::Type::Function, "Function",
+        {types::Type::Function, Value::createObject<Type>(types::Type::Function, "Function",
                 [](std::span<Value> args) -> Value {
                     if (args.size() != 1_uz) {
                         throw Exception{
@@ -116,19 +118,19 @@ Vm::Vm(std::string mainFilePath)
                         };
                     }
                 })},
-        {types::Type::Iterator, Value::createObject<objects::Type>(types::Type::Iterator, "Iterator", nullptr)},
-        {types::Type::List, Value::createObject<objects::Type>(types::Type::List, "List",
+        {types::Type::Iterator, Value::createObject<Type>(types::Type::Iterator, "Iterator", nullptr)},
+        {types::Type::List, Value::createObject<Type>(types::Type::List, "List",
                 [](std::span<Value> args) -> Value {
                     if (args.size() == 1_uz) {
-                        return runtime::Value::createObject<objects::iterables::List>(std::move(args[0_uz]));
+                        return runtime::Value::createObject<List>(std::move(args[0_uz]));
                     } else {
-                        return runtime::Value::createObject<objects::iterables::List>(std::vector<runtime::Value>{
+                        return runtime::Value::createObject<List>(std::vector<runtime::Value>{
                             std::make_move_iterator(args.begin()),
                             std::make_move_iterator(args.end())
                         });
                     }
                 })},
-        {types::Type::Range, Value::createObject<objects::Type>(types::Type::Range, "Range",
+        {types::Type::Range, Value::createObject<Type>(types::Type::Range, "Range",
                 [](std::span<Value> args) -> Value {
                     // last arg is whether the range is inclusive or not which is handled internally, user side it's 2 or 3 args
                     if (args.size() < 3_uz || args.size() > 4_uz) {
@@ -160,14 +162,14 @@ Vm::Vm(std::string mainFilePath)
                     }
 
                     if (args.size() == 4_uz) {
-                        return runtime::Value::createObject<objects::iterables::Range>(
+                        return runtime::Value::createObject<Range>(
                             std::move(args[0_uz]),
                             std::move(args[1_uz]),
                             std::move(args[2_uz]),
                             args[3_uz].value<bool>()
                         );
                     } else {
-                        return runtime::Value::createObject<objects::iterables::Range>(
+                        return runtime::Value::createObject<Range>(
                             std::move(args[0_uz]),
                             std::move(args[1_uz]),
                             1,
@@ -176,16 +178,25 @@ Vm::Vm(std::string mainFilePath)
                     }
 
                 })},
-        {types::Type::Tuple, Value::createObject<objects::Type>(types::Type::Tuple, "Tuple",
+        {types::Type::Set, Value::createObject<Type>(types::Type::Set, "Set",
                 [](std::span<Value> args) -> Value {
-                    return runtime::Value::createObject<objects::iterables::Tuple>(
+                    return Value::createObject<Set>(
+                        std::vector<Value>{
+                            std::make_move_iterator(args.begin()),
+                            std::make_move_iterator(args.end())
+                        }
+                    );
+                })},
+        {types::Type::Tuple, Value::createObject<Type>(types::Type::Tuple, "Tuple",
+                [](std::span<Value> args) -> Value {
+                    return runtime::Value::createObject<Tuple>(
                         std::vector<runtime::Value>{
                             std::make_move_iterator(args.begin()),
                             std::make_move_iterator(args.end())
                         }
                     );
                 })},
-        {types::Type::Type, Value::createObject<objects::Type>(types::Type::Type, "Type",
+        {types::Type::Type, Value::createObject<Type>(types::Type::Type, "Type",
                 []([[maybe_unused]] std::span<Value> args) -> Value {
                     throw Exception(Exception::ExceptionType::InvalidType, "Cannot construct Type");
                 })},
@@ -195,12 +206,12 @@ Vm::Vm(std::string mainFilePath)
     registerNatives();
 }
 
-auto Vm::setCurrentFunction(objects::Function* function) noexcept -> void
+auto Vm::setCurrentFunction(Function* function) noexcept -> void
 {
     m_currentFunction = function;
 }
 
-auto Vm::currentFunction() const noexcept -> objects::Function*
+auto Vm::currentFunction() const noexcept -> Function*
 {
     return m_currentFunction;
 }
@@ -264,8 +275,8 @@ auto Vm::run() noexcept -> RunResult
 
         usize callSiteLine;
 
-        objects::Function* callerFunction;
-        objects::Function* calleeFunction;
+        Function* callerFunction;
+        Function* calleeFunction;
     };
 
     std::vector<CallStackEntry> callStack{{
@@ -784,7 +795,7 @@ auto Vm::run() noexcept -> RunResult
                                     variadicParams.emplace_back(std::move(args[i]));
                                 }
                                 args.resize(args.size() - variadicParams.size());
-                                args.emplace_back(Value::createObject<objects::iterables::List>(std::move(variadicParams)));
+                                args.emplace_back(Value::createObject<List>(std::move(variadicParams)));
                             }
 
                             localVariables.insert(localVariables.end(), std::make_move_iterator(args.begin()), std::make_move_iterator(args.end()));
@@ -824,7 +835,7 @@ auto Vm::run() noexcept -> RunResult
                         };
                     }
 
-                    heldIterators.push(Value::createObject<objects::iterables::Iterator>(value));
+                    heldIterators.push(Value::createObject<Iterator>(value));
                     auto iteratorPtr = heldIterators.top().object()->asIterator();
                     const auto isAtEnd = iteratorPtr->isAtEnd();
                     stack.emplace_back(iteratorPtr->isAtEnd());

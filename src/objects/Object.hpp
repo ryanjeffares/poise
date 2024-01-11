@@ -25,6 +25,7 @@ class Tuple;
 namespace hashables {
 class Dict;
 class Hashable;
+class Set;
 }
 }
 
@@ -51,6 +52,7 @@ public:
     [[nodiscard]] virtual auto asIterator() noexcept -> iterables::Iterator*;
     [[nodiscard]] virtual auto asList() noexcept -> iterables::List*;
     [[nodiscard]] virtual auto asRange() noexcept -> iterables::Range*;
+    [[nodiscard]] virtual auto asSet() noexcept -> iterables::hashables::Set*;
     [[nodiscard]] virtual auto asTuple() noexcept -> iterables::Tuple*;
     [[nodiscard]] virtual auto asType() noexcept -> Type*;
 

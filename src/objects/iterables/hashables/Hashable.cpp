@@ -15,6 +15,21 @@ Hashable::Hashable(usize initialCapacity, const runtime::Value& defaultValue)
 
 }
 
+auto Hashable::size() const noexcept -> usize
+{
+    return m_size;
+}
+
+auto Hashable::ssize() const noexcept -> isize
+{
+    return static_cast<isize>(m_size);
+}
+
+auto Hashable::capacity() const noexcept -> usize
+{
+    return m_capacity;
+}
+
 auto Hashable::toVector() const noexcept -> std::vector<runtime::Value>
 {
     std::vector<runtime::Value> res;

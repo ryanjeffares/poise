@@ -78,8 +78,8 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
         * ~~Lists~~
         * ~~Ranges~~
             * ~~Can't change the internal state of the range so that you can iterate over it many times, or concurrently~~
-        * Tuple
-        * Dicts
+        * ~~Tuple~~
+        * ~~Dicts~~
         * Sets
         * Index operator
     * Special constructors for the above
