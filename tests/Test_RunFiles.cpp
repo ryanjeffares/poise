@@ -118,5 +118,13 @@ TEST_CASE("014_dicts.poise", "[files]")
     REQUIRE(compiler.compile() == compiler::Compiler::CompileResult::Success);
     REQUIRE(vm.run() == runtime::Vm::RunResult::Success);
 }
+
+TEST_CASE("015_sets.poise", "[files]")
+{
+    runtime::Vm vm{"tests/test_files/015_sets.poise"};
+    compiler::Compiler compiler{true, false, &vm, "tests/test_files/015_sets.poise"};
+    REQUIRE(compiler.compile() == compiler::Compiler::CompileResult::Success);
+    REQUIRE(vm.run() == runtime::Vm::RunResult::Success);
+}
 } // namespace poise::tests
 

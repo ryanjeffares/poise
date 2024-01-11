@@ -26,7 +26,7 @@ TEST_CASE("Basic Reference Counting", "[objects]")
     REQUIRE((function.object()->refCount() == 1_uz && exception.object()->refCount() == 2_uz));
 }
 
-TEST_CASE("PoiseList", "[objects]") 
+TEST_CASE("List", "[objects]") 
 {
     using namespace poise::runtime;
     using namespace poise::objects::iterables;
@@ -79,7 +79,7 @@ TEST_CASE("PoiseList", "[objects]")
     REQUIRE(concatenated.object()->asList()->size() == 15_uz);
 }
 
-TEST_CASE("PoiseRange", "[objects]") 
+TEST_CASE("Range", "[objects]") 
 {
     using namespace poise::runtime;
     using namespace poise::objects::iterables;
@@ -133,7 +133,7 @@ TEST_CASE("PoiseRange", "[objects]")
     }
 }
 
-TEST_CASE("PoiseTuple", "[objects]") 
+TEST_CASE("Tuple", "[objects]") 
 {
     using namespace poise::runtime;
     using namespace poise::objects::iterables;
@@ -150,7 +150,7 @@ TEST_CASE("PoiseTuple", "[objects]")
     REQUIRE(iterator.value() == std::string{"Hello"});
 }
 
-TEST_CASE("PoiseDictionary", "[objects]") 
+TEST_CASE("Dictionary", "[objects]") 
 {
     using namespace poise::runtime;
     using namespace poise::objects::iterables;
@@ -179,7 +179,7 @@ TEST_CASE("PoiseDictionary", "[objects]")
     dict.insertOrUpdate("Cat3", 12);
     dict.insertOrUpdate("Snake3", 8);
 
-    REQUIRE(dict.capacity() == Dict::s_initialCapacity * 2_uz);
+    REQUIRE(dict.capacity() == Hashable::s_initialCapacity * 2_uz);
     REQUIRE(dict.size() == 10_uz);
 
     Iterator iterator{&dict};
@@ -187,6 +187,47 @@ TEST_CASE("PoiseDictionary", "[objects]")
     iterator.increment();
     REQUIRE(!iterator.isAtEnd());
     for (auto i = 0_uz; i < dict.size() - 1_uz; i++) {
+        iterator.increment();
+    }
+    REQUIRE(iterator.isAtEnd());
+}
+
+TEST_CASE("Set", "[objects]") 
+{
+    using namespace poise::runtime;
+    using namespace poise::objects::iterables;
+    using namespace poise::objects::iterables::hashables;
+
+    std::vector<Value> pairs;
+    pairs.emplace_back("Ryan");
+    pairs.emplace_back("Cat");
+    pairs.emplace_back("Snake");
+
+    Set set{pairs};
+
+    REQUIRE(set.capacity() == Hashable::s_initialCapacity);
+    REQUIRE(set.size() == 3_uz);
+    REQUIRE(!set.tryInsert("Ryan"));
+    REQUIRE(set.tryInsert("Hotel"));
+
+    REQUIRE(set.contains("Ryan"));
+    REQUIRE(set.contains("Cat"));
+    REQUIRE(set.contains("Snake"));
+    REQUIRE(set.contains("Hotel"));
+    REQUIRE(!set.contains(0));
+
+    set.tryInsert(true);
+    set.tryInsert(false);
+    set.tryInsert(3.14);
+
+    REQUIRE(set.capacity() == Dict::s_initialCapacity * 2_uz);
+    REQUIRE(set.size() == 7_uz);
+
+    Iterator iterator{&set};
+    REQUIRE(!iterator.isAtEnd());
+    iterator.increment();
+    REQUIRE(!iterator.isAtEnd());
+    for (auto i = 0_uz; i < set.size() - 1_uz; i++) {
         iterator.increment();
     }
     REQUIRE(iterator.isAtEnd());
