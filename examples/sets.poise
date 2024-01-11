@@ -1,4 +1,17 @@
+import std::iterables;
+import std::set;
+
 func main() {
     final set = Set("Ryan", 42, none, true, 3.14, "Ryan");
     println(set);
+    println(set.size());
+
+    final numbers = [0, 1, 2, 3, 4, 5, 6];
+    set.insert(numbers);
+    set.insert({("Ryan", 24), ("Puffle", 12)});
+
+    println(set);
+    println(set.contains("Ryan"));
+    println(set.contains("Something"));
+    println(set.contains(numbers));
 }

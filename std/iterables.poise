@@ -1,13 +1,13 @@
 import std::list;
 
-export func size(this final List|Range|Tuple|Dict collection): Int => __NATIVE_ITERABLE_SIZE(collection);
+export func size(this final Dict|List|Range|Set|Tuple collection): Int => __NATIVE_ITERABLE_SIZE(collection);
 
-export func for_each(this final List|Range|Tuple|Dict collection, final fn: Function) =>
+export func for_each(this final Dict|List|Range|Set|Tuple collection, final fn: Function) =>
     for item in collection {
         fn(item);
     }
 
-export func map(this final List|Range|Tuple|Dict collection, final fn): List {
+export func map(this final Dict|List|Range|Set|Tuple collection, final fn): List {
     final res = [];
 
     for item in collection {
@@ -17,7 +17,7 @@ export func map(this final List|Range|Tuple|Dict collection, final fn): List {
     return res;
 }
 
-export func filter(this final List|Range|Tuple|Dict list, final predicate): List {
+export func filter(this final Dict|List|Range|Set|Tuple list, final predicate): List {
     final res = [];
 
     for item in list {

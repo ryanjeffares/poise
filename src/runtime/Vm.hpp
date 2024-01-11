@@ -53,6 +53,7 @@ private:
     auto registerIterableNatives() noexcept -> void;
     auto registerListNatives() noexcept -> void;
     auto registerRangeNatives() noexcept -> void;
+    auto registerSetNatives() noexcept -> void;
     auto registerStringNatives() noexcept -> void;
 
     std::hash<std::string_view> m_nativeNameHasher;

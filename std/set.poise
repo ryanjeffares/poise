@@ -1,0 +1,3 @@
+export func contains(this final Set set, final value): Bool => __NATIVE_SET_CONTAINS(set, value);
+export func insert(this final Set set, final value): Bool => __NATIVE_SET_INSERT(set, value);
+

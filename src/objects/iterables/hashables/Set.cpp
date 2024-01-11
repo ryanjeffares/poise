@@ -135,7 +135,7 @@ auto Set::tryInsert(runtime::Value value) noexcept -> bool
                 return true;
             }
             case CellState::Occupied: {
-                if (m_data[index] != value) {
+                if (m_data[index] == value) {
                     return false;
                 }
 

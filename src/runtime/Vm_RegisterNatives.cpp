@@ -42,6 +42,7 @@ auto Vm::registerNatives() noexcept -> void
     registerIntNatives();
     registerIterableNatives();
     registerListNatives();
+    registerSetNatives();
     registerRangeNatives();
     registerStringNatives();
 }   // Vm::registerNatives()
@@ -184,6 +185,21 @@ auto Vm::registerListNatives() noexcept -> void
             throwIfWrongType(0_uz, args[0_uz], types::Type::List);
             throwIfWrongType(1_uz, args[1_uz], types::Type::List);
             return args[0_uz].object()->asList()->concat(*args[1_uz].object()->asList());
+        }});
+}
+
+auto Vm::registerSetNatives() noexcept -> void
+{
+    m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_SET_INSERT"), NativeFunction{
+        2_u8, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0_uz, args[0_uz], types::Type::Set);
+            return args[0_uz].object()->asSet()->tryInsert(std::move(args[1_uz]));
+        }});
+
+    m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_SET_CONTAINS"), NativeFunction{
+        2_u8, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0_uz, args[0_uz], types::Type::Set);
+            return args[0_uz].object()->asSet()->contains(args[1_uz]);
         }});
 }
 
