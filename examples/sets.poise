@@ -2,6 +2,16 @@ import std::iterables;
 import std::set;
 
 func main() {
+    println(Set("Ryan"));
+    println(Set("RyanRyanRyan"));
+    println(Set(0..20));
+    println(Set([none, Set(), [], {}]));
+    println(Set({
+        ("Ryan", 24),
+        ("Puffle", 12),
+        ("Noodle", 8),
+    }));
+
     final set = Set("Ryan", 42, none, true, 3.14, "Ryan");
     println(set);
     println(set.size());

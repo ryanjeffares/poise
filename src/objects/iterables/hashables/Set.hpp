@@ -7,7 +7,9 @@ namespace poise::objects::iterables::hashables {
 class Set : public Object, public Hashable
 {
 public:
-    explicit Set(std::vector<runtime::Value> data);
+    Set() = default;
+    explicit Set(std::span<runtime::Value> data);
+    explicit Set(runtime::Value value);
 
     [[nodiscard]] auto begin() noexcept -> IteratorType override;
     [[nodiscard]] auto end() noexcept -> IteratorType override;
@@ -38,7 +40,7 @@ protected:
     auto growAndRehash() noexcept -> void override;
 
 private:
-    auto addValue(usize index, bool isNewValue, runtime::Value value) noexcept -> void;
+    auto addValue(usize index, runtime::Value value) noexcept -> void;
 };
 } // namespace poise::objects::iterables::hashables
 

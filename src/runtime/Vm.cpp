@@ -180,12 +180,11 @@ Vm::Vm(std::string mainFilePath)
                 })},
         {types::Type::Set, Value::createObject<Type>(types::Type::Set, "Set",
                 [](std::span<Value> args) -> Value {
-                    return Value::createObject<Set>(
-                        std::vector<Value>{
-                            std::make_move_iterator(args.begin()),
-                            std::make_move_iterator(args.end())
-                        }
-                    );
+                    if (args.size() == 1_uz) {
+                        return Value::createObject<Set>(std::move(args[0_uz]));
+                    } else {
+                        return Value::createObject<Set>(args);
+                    }
                 })},
         {types::Type::Tuple, Value::createObject<Type>(types::Type::Tuple, "Tuple",
                 [](std::span<Value> args) -> Value {

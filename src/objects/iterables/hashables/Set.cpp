@@ -1,9 +1,37 @@
 #include "Set.hpp"
+#include "../Range.hpp"
 
 namespace poise::objects::iterables::hashables {
-Set::Set(std::vector<runtime::Value> data)
+Set::Set(std::span<runtime::Value> data)
 {
     for (auto& value : data) {
+        tryInsert(std::move(value));
+    }
+}
+
+Set::Set(runtime::Value value)
+{
+    if (auto object = value.object()) {
+        if (auto hashable = object->asHashable()) {
+            for (auto values = hashable->toVector(); auto& v : values) {
+                tryInsert(std::move(v));
+            }
+        } else if (auto range = object->asRange()) {
+            for (auto values = range->toVector(); const auto& v : values) {
+                tryInsert(v);
+            }
+        } else if (auto iterable = object->asIterable()) {
+            for (auto values = iterable->data(); const auto& v : values) {
+                tryInsert(v);
+            }
+        } else {
+            tryInsert(std::move(value));
+        }
+    } else if (value.type() == runtime::types::Type::String) {
+        for (const auto& string = value.string(); auto c : string) {
+            tryInsert(std::string(1_uz, c));
+        }
+    } else {
         tryInsert(std::move(value));
     }
 }
@@ -131,7 +159,7 @@ auto Set::tryInsert(runtime::Value value) noexcept -> bool
         switch (m_cellStates[index]) {
             case CellState::Tombstone:
             case CellState::NeverUsed: {
-                addValue(index, true, std::move(value));
+                addValue(index, std::move(value));
                 return true;
             }
             case CellState::Occupied: {
@@ -181,7 +209,7 @@ auto Set::isSuperset(const Set& other) const noexcept -> bool
 
 auto Set::unionWith(const Set& other) const noexcept -> runtime::Value
 {
-    auto value = runtime::Value::createObject<Set>(std::vector<runtime::Value>{});
+    auto value = runtime::Value::createObject<Set>();
     auto newSet = value.object()->asSet();
 
     for (auto i = 0_uz; i < capacity(); i++) {
@@ -201,7 +229,7 @@ auto Set::unionWith(const Set& other) const noexcept -> runtime::Value
 
 auto Set::intersection(const Set& other) const noexcept -> runtime::Value
 {
-    auto value = runtime::Value::createObject<Set>(std::vector<runtime::Value>{});
+    auto value = runtime::Value::createObject<Set>();
     auto newSet = value.object()->asSet();
 
     for (auto i = 0_uz; i < capacity(); i++) {
@@ -221,7 +249,7 @@ auto Set::intersection(const Set& other) const noexcept -> runtime::Value
 
 auto Set::difference(const Set& other) const noexcept -> runtime::Value
 {
-    auto value = runtime::Value::createObject<Set>(std::vector<runtime::Value>{});
+    auto value = runtime::Value::createObject<Set>();
     auto newSet = value.object()->asSet();
 
     for (auto i = 0_uz; i < capacity(); i++) {
@@ -235,7 +263,7 @@ auto Set::difference(const Set& other) const noexcept -> runtime::Value
 
 auto Set::symmetricDifference(const Set& other) const noexcept -> runtime::Value
 {
-    auto value = runtime::Value::createObject<Set>(std::vector<runtime::Value>{});
+    auto value = runtime::Value::createObject<Set>();
     auto newSet = value.object()->asSet();
 
     for (auto i = 0_uz; i < capacity(); i++) {
@@ -268,17 +296,15 @@ auto Set::growAndRehash() noexcept -> void
     }
 }
 
-auto Set::addValue(usize index, bool isNewValue, runtime::Value value) noexcept -> void
+auto Set::addValue(usize index, runtime::Value value) noexcept -> void
 {
+    m_size++;
     m_data[index] = std::move(value);
     m_cellStates[index] = CellState::Occupied;
     invalidateIterators();
 
-    if (isNewValue) {
-        m_size++;
-        if (static_cast<f32>(size()) / static_cast<f32>(capacity()) >= s_threshold) {
-            growAndRehash();
-        }
+    if (static_cast<f32>(size()) / static_cast<f32>(capacity()) >= s_threshold) {
+        growAndRehash();
     }
 }
 } // namespace poise::objects::iterables::hashables

@@ -198,12 +198,13 @@ TEST_CASE("Set", "[objects]")
     using namespace poise::objects::iterables;
     using namespace poise::objects::iterables::hashables;
 
-    std::vector<Value> pairs;
-    pairs.emplace_back("Ryan");
-    pairs.emplace_back("Cat");
-    pairs.emplace_back("Snake");
+    std::vector<Value> names{
+        "Ryan",
+        "Cat",
+        "Snake",
+    };
 
-    Set set{pairs};
+    Set set{names};
 
     REQUIRE(set.capacity() == Hashable::s_initialCapacity);
     REQUIRE(set.size() == 3_uz);
@@ -232,8 +233,12 @@ TEST_CASE("Set", "[objects]")
     }
     REQUIRE(iterator.isAtEnd());
 
-    Set a{std::vector<Value>{0, 1, 2}};
-    Set b{std::vector<Value>{0, 1, 2, 3, 4, 5}};
+    std::vector<Value> nums = {0, 1, 2};
+    Set a{nums};
+    nums.emplace_back(3);
+    nums.emplace_back(4);
+    nums.emplace_back(5);
+    Set b{nums};
 
     REQUIRE(a.isSubset(b));
     REQUIRE(b.isSuperset(a));
@@ -249,6 +254,31 @@ TEST_CASE("Set", "[objects]")
     a.tryInsert(-3);
 
     REQUIRE(a.symmetricDifference(b).object()->asSet()->size() == 6_uz);
+
+    REQUIRE(Set{"RyanRyanRyan"}.size() == 4_uz);
+
+    names = {
+        "Ryan",
+        "Cat",
+        "Snake",
+    };
+    names.emplace_back("Ryan");
+    auto list = Value::createObject<List>(names);
+    REQUIRE(Set{list}.size() == 3_uz);
+
+    auto pairs = std::vector<Value>{
+        Value::createObject<Tuple>("Ryan", 24),
+        Value::createObject<Tuple>("Puffle", 12),
+        Value::createObject<Tuple>("Noodle", 8),
+    };
+    auto dict = Value::createObject<Dict>(pairs);
+
+    REQUIRE(Set{dict}.size() == 3_uz);
+
+    auto range = Value::createObject<Range>(0, 20, 1, false);
+    REQUIRE(Set{range}.size() == 20_uz);
+
+    REQUIRE(Set{0}.size() == 1_uz);
 }
 } // namespace poise::tests
 
