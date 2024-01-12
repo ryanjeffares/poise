@@ -29,6 +29,10 @@ func main() {
                 println(e);
             }
         }
+
+        if index == names.size() - 2  {
+            break;
+        }
     }
 
     names[names.size() - 1] = "Ivan";

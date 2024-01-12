@@ -500,13 +500,17 @@ auto Vm::run() noexcept -> RunResult
                     stack.push_back(typeValue(type));
                     break;
                 }
+                case Op::Pop: {
+                    pop();
+                    break;
+                }
+                case Op::PopIterator: {
+                    heldIterators.pop();
+                    break;
+                }
                 case Op::PopLocals: {
                     const auto numLocalsToRemain = constantList[constantIndex++].value<usize>();
                     localVariables.resize(numLocalsToRemain + localIndexOffset);
-                    break;
-                }
-                case Op::Pop: {
-                    pop();
                     break;
                 }
                 case Op::Throw: {
@@ -739,6 +743,13 @@ auto Vm::run() noexcept -> RunResult
                     }
                     break;
                 }
+                case Op::Break: {
+                    const auto jumpConstantIndex = constantList[constantIndex++].value<usize>();
+                    const auto jumpOpIndex = constantList[constantIndex++].value<usize>();
+                    callStackTop.constantIndex = jumpConstantIndex;
+                    callStackTop.opIndex = jumpOpIndex;
+                    break;
+                }
                 case Op::Call: {
                     auto numArgs = constantList[constantIndex++].value<usize>();
                     const auto hasUnpack = constantList[constantIndex++].value<bool>();
@@ -872,6 +883,7 @@ auto Vm::run() noexcept -> RunResult
                             break;
                         }
                         case types::Type::Range:
+                        case types::Type::Set:
                         case types::Type::Tuple: {
                             firstLocal = isAtEnd ? Value::none() : iteratorPtr->value();
                             if (secondIteratorLocalIndex > 0_uz) {
@@ -928,6 +940,7 @@ auto Vm::run() noexcept -> RunResult
                             break;
                         }
                         case types::Type::Range:
+                        case types::Type::Set:
                         case types::Type::Tuple: {
                             firstLocal = isAtEnd ? Value::none() : iterator->value();
                             break;
@@ -944,10 +957,10 @@ auto Vm::run() noexcept -> RunResult
                     break;
                 }
                 case Op::Jump: {
-                    const auto& jumpConstantIndex = constantList[constantIndex++];
-                    const auto& jumpOpIndex = constantList[constantIndex++];
-                    callStackTop.constantIndex = jumpConstantIndex.value<usize>();
-                    callStackTop.opIndex = jumpOpIndex.value<usize>();
+                    const auto jumpConstantIndex = constantList[constantIndex++].value<usize>();
+                    const auto jumpOpIndex = constantList[constantIndex++].value<usize>();
+                    callStackTop.constantIndex = jumpConstantIndex;
+                    callStackTop.opIndex = jumpOpIndex;
                     break;
                 }
                 case Op::JumpIfFalse: {

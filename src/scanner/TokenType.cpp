@@ -124,8 +124,6 @@ auto typeDisplayName(TokenType tokenType) noexcept -> std::string_view
 
 auto builtinGenericTypeCount(TokenType tokenType) noexcept -> AllowedGenericTypeCount
 {
-    POISE_ASSERT(isGenericTypeIdent(tokenType), fmt::format("Expected type ident that can be generic but got {}", tokenType));
-
     switch (tokenType) {
         case TokenType::ListIdent:
         case TokenType::SetIdent:
@@ -217,6 +215,9 @@ auto formatter<scanner::TokenType>::format(scanner::TokenType tokenType, format_
             break;
         case scanner::TokenType::As:
             result = "As";
+            break;
+        case scanner::TokenType::Break:
+            result = "Break";
             break;
         case scanner::TokenType::By:
             result = "By";

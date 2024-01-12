@@ -1,0 +1,24 @@
+import std::int;
+
+func main() {
+    for i in 0..10 {
+        println(i);
+        for j in 10..100 by 10 {
+            println(j);
+            if j >= 50 {
+                break;
+            }
+        }
+    }
+
+    println("====");
+
+    var i = 0;
+    while true {
+        println(i.pow(2));
+        if i > 100 {
+            break;
+        }
+        i = i + 1;
+    }
+}

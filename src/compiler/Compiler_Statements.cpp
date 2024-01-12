@@ -30,6 +30,8 @@ auto Compiler::statement(bool consumeSemicolon) -> void
         whileStatement();
     } else if (match(scanner::TokenType::For)) {
         forStatement();
+    } else if (match(scanner::TokenType::Break)) {
+        breakStatement();
     } else {
         expressionStatement(consumeSemicolon);
     }
@@ -271,6 +273,7 @@ auto Compiler::whileStatement() -> void
     }
 
     m_contextStack.push_back(Context::WhileLoop);
+    m_breakOpStack.emplace();
 
     const auto function = m_vm->currentFunction();
     // need to jump here at the end of each iteration
@@ -299,6 +302,17 @@ auto Compiler::whileStatement() -> void
     emitConstant(opIndex);
     emitOp(runtime::Op::Jump, m_previous->line());
 
+    // patch break statements
+    const auto breakJumpIndexes = std::move(m_breakOpStack.top());
+    m_breakOpStack.pop();
+    for (auto jumpIdxes : breakJumpIndexes) {
+        patchJump(jumpIdxes);
+    }
+
+    // pop locals if we broke
+    emitConstant(numLocalsStart);
+    emitOp(runtime::Op::PopLocals, m_previous->line());
+
     // patch in the jump for failing the condition
     patchJump(jumpIndexes);
 
@@ -313,6 +327,8 @@ auto Compiler::forStatement() -> void
     }
 
     m_contextStack.push_back(Context::ForLoop);
+    m_breakOpStack.emplace();
+
     RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected identifier");
 
     const auto firstIteratorName = m_previous->text();
@@ -380,6 +396,15 @@ auto Compiler::forStatement() -> void
     emitConstant(opIndex);
     emitOp(runtime::Op::Jump, m_previous->line());
 
+    // patch breaks
+    const auto breakJumpIndexes = std::move(m_breakOpStack.top());
+    m_breakOpStack.pop();
+    for (auto jumpIdxes : breakJumpIndexes) {
+        patchJump(jumpIdxes);
+    }
+
+    emitOp(runtime::Op::PopIterator, m_previous->line());
+
     patchJump(jumpIndexes);
 
     // finally, pop the iterators that were made as locals
@@ -388,5 +413,27 @@ auto Compiler::forStatement() -> void
     m_localNames.resize(m_localNames.size() - (secondIteratorLocalIndex ? 2_uz : 1_uz));
 
     m_contextStack.pop_back();
+}
+
+auto Compiler::breakStatement() -> void
+{
+    const auto loopIt = std::find_if(m_contextStack.cbegin(), m_contextStack.cend(), [] (Context context) {
+        return context == Context::ForLoop || context == Context::WhileLoop;
+    });
+
+    if (loopIt == m_contextStack.cend()) {
+        errorAtPrevious("'break' only allowed inside of loops");
+        return;
+    }
+
+    const auto lambdaIt = std::find(m_contextStack.cbegin(), m_contextStack.cend(), Context::Lambda);
+    if (lambdaIt != m_contextStack.cend() && lambdaIt > loopIt) {
+        errorAtPrevious("'break' only allowed inside of loops");
+        return;
+    }
+    
+    m_breakOpStack.top().push_back(emitJump(JumpType::Break, false));
+
+    EXPECT_SEMICOLON();
 }
 }   // namespace poise::compiler

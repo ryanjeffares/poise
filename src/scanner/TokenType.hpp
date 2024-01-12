@@ -27,6 +27,7 @@ enum class TokenType : u8
     // keywords
     And,
     As,
+    Break,
     By,
     Catch,
     Else,

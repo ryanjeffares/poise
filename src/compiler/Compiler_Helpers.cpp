@@ -29,6 +29,9 @@ auto Compiler::emitJump(JumpType jumpType, bool emitPop) const noexcept -> JumpI
     const auto function = m_vm->currentFunction();
 
     switch (jumpType) {
+        case JumpType::Break:
+            emitOp(runtime::Op::Break, m_previous->line());
+            break;
         case JumpType::IfFalse:
             emitOp(runtime::Op::JumpIfFalse, m_previous->line());
             break;

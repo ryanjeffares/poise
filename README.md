@@ -105,7 +105,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * Have type aliases, eg `type OrderedCollection = List|Range`
     * You should be able to export and import these
     * Maybe leave this until we do user defined classes, and we can come up with a nice generic way to handle it, since we'll have to work off of identifiers rather than builtin type keywords.
-* Break statements
+* Break/continue statements
 * Classes
     * Member variable access as well as extension function access
     * Need to generate `PoiseType` instances for these, and hook them into everything else...

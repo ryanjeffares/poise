@@ -10,6 +10,7 @@
 #include <filesystem>
 #include <optional>
 #include <memory>
+#include <stack>
 #include <string>
 
 namespace poise::compiler {
@@ -28,7 +29,7 @@ public:
 private:
     enum class Context
     {
-        ForLoop, Function, IfStatement, TopLevel, TryCatch, WhileLoop,
+        ForLoop, Function, IfStatement, Lambda, TopLevel, TryCatch, WhileLoop,
     };
 
     auto emitOp(runtime::Op op, usize line) const noexcept -> void;
@@ -41,11 +42,11 @@ private:
 
     enum class JumpType
     {
-        IfFalse, IfTrue, None
+        Break, IfFalse, IfTrue, None
     };
 
-    auto emitJump() const noexcept -> JumpIndexes;
-    auto emitJump(JumpType jumpType, bool emitPop) const noexcept -> JumpIndexes;
+    [[nodiscard]] auto emitJump() const noexcept -> JumpIndexes;
+    [[nodiscard]] auto emitJump(JumpType jumpType, bool emitPop) const noexcept -> JumpIndexes;
     auto patchJump(JumpIndexes jumpIndexes) const noexcept -> void;
 
     auto advance() -> void;
@@ -106,6 +107,7 @@ private:
     auto ifStatement() -> void;
     auto whileStatement() -> void;
     auto forStatement() -> void;
+    auto breakStatement() -> void;
 
     auto expression(bool canAssign, bool canUnpack) -> void;
     auto unpack() -> void;
@@ -158,6 +160,8 @@ private:
     runtime::NamespaceManager::NamespaceHash m_filePathHash;
     std::optional<scanner::Token> m_previous, m_current;
     std::vector<Context> m_contextStack;
+
+    std::stack<std::vector<JumpIndexes>> m_breakOpStack;
 
     std::vector<LocalVariable> m_localNames;
 

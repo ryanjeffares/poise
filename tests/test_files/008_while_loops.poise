@@ -1,8 +1,12 @@
 func main() {
     var i: Int = 2;
-    while i < 128 {
+    while true {
         println(i);
         i = i * 2;
+
+        if i >= 256 {
+            break;
+        }
     }
 
     var c: Int = 0;

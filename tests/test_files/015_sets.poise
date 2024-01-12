@@ -15,6 +15,9 @@ func main() {
     println(set.contains("Something"));
     println(set.contains(numbers));
 
+    for item in set {
+        println("Item: " + item);
+    }
 
     final a = Set(0, 1, 2);
     final b = Set(0, 1, 2, 3, 4, 5);

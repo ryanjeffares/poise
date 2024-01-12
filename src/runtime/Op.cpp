@@ -50,6 +50,9 @@ auto formatter<Op>::format(poise::runtime::Op op, fmt::format_context& context) 
         case Op::Pop:
             result = "Pop";
             break;
+        case Op::PopIterator:
+            result = "PopIterator";
+            break;
         case Op::PopLocals:
             result = "PopLocals";
             break;
@@ -139,6 +142,9 @@ auto formatter<Op>::format(poise::runtime::Op op, fmt::format_context& context) 
             break;
         case Op::LoadIndex:
             result = "LoadIndex";
+            break;
+        case Op::Break:
+            result = "Break";
             break;
         case Op::Call:
             result = "Call";

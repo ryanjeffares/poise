@@ -7,7 +7,15 @@ funcDecl = "func", IDENTIFIER, "(", [ FUNCTION_ARGS ], ")", [ ":", TYPE_ANNOTATI
 varDecl = "var", IDENTIFIER, [ ":", TYPE_ANNOTATION ], [ { ",", IDENTIFIER, [ ":", TYPE_ANNOTATION ], } ], [ "=", [ "try" ], expression ], ";" ;
 finalDecl = "final", IDENTIFIER, [ ":", TYPE_ANNOTATION ], [ { ",", IDENTIFIER, [ ":", TYPE_ANNOTATION ] } ], "=", [ "try" ], expression, ";" ;
 
-statement = expressionStatement | printlnStatement | returnStatement | tryCatchStatement | throwStatement | whileStatement | forStatement ;
+statement = expressionStatement
+    | printlnStatement
+    | returnStatement
+    | tryCatchStatement
+    | throwStatement
+    | whileStatement
+    | forStatement
+    | breakStatement
+    | continueStatement ;
 
 expressionStatement = call, [ { ",", call } ] [ "=", expression ], ";" ;
 printlnStatement = "println", "(", expression, ")" ;
@@ -16,6 +24,8 @@ tryCatchStatement = "try", "{", BLOCK, "}", "catch", [ IDENTIFIER ], BLOCK ;
 ifStatement = "if", expression, BLOCK, [ { "else", "if", expression, BLOCK } ], [ "else", BLOCK ] ;
 whileStatement = "while", expression, BLOCK ;
 forStatement = "for", IDENTIFIER, [",", IDENTIFIER], "in", expression, BLOCK ;
+breakStatement = "break", ";" ;
+continueStatement = "continue", ";" ;
 
 expression = [ "try" ], range | UNPACK ;
 range = logic_or, [ "..", logic_or, [ "by", expression ] ] ;

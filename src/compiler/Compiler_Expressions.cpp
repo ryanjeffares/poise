@@ -640,7 +640,7 @@ auto Compiler::lambda() -> void
         parseTypeAnnotation();
     }
 
-    m_contextStack.push_back(Context::Function);
+    m_contextStack.push_back(Context::Lambda);
 
     const auto prevFunction = m_vm->currentFunction();
     auto lambdaName = fmt::format("{}_lambda{}", prevFunction->name(), prevFunction->numLambdas());

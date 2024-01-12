@@ -23,6 +23,7 @@ enum class Op : u8
     LoadMember,
     LoadType,
     Pop,
+    PopIterator,
     PopLocals,
     Throw,
     Unpack,
@@ -61,6 +62,7 @@ enum class Op : u8
     LoadIndex,
 
     // jumping/control flow
+    Break,
     Call,
     CallNative,
     Exit,
