@@ -29,7 +29,7 @@ public:
 private:
     enum class Context
     {
-        ForLoop, Function, IfStatement, Lambda, TopLevel, TryCatch, WhileLoop,
+        Catch, ForLoop, Function, IfStatement, Lambda, TopLevel, Try, WhileLoop,
     };
 
     auto emitOp(runtime::Op op, usize line) const noexcept -> void;
@@ -42,7 +42,7 @@ private:
 
     enum class JumpType
     {
-        Break, IfFalse, IfTrue, None
+        Break, IfFalse, IfTrue, Jump
     };
 
     [[nodiscard]] auto emitJump() const noexcept -> JumpIndexes;
@@ -108,6 +108,7 @@ private:
     auto whileStatement() -> void;
     auto forStatement() -> void;
     auto breakStatement() -> void;
+    auto continueStatement() -> void;
 
     auto expression(bool canAssign, bool canUnpack) -> void;
     auto unpack() -> void;
@@ -161,7 +162,7 @@ private:
     std::optional<scanner::Token> m_previous, m_current;
     std::vector<Context> m_contextStack;
 
-    std::stack<std::vector<JumpIndexes>> m_breakOpStack;
+    std::stack<std::vector<JumpIndexes>> m_breakJumpIndexesStack, m_continueJumpIndexesStack;
 
     std::vector<LocalVariable> m_localNames;
 

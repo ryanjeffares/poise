@@ -30,6 +30,7 @@ enum class TokenType : u8
     Break,
     By,
     Catch,
+    Continue,
     Else,
     EPrint,
     EPrintLn,

@@ -21,7 +21,7 @@ auto Compiler::emitConstant(runtime::Value value) const noexcept -> void
 
 auto Compiler::emitJump() const noexcept -> JumpIndexes
 {
-    return emitJump(JumpType::None, false);
+    return emitJump(JumpType::Jump, false);
 }
 
 auto Compiler::emitJump(JumpType jumpType, bool emitPop) const noexcept -> JumpIndexes
@@ -38,7 +38,7 @@ auto Compiler::emitJump(JumpType jumpType, bool emitPop) const noexcept -> JumpI
         case JumpType::IfTrue:
             emitOp(runtime::Op::JumpIfTrue, m_previous->line());
             break;
-        case JumpType::None:
+        case JumpType::Jump:
             emitOp(runtime::Op::Jump, m_previous->line());
             break;
     }
@@ -48,7 +48,7 @@ auto Compiler::emitJump(JumpType jumpType, bool emitPop) const noexcept -> JumpI
     const auto jumpOpIndex = function->numConstants();
     emitConstant(0_uz);
 
-    if (jumpType != JumpType::None) {
+    if (jumpType != JumpType::Jump) {
         emitConstant(emitPop);
     }
 

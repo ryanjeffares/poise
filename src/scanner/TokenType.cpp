@@ -225,6 +225,9 @@ auto formatter<scanner::TokenType>::format(scanner::TokenType tokenType, format_
         case scanner::TokenType::Catch:
             result = "Catch";
             break;
+        case scanner::TokenType::Continue:
+            result = "Continue";
+            break;
         case scanner::TokenType::Else:
             result = "Else";
             break;

@@ -4,9 +4,11 @@ func main() {
         println(i);
         i = i * 2;
 
-        if i >= 256 {
-            break;
-        }
+        try {
+            if i >= 256 {
+                break;
+            }
+        } catch e {}
     }
 
     var c: Int = 0;

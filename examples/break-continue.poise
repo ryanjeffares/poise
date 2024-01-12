@@ -5,9 +5,11 @@ func main() {
         println(i);
         for j in 10..100 by 10 {
             println(j);
+            try {
             if j >= 50 {
                 break;
             }
+            } catch e {}
         }
     }
 
@@ -20,5 +22,28 @@ func main() {
             break;
         }
         i = i + 1;
+    }
+
+    println("====");
+
+    for j in 0..30 {
+        if j % 2 == 0 {
+            continue;
+        }
+
+        println(j);
+    }
+
+    println("====");
+
+    i = 0;
+    while i < 100 {
+        i = i + 1;
+
+        if i % 2 == 0 {
+            continue;
+        } else {
+            println(i);
+        }
     }
 }

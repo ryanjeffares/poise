@@ -8,8 +8,13 @@ func main() {
         if i % 2 == 0 {
             println(String(i) + " is even");
         } else {
-            println(String(i) + " is odd");
+            try {
+                println(String(i) + " is odd");
+                continue;
+            } catch e {}
         }
+
+        println("End of loop body");
     }
 
     println(list.contains(5));

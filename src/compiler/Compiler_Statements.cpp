@@ -32,6 +32,8 @@ auto Compiler::statement(bool consumeSemicolon) -> void
         forStatement();
     } else if (match(scanner::TokenType::Break)) {
         breakStatement();
+    } else if (match(scanner::TokenType::Continue)) {
+        continueStatement();
     } else {
         expressionStatement(consumeSemicolon);
     }
@@ -131,7 +133,7 @@ auto Compiler::tryStatement() -> void
         return;
     }
 
-    m_contextStack.push_back(Context::TryCatch);
+    m_contextStack.push_back(Context::Try);
 
     const auto numLocalsStart = m_localNames.size();
 
@@ -170,6 +172,7 @@ auto Compiler::tryStatement() -> void
     m_localNames.resize(numLocalsStart);
 
     RETURN_IF_NO_MATCH(scanner::TokenType::Catch, "Expected 'catch' after 'try' block");
+    m_contextStack.pop_back();
     catchStatement();
 
     patchJump(jumpIndexes);
@@ -177,6 +180,8 @@ auto Compiler::tryStatement() -> void
 
 auto Compiler::catchStatement() -> void
 {
+    m_contextStack.push_back(Compiler::Context::Catch);
+
     const auto numLocalsStart = m_localNames.size();
 
     if (match(scanner::TokenType::Identifier)) {
@@ -273,7 +278,8 @@ auto Compiler::whileStatement() -> void
     }
 
     m_contextStack.push_back(Context::WhileLoop);
-    m_breakOpStack.emplace();
+    m_breakJumpIndexesStack.emplace();
+    m_continueJumpIndexesStack.emplace();
 
     const auto function = m_vm->currentFunction();
     // need to jump here at the end of each iteration
@@ -292,6 +298,13 @@ auto Compiler::whileStatement() -> void
         return;
     }
 
+    // patch continue statements
+    const auto continueJumpIndexes = std::move(m_continueJumpIndexesStack.top());
+    m_continueJumpIndexesStack.pop();
+    for (auto jumpIdxes : continueJumpIndexes) {
+        patchJump(jumpIdxes);
+    }
+
     // pop locals at the end of each iteration
     emitConstant(numLocalsStart);
     m_localNames.resize(numLocalsStart);
@@ -303,8 +316,8 @@ auto Compiler::whileStatement() -> void
     emitOp(runtime::Op::Jump, m_previous->line());
 
     // patch break statements
-    const auto breakJumpIndexes = std::move(m_breakOpStack.top());
-    m_breakOpStack.pop();
+    const auto breakJumpIndexes = std::move(m_breakJumpIndexesStack.top());
+    m_breakJumpIndexesStack.pop();
     for (auto jumpIdxes : breakJumpIndexes) {
         patchJump(jumpIdxes);
     }
@@ -327,7 +340,8 @@ auto Compiler::forStatement() -> void
     }
 
     m_contextStack.push_back(Context::ForLoop);
-    m_breakOpStack.emplace();
+    m_breakJumpIndexesStack.emplace();
+    m_continueJumpIndexesStack.emplace();
 
     RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected identifier");
 
@@ -382,6 +396,13 @@ auto Compiler::forStatement() -> void
         return;
     }
 
+    // patch continues
+    const auto continueJumpIndexes = std::move(m_continueJumpIndexesStack.top());
+    m_continueJumpIndexesStack.pop();
+    for (auto jumpIdxes : continueJumpIndexes) {
+        patchJump(jumpIdxes);
+    }
+
     emitConstant(firstIteratorLocalIndex);
     emitConstant(secondIteratorLocalIndex ? *secondIteratorLocalIndex : 0_uz);
     emitOp(runtime::Op::IncrementIterator, m_previous->line());
@@ -397,8 +418,8 @@ auto Compiler::forStatement() -> void
     emitOp(runtime::Op::Jump, m_previous->line());
 
     // patch breaks
-    const auto breakJumpIndexes = std::move(m_breakOpStack.top());
-    m_breakOpStack.pop();
+    const auto breakJumpIndexes = std::move(m_breakJumpIndexesStack.top());
+    m_breakJumpIndexesStack.pop();
     for (auto jumpIdxes : breakJumpIndexes) {
         patchJump(jumpIdxes);
     }
@@ -432,7 +453,39 @@ auto Compiler::breakStatement() -> void
         return;
     }
     
-    m_breakOpStack.top().push_back(emitJump(JumpType::Break, false));
+    const auto tryIt = std::find(m_contextStack.cbegin(), m_contextStack.cend(), Context::Try);
+    if (tryIt != m_contextStack.cend() && tryIt > loopIt) {
+        emitOp(runtime::Op::ExitTry, m_previous->line());
+    }
+
+    m_breakJumpIndexesStack.top().push_back(emitJump(JumpType::Break, false));
+
+    EXPECT_SEMICOLON();
+}
+
+auto Compiler::continueStatement() -> void
+{
+    const auto loopIt = std::find_if(m_contextStack.cbegin(), m_contextStack.cend(), [] (Context context) {
+        return context == Context::ForLoop || context == Context::WhileLoop;
+    });
+
+    if (loopIt == m_contextStack.cend()) {
+        errorAtPrevious("'continue' only allowed inside of loops");
+        return;
+    }
+
+    const auto lambdaIt = std::find(m_contextStack.cbegin(), m_contextStack.cend(), Context::Lambda);
+    if (lambdaIt != m_contextStack.cend() && lambdaIt > loopIt) {
+        errorAtPrevious("'continue' only allowed inside of loops");
+        return;
+    }
+    
+    const auto tryIt = std::find(m_contextStack.cbegin(), m_contextStack.cend(), Context::Try);
+    if (tryIt != m_contextStack.cend() && tryIt > loopIt) {
+        emitOp(runtime::Op::ExitTry, m_previous->line());
+    }
+
+    m_continueJumpIndexesStack.top().push_back(emitJump(JumpType::Jump, false));
 
     EXPECT_SEMICOLON();
 }
