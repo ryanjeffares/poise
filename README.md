@@ -25,10 +25,6 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * Compiler warnings
 * Optimisation
 * ~~`getCodeAtLine()` for imported files~~
-* Think about whether you should be able to unpack anywhere
-    * How would we know what to pop off the stack, if only one of the values is used?
-    * Unpacking would need a different Vm implementation
-    * What if packs were just lists...
 * Full UFCS + `Any` type annotation?
     * In general, I think I prefer the idea of having an `Any` type annotation as opposed to full UFCS.
     * However, adding an extension function to `Any` gets complicated.
@@ -73,17 +69,17 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * ~~Two functions with the same name in a different namespace will override each-other~~
 * Builtin objects
     * ~~Use types::Type instead of Value::TypeInternal for type()~~ 
-    * Iterable collections
-        * Tidy up access modifiers
+    * ~~Iterable collections~~
+        * ~~Tidy up access modifiers~~
         * ~~Lists~~
         * ~~Ranges~~
             * ~~Can't change the internal state of the range so that you can iterate over it many times, or concurrently~~
         * ~~Tuple~~
         * ~~Dicts~~
-        * Sets
-        * Index operator
-    * Special constructors for the above
-    * Binary ops for the above
+        * ~~Sets~~
+        * ~~Index operator~~
+    * ~~Special constructors for the above~~
+    * ~~Binary ops for the above~~
     * Could we do some kind of rust/c# linq/ranges style lazy evaluation...
     * ~~Option and Result types?~~
         * No need, `try` assignments work like Results, everything is an option because anything can be `none` - implement `is_none()` and `is_some()` on `Any`
@@ -126,7 +122,8 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * ~~Type hints~~
     * Expand to include user defined classes when we do these
         * Could we compile time check for the existence of the class? Is there a situation where you'd need to define a function that takes a class, before defining that class?
-    * Allow >= 2 generic types for dictionaries, tuples etc when we do those
+        * Yes, for cyclic dependant files.
+    * ~~Allow >= 2 generic types for dictionaries, tuples etc when we do those~~
 * CL arg parsing
 * Standard Library
     * Precompile as bytecode files

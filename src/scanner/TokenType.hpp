@@ -5,6 +5,8 @@
 
 #include <fmt/format.h>
 
+#include <string_view>
+
 namespace poise::scanner {
 enum class TokenType : u8
 {
@@ -101,12 +103,18 @@ enum class TokenType : u8
 [[nodiscard]] auto isLiteral(TokenType tokenType) noexcept -> bool;
 [[nodiscard]] auto isUnaryOp(TokenType tokenType) noexcept -> bool;
 [[nodiscard]] auto isTypeIdent(TokenType tokenType) noexcept -> bool;
-[[nodiscard]] auto isGenericTypeIdent(TokenType tokenType) noexcept -> bool;
 [[nodiscard]] auto isPrimitiveTypeIdent(TokenType tokenType) noexcept -> bool;
 [[nodiscard]] auto isBuiltinFunction(TokenType tokenType) noexcept -> bool;
 [[nodiscard]] auto isValidStartOfExpression(TokenType tokenType) noexcept -> bool;
 
-[[nodiscard]] auto builtinGenericTypeCount(TokenType tokenType) noexcept -> u8;
+[[nodiscard]] auto typeDisplayName(TokenType tokenType) noexcept -> std::string_view;
+
+enum class AllowedGenericTypeCount
+{
+    None, One, Two, Any,
+};
+
+[[nodiscard]] auto builtinGenericTypeCount(TokenType tokenType) noexcept -> AllowedGenericTypeCount;
 
 // for the record, i hate this
 enum class AllowedArgCount

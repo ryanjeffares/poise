@@ -19,4 +19,7 @@ func main() {
         [0, 1, 2, 3],
     ];
     println(matrix);
+
+    var i: Tuple[Int, String];
+    var d: Dict[Int, String];
 }

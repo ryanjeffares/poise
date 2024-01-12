@@ -350,33 +350,41 @@ auto Compiler::parseTypeAnnotation() -> void
 
     advance();
 
-    if (check(scanner::TokenType::OpenSquareBracket) && !scanner::isGenericTypeIdent(m_previous->tokenType())) {
-        errorAtCurrent(fmt::format("Type {} is not generic", static_cast<runtime::types::Type>(m_previous->tokenType())));
-        return;
-    }
-
-    const auto typeIdent = m_previous->tokenType();
+    const auto tokenType = m_previous->tokenType();
+    const auto genericTypeCount = scanner::builtinGenericTypeCount(tokenType);
+    const auto typeName = scanner::typeDisplayName(tokenType);
 
     if (match(scanner::TokenType::OpenSquareBracket)) {
-        const auto numGenericTypes = scanner::builtinGenericTypeCount(typeIdent);
-
-        parseTypeAnnotation();
-
-        for (auto i = 0_u8; i < numGenericTypes - 1_u8; i++) {
-            if (!match(scanner::TokenType::Comma)) {
-                errorAtCurrent(fmt::format(
-                    "Expected ',' because {} takes {} generic types",
-                    static_cast<runtime::types::Type>(typeIdent),
-                    numGenericTypes
-                ));
-
-                return;
-            }
-
-            parseTypeAnnotation();
+        if (genericTypeCount == scanner::AllowedGenericTypeCount::None) {
+            errorAtPrevious(fmt::format("{} is not generic", typeName));
+            return;
         }
 
-        RETURN_IF_NO_MATCH(scanner::TokenType::CloseSquareBracket, "Expected ']'");
+        switch (genericTypeCount) {
+            case scanner::AllowedGenericTypeCount::None:
+                POISE_UNREACHABLE();
+                return;
+            case scanner::AllowedGenericTypeCount::One: {
+                parseTypeAnnotation();
+                RETURN_IF_NO_MATCH(scanner::TokenType::CloseSquareBracket, fmt::format("Expected ']' because {} uses 1 generic type", typeName));
+                break;
+            }
+            case scanner::AllowedGenericTypeCount::Two: {
+                parseTypeAnnotation();
+                RETURN_IF_NO_MATCH(scanner::TokenType::Comma, fmt::format("Expected ',' because {} uses 2 generic types", typeName));
+                parseTypeAnnotation();
+                RETURN_IF_NO_MATCH(scanner::TokenType::CloseSquareBracket, fmt::format("Expected ']' because {} uses 2 generic types", typeName));
+                break;
+            }
+            case scanner::AllowedGenericTypeCount::Any: {
+                parseTypeAnnotation();
+                while (!match(scanner::TokenType::CloseSquareBracket)) {
+                    RETURN_IF_NO_MATCH(scanner::TokenType::Comma, fmt::format("Expected ','"));
+                    parseTypeAnnotation();
+                }
+                break;
+            }
+        }
     }
 
     if (match(scanner::TokenType::Pipe)) {

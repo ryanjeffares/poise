@@ -51,18 +51,6 @@ auto isTypeIdent(TokenType tokenType) noexcept -> bool
     }
 }
 
-auto isGenericTypeIdent(TokenType tokenType) noexcept -> bool 
-{
-    switch (tokenType) {
-        case TokenType::DictIdent:
-        case TokenType::ListIdent:
-        case TokenType::SetIdent:
-            return true;
-        default:
-            return false;
-    }
-}
-
 auto isPrimitiveTypeIdent(TokenType tokenType) noexcept -> bool
 {
     switch (tokenType) {
@@ -99,18 +87,55 @@ auto isValidStartOfExpression(TokenType tokenType) noexcept -> bool
            tokenType == TokenType::OpenBrace;           // for dicts 
 }
 
-auto builtinGenericTypeCount(TokenType tokenType) noexcept -> u8
+auto typeDisplayName(TokenType tokenType) noexcept -> std::string_view
+{
+    POISE_ASSERT(isTypeIdent(tokenType), fmt::format("Expected type ident that can be generic but got {}", tokenType));
+
+    switch (tokenType) {
+        case TokenType::BoolIdent:
+            return "Bool";
+        case TokenType::FloatIdent:
+            return "Float";
+        case TokenType::IntIdent:
+            return "Int";
+        case TokenType::NoneIdent:
+            return "None";
+        case TokenType::StringIdent:
+            return "String";
+        case TokenType::DictIdent:
+            return "Dict";
+        case TokenType::ExceptionIdent:
+            return "Exception";
+        case TokenType::FunctionIdent:
+            return "Function";
+        case TokenType::ListIdent:
+            return "List";
+        case TokenType::RangeIdent:
+            return "Range";
+        case TokenType::SetIdent:
+            return "Set";
+        case TokenType::TupleIdent:
+            return "Tuple";
+        default:
+            POISE_UNREACHABLE();
+            return "";
+    }
+}
+
+auto builtinGenericTypeCount(TokenType tokenType) noexcept -> AllowedGenericTypeCount
 {
     POISE_ASSERT(isGenericTypeIdent(tokenType), fmt::format("Expected type ident that can be generic but got {}", tokenType));
 
     switch (tokenType) {
         case TokenType::ListIdent:
         case TokenType::SetIdent:
-            return 1_u8;
+            return AllowedGenericTypeCount::One;
         case TokenType::DictIdent:
-            return 2_u8;
+            return AllowedGenericTypeCount::Two;
+        case TokenType::TupleIdent:
+            return AllowedGenericTypeCount::Any;
         default:
-            return 0_u8;
+            return AllowedGenericTypeCount::None;
     }
 }
 
