@@ -17,9 +17,9 @@ public:
     auto isAtEnd(const IteratorType& iterator) noexcept -> bool override;
     auto unpack(std::vector<runtime::Value>& stack) const noexcept -> void override;
 
-    [[nodiscard]] auto asIterable() noexcept -> iterables::Iterable* override;
-    [[nodiscard]] auto asHashable() noexcept -> iterables::hashables::Hashable* override;
-    [[nodiscard]] auto asSet() noexcept -> iterables::hashables::Set* override;
+    [[nodiscard]] auto asIterable() noexcept -> Iterable* override;
+    [[nodiscard]] auto asHashable() noexcept -> Hashable* override;
+    [[nodiscard]] auto asSet() noexcept -> Set* override;
 
     [[nodiscard]] auto toString() const noexcept -> std::string override;
     [[nodiscard]] auto type() const noexcept -> runtime::types::Type override;

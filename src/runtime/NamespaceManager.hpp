@@ -24,7 +24,7 @@ public:
     using NamespaceFunctionLookup = std::unordered_map<NamespaceHash, std::vector<Value>>;
     using NamespacesImportedToNamespaceLookup = std::unordered_map<NamespaceHash, std::vector<NamespaceHash>>;
 
-    [[nodiscard]] auto namespaceHash(const std::filesystem::path& namespaceHash) const noexcept -> NamespaceHash;
+    [[nodiscard]] auto namespaceHash(const std::filesystem::path& namespacePath) const noexcept -> NamespaceHash;
 
     [[nodiscard]] auto addNamespace(const std::filesystem::path& namespacePath, std::string namespaceName, std::optional<NamespaceHash> parent) noexcept -> bool;
     [[nodiscard]] auto namespaceDisplayName(NamespaceHash namespaceHash) const noexcept -> std::string_view;

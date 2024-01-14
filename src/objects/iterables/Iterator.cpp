@@ -79,7 +79,7 @@ auto Iterator::iterator() const noexcept -> const IteratorType&
     return m_iterator;
 }
 
-auto Iterator::iterator() noexcept -> Iterator::IteratorType&
+auto Iterator::iterator() noexcept -> IteratorType&
 {
     return m_iterator;
 }

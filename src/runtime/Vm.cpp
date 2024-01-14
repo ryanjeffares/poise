@@ -111,24 +111,24 @@ Vm::Vm(std::string mainFilePath)
                             Exception::ExceptionType::InvalidType,
                             fmt::format("Function can only be constructed from Function or Lambda but got {}", args[0_uz].type())
                         };
-                    } else {
-                        throw Exception{
-                            Exception::ExceptionType::InvalidType,
-                            "Function can only be constructed from Function or Lambda"
-                        };
                     }
+
+                    throw Exception{
+                        Exception::ExceptionType::InvalidType,
+                        "Function can only be constructed from Function or Lambda"
+                    };
                 })},
         {types::Type::Iterator, Value::createObject<Type>(types::Type::Iterator, "Iterator", nullptr)},
         {types::Type::List, Value::createObject<Type>(types::Type::List, "List",
                 [](std::span<Value> args) -> Value {
                     if (args.size() == 1_uz) {
                         return Value::createObject<List>(std::move(args[0_uz]));
-                    } else {
-                        return Value::createObject<List>(std::vector<Value>{
-                            std::make_move_iterator(args.begin()),
-                            std::make_move_iterator(args.end())
-                        });
                     }
+
+                    return Value::createObject<List>(std::vector<Value>{
+                        std::make_move_iterator(args.begin()),
+                        std::make_move_iterator(args.end())
+                    });
                 })},
         {types::Type::Range, Value::createObject<Type>(types::Type::Range, "Range",
                 [](std::span<Value> args) -> Value {
@@ -168,23 +168,22 @@ Vm::Vm(std::string mainFilePath)
                             std::move(args[2_uz]),
                             args[3_uz].value<bool>()
                         );
-                    } else {
-                        return Value::createObject<Range>(
-                            std::move(args[0_uz]),
-                            std::move(args[1_uz]),
-                            1,
-                            args[2_uz].value<bool>()
-                        );
                     }
 
+                    return Value::createObject<Range>(
+                        std::move(args[0_uz]),
+                        std::move(args[1_uz]),
+                        1,
+                        args[2_uz].value<bool>()
+                    );
                 })},
         {types::Type::Set, Value::createObject<Type>(types::Type::Set, "Set",
                 [](std::span<Value> args) -> Value {
                     if (args.size() == 1_uz) {
                         return Value::createObject<Set>(std::move(args[0_uz]));
-                    } else {
-                        return Value::createObject<Set>(args);
                     }
+
+                    return Value::createObject<Set>(args);
                 })},
         {types::Type::Tuple, Value::createObject<Type>(types::Type::Tuple, "Tuple",
                 [](std::span<Value> args) -> Value {
@@ -259,7 +258,7 @@ auto Vm::emitConstant(Value value) noexcept -> void
     }
 }
 
-auto Vm::run() noexcept -> RunResult
+auto Vm::run() const noexcept -> RunResult
 {
     std::vector<Value> stack;
     std::vector<Value> localVariables;

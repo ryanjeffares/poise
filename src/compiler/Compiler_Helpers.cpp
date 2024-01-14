@@ -7,6 +7,7 @@
 #include "../runtime/Types.hpp"
 
 #include <limits>
+#include <ranges>
 
 namespace poise::compiler {
 auto Compiler::emitOp(runtime::Op op, usize line) const noexcept -> void
@@ -93,31 +94,31 @@ auto Compiler::check(scanner::TokenType expected) const noexcept -> bool
 
 auto Compiler::hasLocal(std::string_view localName) const noexcept -> bool
 {
-    return std::find_if(m_localNames.cbegin(), m_localNames.cend(), [localName](const LocalVariable& local) {
+    return std::ranges::find_if(m_localNames, [localName] (const LocalVariable& local) -> bool {
         return local.name == localName;
-    }) != m_localNames.cend();
+    }) != m_localNames.end();
 }
 
 auto Compiler::findLocal(std::string_view localName) const noexcept -> std::optional<LocalVariable>
 {
-    if (const auto it = std::find_if(m_localNames.cbegin(), m_localNames.cend(), [localName](const LocalVariable& local) {
+    if (const auto it = std::ranges::find_if(m_localNames, [localName] (const LocalVariable& local) -> bool {
         return local.name == localName;
     }); it != m_localNames.end()) {
         return *it;
-    } else{
-        return std::nullopt;
     }
+
+    return std::nullopt;
 }
 
 auto Compiler::indexOfLocal(std::string_view localName) const noexcept -> std::optional<usize>
 {
-    if (const auto it = std::find_if(m_localNames.cbegin(), m_localNames.cend(), [localName](const LocalVariable& local) {
+    if (const auto it = std::ranges::find_if(m_localNames, [localName](const LocalVariable& local) -> bool {
             return local.name == localName;
-        }); it != m_localNames.end()) {
-        return static_cast<usize>(std::distance(m_localNames.cbegin(), it));
-    } else{
-        return std::nullopt;
+    }); it != m_localNames.end()) {
+        return static_cast<usize>(std::distance(m_localNames.begin(), it));
     }
+
+    return std::nullopt;
 }
 
 auto Compiler::checkLastOp(runtime::Op op) const noexcept -> bool
@@ -234,9 +235,9 @@ auto Compiler::parseFunctionParams(bool isLambda) -> std::optional<FunctionParam
         }
 
         auto argName = m_previous->string();
-        if (std::find_if(m_localNames.cbegin(), m_localNames.cend(), [&argName](const LocalVariable& local) {
+        if (std::ranges::find_if(m_localNames, [&argName] (const LocalVariable& local) -> bool {
             return local.name == argName;
-        }) != m_localNames.cend()) {
+        }) != m_localNames.end()) {
             errorAtPrevious("Function parameter with the same name already declared");
             return {};
         }
@@ -293,13 +294,15 @@ auto Compiler::parseNamespaceImport() -> std::optional<NamespaceParseResult>
 
             RETURN_VALUE_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected namespace", std::nullopt);
 
-            auto text = m_previous->string();
+            const auto text = m_previous->string();
             namespaceName += text;
 
             if (match(scanner::TokenType::Semicolon)) {
                 namespaceFilePath /= text + ".poise";
                 break;
-            } else if (match(scanner::TokenType::As)) {
+            }
+
+            if (match(scanner::TokenType::As)) {
                 namespaceFilePath /= text + ".poise";
 
                 RETURN_VALUE_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected alias for namespace", std::nullopt);
@@ -314,9 +317,9 @@ auto Compiler::parseNamespaceImport() -> std::optional<NamespaceParseResult>
 
                 EXPECT_SEMICOLON_RETURN_VALUE(std::nullopt);
                 break;
-            } else {
-                namespaceFilePath /= m_previous->text();
             }
+
+            namespaceFilePath /= m_previous->text();
         }
     }
 

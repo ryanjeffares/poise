@@ -7,18 +7,14 @@
 #include <fmt/format.h>
 
 namespace poise::objects::iterables {
-Range::Range(runtime::Value start, runtime::Value end, runtime::Value increment, bool inclusive)
+Range::Range(const runtime::Value& start, const runtime::Value& end, const runtime::Value& increment, bool inclusive)
     : m_inclusive{inclusive}
-    , m_start{std::move(start)}
-    , m_end{std::move(end)}
-    , m_increment{std::move(increment)}
+    , m_start{start.value<i64>()}
+    , m_end{end.value<i64>()}
+    , m_increment{increment.value<i64>()}
 {
-    const auto s = m_start.toInt();
-    const auto e = m_end.toInt();
-    const auto i = m_increment.toInt();
-
-    if (((s < e) && (i > 0)) || ((e < s) && (i < 0))) {
-        fillData(s, i);
+    if ((m_start < m_end && m_increment > 0) || (m_end < m_start && m_increment < 0)) {
+        fillData(m_start, m_increment);
     } else {
         // otherwise no iteration is possible
         // either the increment is 0, or going in the other direction of start -> end
@@ -58,12 +54,8 @@ auto Range::size() const noexcept -> usize
         return 0_uz;
     }
 
-    const auto s = m_start.toInt();
-    const auto e = m_end.toInt();
-    const auto i = std::abs(m_increment.toInt());
-
-    const auto range = s < e ? std::abs(e - s) : std::abs(s - e);
-    return static_cast<usize>(range / i);
+    const auto range = m_start < m_end ? std::abs(m_end - m_start) : std::abs(m_start - m_end);
+    return static_cast<usize>(range / std::abs(m_increment));
 }
 
 auto Range::ssize() const noexcept -> isize
@@ -79,35 +71,33 @@ auto Range::unpack(std::vector<runtime::Value>& stack) const noexcept -> void
         return;
     }
 
-    auto s = m_start.toInt();
-    const auto e = m_end.toInt();
-    const auto inc = m_increment.toInt();
-    const auto upwards = e > s;
+    const auto upwards = m_end > m_start;
+    auto current = m_start;
 
-    for (;; s += inc) {
-        if (upwards ? (m_inclusive ? (s > e) : (s >= e)) : (m_inclusive ? (s < e) : (s <= e))) {
+    for (;; current += m_increment) {
+        if (upwards ? (m_inclusive ? current > m_end : current >= m_end) : (m_inclusive ? current < m_end : current <= m_end)) {
             break;
         }
 
-        stack.emplace_back(s);
+        stack.emplace_back(current);
     }
 
     stack.emplace_back(size());
 }
 
-auto Range::begin() noexcept -> Iterable::IteratorType
+auto Range::begin() noexcept -> IteratorType
 {
     return m_data.begin();
 }
 
-auto Range::end() noexcept -> Iterable::IteratorType
+auto Range::end() noexcept -> IteratorType
 {
     return m_data.end();
 }
 
-auto Range::incrementIterator(Iterable::IteratorType& iterator) noexcept -> void
+auto Range::incrementIterator(IteratorType& iterator) noexcept -> void
 {
-    iterator++;
+    ++iterator;
 
     if (isAtEnd(iterator)) {
         // exhausted the current data, check if we need to refill
@@ -118,8 +108,8 @@ auto Range::incrementIterator(Iterable::IteratorType& iterator) noexcept -> void
                 iteratorIndexes.push_back(std::distance(m_data.begin(), m_activeIterators[i]->iterator()));
             }
 
-            auto value = m_data.back().toInt() + m_increment.toInt();
-            fillData(value, m_increment.toInt());
+            const auto value = m_data.back().toInt() + m_increment;
+            fillData(value, m_increment);
 
             for (auto i = 0_uz; i < m_activeIterators.size(); i++) {
                 m_activeIterators[i]->iterator() = m_data.begin() + iteratorIndexes[i];
@@ -131,7 +121,7 @@ auto Range::incrementIterator(Iterable::IteratorType& iterator) noexcept -> void
     }
 }
 
-auto Range::isAtEnd(const Iterable::IteratorType& iterator) noexcept -> bool
+auto Range::isAtEnd(const IteratorType& iterator) noexcept -> bool
 {
     return iterator == end();
 }
@@ -180,17 +170,15 @@ auto Range::toVector() const noexcept -> std::vector<runtime::Value>
 
     std::vector<runtime::Value> res;
 
-    auto s = m_start.toInt();
-    const auto e = m_end.toInt();
-    const auto inc = m_increment.toInt();
-    const auto upwards = e > s;
+    const auto upwards = m_end > m_start;
+    auto current = m_start;
 
-    for (;; s += inc) {
-        if (upwards ? (m_inclusive ? (s > e) : (s >= e)) : (m_inclusive ? (s < e) : (s <= e))) {
+    for (;; current += m_increment) {
+        if (upwards ? (m_inclusive ? current > m_end : current >= m_end) : (m_inclusive ? current < m_end : current <= m_end)) {
             break;
         }
 
-        res.emplace_back(s);
+        res.emplace_back(current);
     }
 
     return res;

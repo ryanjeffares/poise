@@ -1,8 +1,9 @@
 #include "Objects.hpp"
 
-#include <fmt/core.h>
 #include <fmt/format.h>
 #include <fmt/ranges.h>
+
+#include <ranges>
 
 namespace poise::objects {
 Type::Type(runtime::types::Type type, std::string name, ConstructorFn constructorFunction)
@@ -60,7 +61,7 @@ auto Type::addExtensionFunction(runtime::Value extensionFunction) -> void
 
 auto Type::findExtensionFunction(usize functionNameHash) const -> std::optional<runtime::Value>
 {
-    const auto count = std::count_if(m_extensionFunctions.cbegin(), m_extensionFunctions.cend(), [functionNameHash] (const runtime::Value& value) {
+    const auto count = std::ranges::count_if(m_extensionFunctions, [functionNameHash] (const auto& value) -> bool {
         return value.object()->asFunction()->nameHash() == functionNameHash;
     });
 
@@ -68,7 +69,7 @@ auto Type::findExtensionFunction(usize functionNameHash) const -> std::optional<
         case 0:
             return {};
         case 1:
-            return *std::find_if(m_extensionFunctions.begin(), m_extensionFunctions.end(), [functionNameHash] (const runtime::Value& value) {
+            return *std::ranges::find_if(m_extensionFunctions, [functionNameHash] (const auto& value) -> bool {
                 return value.object()->asFunction()->nameHash() == functionNameHash;
             });
         default: {
@@ -89,9 +90,9 @@ auto Type::findExtensionFunction(usize functionNameHash) const -> std::optional<
 
 auto Type::findExtensionFunction(std::string_view functionName) const -> std::optional<runtime::Value>
 {
-    if (const auto it = std::find_if(m_extensionFunctions.cbegin(), m_extensionFunctions.cend(), [functionName](const runtime::Value& value) {
+    if (const auto it = std::ranges::find_if(m_extensionFunctions, [functionName] (const auto& value) -> bool {
         return value.object()->asFunction()->name() == functionName;
-    }); it != m_extensionFunctions.cend()) {
+    }); it != m_extensionFunctions.end()) {
         return *it;
     }
 

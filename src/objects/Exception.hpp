@@ -50,12 +50,10 @@ private:
 };  // class PoiseException
 }   // namespace poise::objects
 
-namespace fmt {
 template<>
-struct formatter<poise::objects::Exception::ExceptionType> : formatter<string_view>
+struct fmt::formatter<poise::objects::Exception::ExceptionType> : formatter<string_view>
 {
-    auto format(poise::objects::Exception::ExceptionType exceptionType, format_context& context) -> decltype(context.out());
-};
-}   // namespace fmt
+    auto format(poise::objects::Exception::ExceptionType exceptionType, format_context& context) const -> decltype(context.out());
+};   // namespace fmt
 
 #endif  // POISE_EXCEPTION_HPP

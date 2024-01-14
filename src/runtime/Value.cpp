@@ -2,8 +2,6 @@
 #include "../objects/Exception.hpp"
 #include "../objects/iterables/hashables/Set.hpp"
 
-#include <fmt/core.h>
-
 #include <charconv>
 #include <functional>
 
@@ -107,11 +105,6 @@ auto Value::string() const noexcept -> const std::string&
     return *m_data.string;
 }
 
-auto Value::string() noexcept -> std::string&
-{
-    return *m_data.string;
-}
-
 auto Value::object() const noexcept -> objects::Object*
 {
     return typeInternal() == TypeInternal::Object ? m_data.object : nullptr;
@@ -121,9 +114,9 @@ auto Value::type() const noexcept -> types::Type
 {
     if (typeInternal() == TypeInternal::Object) {
         return object()->type();
-    } else {
-        return static_cast<types::Type>(typeInternal());
     }
+
+    return static_cast<types::Type>(typeInternal());
 }
 
 auto Value::hash() const noexcept -> usize
@@ -194,11 +187,15 @@ auto Value::toFloat() const -> f64
         case TypeInternal::String: {
             auto res{0.0};
             const auto [ptr, ec] = std::from_chars(string().data(), string().data() + string().length(), res);
+
             if (ec == std::errc::invalid_argument) {
                 throw Exception(Exception::ExceptionType::InvalidCast, fmt::format("Cannot convert '{}' to Float", string()));
-            } else if (ec == std::errc::result_out_of_range) {
+            }
+
+            if (ec == std::errc::result_out_of_range) {
                 throw Exception(Exception::ExceptionType::InvalidCast, fmt::format("{} out of range for Float", string()));
             }
+
             return res;
         }
         default:
@@ -218,11 +215,15 @@ auto Value::toInt() const -> i64
         case TypeInternal::String: {
             auto res{0_i64};
             const auto [ptr, ec] = std::from_chars(string().data(), string().data() + string().length(), res);
+
             if (ec == std::errc::invalid_argument) {
                 throw Exception(Exception::ExceptionType::InvalidCast, fmt::format("Cannot convert '{}' to Int", string()));
-            } else if (ec == std::errc::result_out_of_range) {
+            }
+
+            if (ec == std::errc::result_out_of_range) {
                 throw Exception(Exception::ExceptionType::InvalidCast, fmt::format("{} out of range for Int", string()));
             }
+
             return res;
         }
         default:
@@ -689,9 +690,9 @@ auto Value::operator>=(const Value& other) const -> bool
 {
     if (type() == types::Type::Set && other.type() == types::Type::Set) {
         return object()->asSet()->isSuperset(*other.object()->asSet());
-    } else {
-        return !(*this < other);
     }
+
+    return !(*this < other);
 }
 
 auto Value::operator||(const Value& other) const noexcept -> bool

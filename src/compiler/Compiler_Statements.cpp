@@ -5,6 +5,8 @@
 #include "Compiler.hpp"
 #include "Compiler_Macros.hpp"
 
+#include <ranges>
+
 namespace poise::compiler {
 auto Compiler::statement(bool consumeSemicolon) -> void
 {
@@ -180,16 +182,15 @@ auto Compiler::tryStatement() -> void
 
 auto Compiler::catchStatement() -> void
 {
-    m_contextStack.push_back(Compiler::Context::Catch);
+    m_contextStack.push_back(Context::Catch);
 
     const auto numLocalsStart = m_localNames.size();
 
     if (match(scanner::TokenType::Identifier)) {
         // create this as a local
         // assign the caught exception to that local
-        const auto text = m_previous->text();
 
-        if (hasLocal(text)) {
+        if (const auto text = m_previous->text(); hasLocal(text)) {
             errorAtPrevious("Local variable with the same name already declared");
             return;
         }
@@ -301,7 +302,7 @@ auto Compiler::whileStatement() -> void
     // patch continue statements
     const auto continueJumpIndexes = std::move(m_continueJumpIndexesStack.top());
     m_continueJumpIndexesStack.pop();
-    for (auto jumpIdxes : continueJumpIndexes) {
+    for (const auto jumpIdxes : continueJumpIndexes) {
         patchJump(jumpIdxes);
     }
 
@@ -318,7 +319,7 @@ auto Compiler::whileStatement() -> void
     // patch break statements
     const auto breakJumpIndexes = std::move(m_breakJumpIndexesStack.top());
     m_breakJumpIndexesStack.pop();
-    for (auto jumpIdxes : breakJumpIndexes) {
+    for (const auto jumpIdxes : breakJumpIndexes) {
         patchJump(jumpIdxes);
     }
 
@@ -345,8 +346,7 @@ auto Compiler::forStatement() -> void
 
     RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected identifier");
 
-    const auto firstIteratorName = m_previous->text();
-    if (hasLocal(firstIteratorName)) {
+    if (const auto firstIteratorName = m_previous->text(); hasLocal(firstIteratorName)) {
         errorAtPrevious("Local variable with the same name already declared");
         return;
     }
@@ -360,8 +360,7 @@ auto Compiler::forStatement() -> void
     std::optional<usize> secondIteratorLocalIndex;
     if (match(scanner::TokenType::Comma)) {
         RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected identifier");
-        const auto secondIteratorName = m_previous->text();
-        if (hasLocal(secondIteratorName)) {
+        if (const auto secondIteratorName = m_previous->text(); hasLocal(secondIteratorName)) {
             errorAtPrevious("Local variable with the same name already declared");
             return;
         }
@@ -399,7 +398,7 @@ auto Compiler::forStatement() -> void
     // patch continues
     const auto continueJumpIndexes = std::move(m_continueJumpIndexesStack.top());
     m_continueJumpIndexesStack.pop();
-    for (auto jumpIdxes : continueJumpIndexes) {
+    for (const auto jumpIdxes : continueJumpIndexes) {
         patchJump(jumpIdxes);
     }
 
@@ -420,7 +419,7 @@ auto Compiler::forStatement() -> void
     // patch breaks
     const auto breakJumpIndexes = std::move(m_breakJumpIndexesStack.top());
     m_breakJumpIndexesStack.pop();
-    for (auto jumpIdxes : breakJumpIndexes) {
+    for (const auto jumpIdxes : breakJumpIndexes) {
         patchJump(jumpIdxes);
     }
 
@@ -438,23 +437,21 @@ auto Compiler::forStatement() -> void
 
 auto Compiler::breakStatement() -> void
 {
-    const auto loopIt = std::find_if(m_contextStack.cbegin(), m_contextStack.cend(), [] (Context context) {
+    const auto loopIt = std::ranges::find_if(m_contextStack, [] (Context context) -> bool {
         return context == Context::ForLoop || context == Context::WhileLoop;
     });
 
-    if (loopIt == m_contextStack.cend()) {
+    if (loopIt == m_contextStack.end()) {
         errorAtPrevious("'break' only allowed inside of loops");
         return;
     }
 
-    const auto lambdaIt = std::find(m_contextStack.cbegin(), m_contextStack.cend(), Context::Lambda);
-    if (lambdaIt != m_contextStack.cend() && lambdaIt > loopIt) {
+    if (const auto lambdaIt = std::ranges::find(m_contextStack, Context::Lambda); lambdaIt != m_contextStack.end() && lambdaIt > loopIt) {
         errorAtPrevious("'break' only allowed inside of loops");
         return;
     }
-    
-    const auto tryIt = std::find(m_contextStack.cbegin(), m_contextStack.cend(), Context::Try);
-    if (tryIt != m_contextStack.cend() && tryIt > loopIt) {
+
+    if (const auto tryIt = std::ranges::find(m_contextStack, Context::Try); tryIt != m_contextStack.end() && tryIt > loopIt) {
         emitOp(runtime::Op::ExitTry, m_previous->line());
     }
 
@@ -465,23 +462,21 @@ auto Compiler::breakStatement() -> void
 
 auto Compiler::continueStatement() -> void
 {
-    const auto loopIt = std::find_if(m_contextStack.cbegin(), m_contextStack.cend(), [] (Context context) {
+    const auto loopIt = std::ranges::find_if(m_contextStack, [] (Context context) -> bool {
         return context == Context::ForLoop || context == Context::WhileLoop;
     });
 
-    if (loopIt == m_contextStack.cend()) {
+    if (loopIt == m_contextStack.end()) {
         errorAtPrevious("'continue' only allowed inside of loops");
         return;
     }
 
-    const auto lambdaIt = std::find(m_contextStack.cbegin(), m_contextStack.cend(), Context::Lambda);
-    if (lambdaIt != m_contextStack.cend() && lambdaIt > loopIt) {
+    if (const auto lambdaIt = std::ranges::find(m_contextStack, Context::Lambda); lambdaIt != m_contextStack.end() && lambdaIt > loopIt) {
         errorAtPrevious("'continue' only allowed inside of loops");
         return;
     }
-    
-    const auto tryIt = std::find(m_contextStack.cbegin(), m_contextStack.cend(), Context::Try);
-    if (tryIt != m_contextStack.cend() && tryIt > loopIt) {
+
+    if (const auto tryIt = std::ranges::find(m_contextStack, Context::Try); tryIt != m_contextStack.end() && tryIt > loopIt) {
         emitOp(runtime::Op::ExitTry, m_previous->line());
     }
 

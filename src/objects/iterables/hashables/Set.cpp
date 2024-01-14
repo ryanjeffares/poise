@@ -1,6 +1,8 @@
 #include "Set.hpp"
 #include "../Range.hpp"
 
+#include <ranges>
+
 namespace poise::objects::iterables::hashables {
 Set::Set(std::span<runtime::Value> data)
 {
@@ -11,28 +13,44 @@ Set::Set(std::span<runtime::Value> data)
 
 Set::Set(runtime::Value value)
 {
-    if (auto object = value.object()) {
-        if (auto hashable = object->asHashable()) {
+    switch (value.type()) {
+        case runtime::types::Type::Dict:
+        case runtime::types::Type::Set: {
+            const auto hashable = value.object()->asHashable();
             for (auto values = hashable->toVector(); auto& v : values) {
                 tryInsert(std::move(v));
             }
-        } else if (auto range = object->asRange()) {
-            for (auto values = range->toVector(); const auto& v : values) {
+
+            break;
+        }
+        case runtime::types::Type::Range: {
+            const auto range = value.object()->asRange();
+            for (const auto values = range->toVector(); const auto& v : values) {
                 tryInsert(v);
             }
-        } else if (auto iterable = object->asIterable()) {
-            for (auto values = iterable->data(); const auto& v : values) {
+
+            break;
+        }
+        case runtime::types::Type::List:
+        case runtime::types::Type::Tuple: {
+            const auto iterable = value.object()->asIterable();
+            for (const auto values = iterable->data(); const auto& v : values) {
                 tryInsert(v);
             }
-        } else {
+
+            break;
+        }
+        case runtime::types::Type::String: {
+            for (const auto& string = value.string(); const auto c : string) {
+                tryInsert(std::string(1_uz, c));
+            }
+
+            break;
+        }
+        default: {
             tryInsert(std::move(value));
+            break;
         }
-    } else if (value.type() == runtime::types::Type::String) {
-        for (const auto& string = value.string(); auto c : string) {
-            tryInsert(std::string(1_uz, c));
-        }
-    } else {
-        tryInsert(std::move(value));
     }
 }
 
@@ -54,9 +72,9 @@ auto Set::end() noexcept -> IteratorType
 
 auto Set::incrementIterator(IteratorType& iterator) noexcept -> void
 {
-    usize index{};
+    usize index;
     do {
-        iterator++;
+        ++iterator;
         index = static_cast<usize>(std::distance(m_data.begin(), iterator));
     } while (!isAtEnd(iterator) && m_cellStates[index] != CellState::Occupied);
 }
@@ -78,17 +96,17 @@ auto Set::unpack(std::vector<runtime::Value>& stack) const noexcept -> void
 }
 
 
-auto Set::asIterable() noexcept -> iterables::Iterable*
+auto Set::asIterable() noexcept -> Iterable*
 {
     return this;
 }
 
-auto Set::asHashable() noexcept -> iterables::hashables::Hashable*
+auto Set::asHashable() noexcept -> Hashable*
 {
     return this;
 }
 
-auto Set::asSet() noexcept -> iterables::hashables::Set*
+auto Set::asSet() noexcept -> Set*
 {
     return this;
 }
@@ -210,7 +228,7 @@ auto Set::isSuperset(const Set& other) const noexcept -> bool
 auto Set::unionWith(const Set& other) const noexcept -> runtime::Value
 {
     auto value = runtime::Value::createObject<Set>();
-    auto newSet = value.object()->asSet();
+    const auto newSet = value.object()->asSet();
 
     for (auto i = 0_uz; i < capacity(); i++) {
         if (m_cellStates[i] == CellState::Occupied) {
@@ -230,7 +248,7 @@ auto Set::unionWith(const Set& other) const noexcept -> runtime::Value
 auto Set::intersection(const Set& other) const noexcept -> runtime::Value
 {
     auto value = runtime::Value::createObject<Set>();
-    auto newSet = value.object()->asSet();
+    const auto newSet = value.object()->asSet();
 
     for (auto i = 0_uz; i < capacity(); i++) {
         if (m_cellStates[i] == CellState::Occupied && other.contains(m_data[i])) {
@@ -250,7 +268,7 @@ auto Set::intersection(const Set& other) const noexcept -> runtime::Value
 auto Set::difference(const Set& other) const noexcept -> runtime::Value
 {
     auto value = runtime::Value::createObject<Set>();
-    auto newSet = value.object()->asSet();
+    const auto newSet = value.object()->asSet();
 
     for (auto i = 0_uz; i < capacity(); i++) {
         if (m_cellStates[i] == CellState::Occupied && !other.contains(m_data[i])) {
@@ -264,7 +282,7 @@ auto Set::difference(const Set& other) const noexcept -> runtime::Value
 auto Set::symmetricDifference(const Set& other) const noexcept -> runtime::Value
 {
     auto value = runtime::Value::createObject<Set>();
-    auto newSet = value.object()->asSet();
+    const auto newSet = value.object()->asSet();
 
     for (auto i = 0_uz; i < capacity(); i++) {
         if (m_cellStates[i] == CellState::Occupied && !other.contains(m_data[i])) {
@@ -284,12 +302,14 @@ auto Set::symmetricDifference(const Set& other) const noexcept -> runtime::Value
 auto Set::growAndRehash() noexcept -> void
 {
     auto values = toVector();
+
     m_capacity *= 2_uz;
     m_size = 0_uz;
     m_data.resize(m_capacity);
     m_cellStates.resize(m_capacity);
-    std::fill(m_data.begin(), m_data.end(), runtime::Value::none());
-    std::fill(m_cellStates.begin(), m_cellStates.end(), CellState::NeverUsed);
+
+    std::ranges::fill(m_data, runtime::Value::none());
+    std::ranges::fill(m_cellStates, CellState::NeverUsed);
 
     for (auto& value : values) {
         tryInsert(std::move(value));

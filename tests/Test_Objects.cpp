@@ -12,8 +12,8 @@ TEST_CASE("Basic Reference Counting", "[objects]")
     using namespace poise::runtime;
     using namespace poise::objects;
 
-    auto function = Value::createObject<Function>("test", "", 0_uz, 0_u8, false, false);
-    auto exception = Value::createObject<Exception>("Test");
+    const auto function = Value::createObject<Function>("test", "", 0_uz, 0_u8, false, false);
+    const auto exception = Value::createObject<Exception>("Test");
 
     {
         function.object()->asFunction()->addCapture(exception);

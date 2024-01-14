@@ -8,7 +8,7 @@ class Hashable : public Iterable
 {
 public:
     Hashable();
-    Hashable(usize initialCapacity, const runtime::Value& defaultValue = runtime::Value::none());
+    explicit Hashable(usize initialCapacity, const runtime::Value& defaultValue = runtime::Value::none());
 
     [[nodiscard]] auto size() const noexcept -> usize override;
     [[nodiscard]] auto ssize() const noexcept -> isize override;

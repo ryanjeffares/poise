@@ -6,6 +6,7 @@
 #include "../objects/Function.hpp"
 
 #include <algorithm>
+#include <ranges>
 
 namespace poise::runtime {
 auto NamespaceManager::namespaceHash(const std::filesystem::path& namespacePath) const noexcept -> NamespaceHash
@@ -54,28 +55,28 @@ auto NamespaceManager::namespaceFunction(NamespaceHash namespaceHash, std::strin
     POISE_ASSERT(m_namespaceFunctionLookup.contains(namespaceHash), "Namespace not found");
 
     const auto& functionVec = m_namespaceFunctionLookup.at(namespaceHash);
-    if (const auto it = std::find_if(functionVec.cbegin(), functionVec.cend(), [functionName] (const Value& value) {
+    if (const auto it = std::ranges::find_if(functionVec, [functionName] (const Value& value) -> bool {
         return value.object()->asFunction()->name() == functionName;
-    }); it != functionVec.cend()) {
+    }); it != functionVec.end()) {
         return it->object()->asFunction();
-    } else {
-        return nullptr;
     }
+
+    return nullptr;
 }
 
-auto NamespaceManager::namespaceFunction(NamespaceHash namespaceHash, FunctionNameHash functionNameHash) const noexcept -> std::optional<runtime::Value>
+auto NamespaceManager::namespaceFunction(NamespaceHash namespaceHash, FunctionNameHash functionNameHash) const noexcept -> std::optional<Value>
 {
     const auto functions = namespaceFunctions(namespaceHash);
-    if (const auto it = std::find_if(functions.begin(), functions.end(), [functionNameHash] (const Value& value) {
+    if (const auto it = std::ranges::find_if(functions, [functionNameHash] (const Value& value) -> bool {
         return value.object()->asFunction()->nameHash() == functionNameHash;
     }); it != functions.end()) {
-        return (*it);
-    } else {
-        return {};
+        return *it;
     }
+
+    return {};
 }
 
-auto NamespaceManager::namespaceFunctions(NamespaceHash namespaceHash) const noexcept -> std::span<const runtime::Value>
+auto NamespaceManager::namespaceFunctions(NamespaceHash namespaceHash) const noexcept -> std::span<const Value>
 {
     return m_namespaceFunctionLookup.at(namespaceHash);
 }
@@ -84,6 +85,6 @@ auto NamespaceManager::namespaceHasImportedNamespace(NamespaceHash parent, Names
 {
     POISE_ASSERT(m_namespacesImportedToNamespaceLookup.contains(parent), "Parent namespace not found");
     const auto& namespaceVec = m_namespacesImportedToNamespaceLookup.at(parent);
-    return std::find(namespaceVec.cbegin(), namespaceVec.cend(), imported) != namespaceVec.cend();
+    return std::ranges::find(namespaceVec, imported) != namespaceVec.end();
 }
 }   // namespace poise::runtime

@@ -242,7 +242,7 @@ auto Compiler::unary(bool canAssign) -> void
         unary(canAssign);
         emitOp(runtime::Op::LogicNot, line);
     } else if (match(scanner::TokenType::Plus)) {
-        auto line = m_previous->line();
+        const auto line = m_previous->line();
         unary(canAssign);
         emitOp(runtime::Op::Plus, line);
     } else {
@@ -422,7 +422,6 @@ auto Compiler::nativeCall() -> void
         }
     } else {
         errorAtPrevious(fmt::format("Unrecognised native function '{}'", identifier));
-        return;
     }
 }
 
@@ -457,7 +456,7 @@ auto Compiler::namespaceQualifiedCall() -> void
 
         // current token is EITHER the next part of the namespace OR the function
         while (match(scanner::TokenType::Identifier)) {
-            auto text = m_previous->text();
+            const auto text = m_previous->text();
 
             if (match(scanner::TokenType::ColonColon)) {
                 // continue namespace
@@ -470,7 +469,7 @@ auto Compiler::namespaceQualifiedCall() -> void
         }
     }
 
-    auto functionName = m_previous->string();
+    const auto functionName = m_previous->string();
     const auto namespaceManager = m_vm->namespaceManager();
 
     if (!namespaceFilePath.has_extension()) {
@@ -510,8 +509,7 @@ auto Compiler::typeIdent() -> void
         if (const auto args = parseCallArgs(scanner::TokenType::CloseParen)) {
             const auto [numArgs, hasUnpack] = *args;
 
-            const auto numContructorParams = scanner::builtinConstructorAllowedArgCount(tokenType);
-            switch (numContructorParams) {
+            switch (scanner::builtinConstructorAllowedArgCount(tokenType)) {
                 case scanner::AllowedArgCount::None: {
                     if (numArgs != 0_uz) {
                         errorAtPrevious(fmt::format("{} takes no arguments", runtimeType));
@@ -593,9 +591,9 @@ auto Compiler::lambda() -> void
 
             const auto text = m_previous->text();
             if (const auto localIndex = indexOfLocal(text)) {
-                if (std::find_if(captures.cbegin(), captures.cend(), [&text](const LocalVariable& local) {
+                if (std::ranges::find_if(captures, [&text] (const LocalVariable& local) -> bool {
                     return local.name == text;
-                }) != captures.cend()) {
+                }) != captures.end()) {
                     errorAtPrevious(fmt::format("Local variable '{}' has already been captured", text));
                     return;
                 }
@@ -814,17 +812,15 @@ auto Compiler::parseInt() -> void
 {
     auto result{0_i64};
     const auto text = m_previous->text();
-    const auto [ptr, ec] = std::from_chars(text.data(), text.data() + text.length(), result);
+    const auto [_, ec] = std::from_chars(text.data(), text.data() + text.length(), result);
 
     if (ec == std::errc{}) {
         emitConstant(result);
         emitOp(runtime::Op::LoadConstant, m_previous->line());
     } else if (ec == std::errc::invalid_argument) {
         errorAtPrevious(fmt::format("Unable to parse Int '{}'", text));
-        return;
     } else if (ec == std::errc::result_out_of_range) {
         errorAtPrevious(fmt::format("Int out of range '{}'", text));
-        return;
     }
 }
 
@@ -832,17 +828,15 @@ auto Compiler::parseFloat() -> void
 {
     auto result{0.0};
     const auto text = m_previous->string();
-    const auto [ptr, ec] = std::from_chars(text.data(), text.data() + text.length(), result);
+    const auto [_, ec] = std::from_chars(text.data(), text.data() + text.length(), result);
 
     if (ec == std::errc{}) {
         emitConstant(result);
         emitOp(runtime::Op::LoadConstant, m_previous->line());
     } else if (ec == std::errc::invalid_argument) {
         errorAtPrevious(fmt::format("Unable to parse Float '{}'", text));
-        return;
     } else if (ec == std::errc::result_out_of_range) {
         errorAtPrevious(fmt::format("Float out of range '{}'", text));
-        return;
     }
 }
 }   // namespace poise::compiler

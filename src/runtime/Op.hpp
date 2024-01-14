@@ -80,12 +80,10 @@ struct OpLine
 };
 }   // namespace poise::runtime
 
-namespace fmt {
 template<>
-struct formatter<poise::runtime::Op> : formatter<string_view>
+struct fmt::formatter<poise::runtime::Op> : formatter<string_view>
 {
-    [[nodiscard]] auto format(poise::runtime::Op op, format_context& context) -> decltype(context.out());
-};
-}   // namespace fmt
+    [[nodiscard]] auto format(poise::runtime::Op op, format_context& context) const -> decltype(context.out());
+};   // namespace fmt
 
 #endif  // #ifndef POISE_OP_HPP

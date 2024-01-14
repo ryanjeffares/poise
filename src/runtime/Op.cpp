@@ -1,9 +1,8 @@
 #include "Op.hpp"
 
-namespace fmt {
 using namespace poise::runtime;
 
-auto formatter<Op>::format(poise::runtime::Op op, fmt::format_context& context) -> decltype(context.out())
+auto fmt::formatter<Op>::format(Op op, format_context& context) const -> decltype(context.out())
 {
     string_view result = "unknown";
 
@@ -174,4 +173,3 @@ auto formatter<Op>::format(poise::runtime::Op op, fmt::format_context& context) 
 
     return formatter<string_view>::format(result, context);
 }
-}   // namespace fmt

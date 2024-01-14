@@ -118,7 +118,7 @@ auto Function::addCapture(runtime::Value value) noexcept -> void
     m_captures.emplace_back(std::move(value));
 }
 
-auto Function::getCapture(poise::usize index) const noexcept -> const runtime::Value&
+auto Function::getCapture(usize index) const noexcept -> const runtime::Value&
 {
     return m_captures[index];
 }
@@ -141,7 +141,7 @@ auto Function::printOps() const -> void
 auto Function::shallowClone() const noexcept -> runtime::Value
 {
     auto value = runtime::Value::createObject<Function>(m_name, m_filePath, m_namespaceHash, m_arity, m_isExported, m_hasVariadicParams);
-    auto function = value.object()->asFunction();
+    const auto function = value.object()->asFunction();
     function->copyData(*this);
     return value;
 }

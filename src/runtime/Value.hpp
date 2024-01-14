@@ -126,7 +126,6 @@ public:
     }
 
     [[nodiscard]] auto string() const noexcept -> const std::string&;
-    [[nodiscard]] auto string() noexcept -> std::string&;
     [[nodiscard]] auto object() const noexcept -> objects::Object*;
     [[nodiscard]] auto type() const noexcept -> types::Type;
     [[nodiscard]] auto hash() const noexcept -> usize;

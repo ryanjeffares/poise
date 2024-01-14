@@ -9,6 +9,7 @@
 #include <fmt/ranges.h>
 
 #include <cmath>
+#include <ranges>
 
 namespace poise::runtime {
 using objects::Exception;
@@ -22,7 +23,7 @@ static auto throwIfWrongType(usize position, const Value& value, types::Type typ
 
 static auto throwIfWrongType(usize position, const Value& value, std::initializer_list<types::Type> types) -> void
 {
-    if (std::none_of(types.begin(), types.end(), [&value](types::Type type) {
+    if (std::ranges::none_of(types, [&value] (types::Type type) -> bool {
         return value.type() == type;
     })) {
         throw Exception(Exception::ExceptionType::InvalidType, fmt::format("Expected {} at position {} but got {}", fmt::join(types, " or "), position, value.type()));
@@ -75,15 +76,17 @@ auto Vm::registerFloatNatives() noexcept -> void
         2_u8, [](std::span<Value> args) -> Value {
             throwIfWrongType(0_uz, args[0_uz], types::Type::Float);
             throwIfWrongType(1_uz, args[1_uz], {types::Type::Float, types::Type::Int});
-            return static_cast<f64>(std::pow(args[0_uz].value<f64>(), args[1_uz].type() == types::Type::Float
-                                                                   ? args[1_uz].value<f64>()
-                                                                   : static_cast<f64>(args[1_uz].value<i64>())));
+
+            return std::pow(
+                args[0_uz].value<f64>(),
+                args[1_uz].type() == types::Type::Float ? args[1_uz].value<f64>() : static_cast<f64>(args[1_uz].value<i64>())
+            );
         }});
 
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_FLOAT_SQRT"), NativeFunction{
         1_u8, [](std::span<Value> args) -> Value {
             throwIfWrongType(0_uz, args[0_uz], types::Type::Float);
-            return static_cast<f64>(std::sqrt(args[0_uz].value<f64>()));
+            return std::sqrt(args[0_uz].value<f64>());
         }});
 
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_FLOAT_ABS"), NativeFunction{

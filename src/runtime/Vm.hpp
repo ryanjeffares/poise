@@ -42,7 +42,7 @@ public:
     auto emitOp(Op op, usize line) noexcept -> void;
     auto emitConstant(Value value) noexcept -> void;
 
-    [[nodiscard]] auto run() noexcept -> RunResult;
+    [[nodiscard]] auto run() const noexcept -> RunResult;
 
 private:
     auto registerNatives() noexcept -> void;

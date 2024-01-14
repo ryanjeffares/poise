@@ -13,7 +13,7 @@ class Range : public Object, public Iterable
 {
 public:
     // all values are required to be checked to be numbers before this is called
-    Range(runtime::Value start, runtime::Value end, runtime::Value increment, bool inclusive);
+    Range(const runtime::Value& start, const runtime::Value& end, const runtime::Value& increment, bool inclusive);
     ~Range() override = default;
 
     [[nodiscard]] auto asIterable() noexcept -> Iterable* override;
@@ -46,7 +46,7 @@ private:
     auto fillData(i64 value, i64 increment) -> void;
 
     bool m_inclusive;
-    runtime::Value m_start, m_end, m_increment;
+    i64 m_start, m_end, m_increment;
     bool m_isInfiniteLoop{};
 };
 }   // namespace poise::objects::iterables

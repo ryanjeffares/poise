@@ -25,7 +25,7 @@ auto Tuple::end() noexcept -> IteratorType
 
 auto Tuple::incrementIterator(IteratorType& iterator) noexcept -> void
 {
-    iterator++;
+    ++iterator;
 }
 
 auto Tuple::isAtEnd(const IteratorType& iterator) noexcept -> bool

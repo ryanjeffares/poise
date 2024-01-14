@@ -127,12 +127,10 @@ enum class AllowedArgCount
 [[nodiscard]] auto builtinConstructorAllowedArgCount(TokenType tokenType) noexcept -> AllowedArgCount;
 }   // namespace poise::scanner
 
-namespace fmt {
 template<>
-struct formatter<poise::scanner::TokenType> : formatter<string_view>
+struct fmt::formatter<poise::scanner::TokenType> : formatter<string_view>
 {
     auto format(poise::scanner::TokenType tokenType, format_context& context) const -> decltype(context.out());
-};
-}   // namespace fmt
+};   // namespace fmt
 
 #endif  // #ifndef TOKEN_TYPE_HPP

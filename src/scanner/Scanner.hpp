@@ -5,7 +5,6 @@
 
 #include "Token.hpp"
 
-#include <cstdlib>
 #include <filesystem>
 #include <initializer_list>
 #include <optional>
@@ -28,9 +27,9 @@ private:
     auto skipWhitespace() noexcept -> void;
     auto advance() noexcept -> std::optional<char>;
 
-    [[nodiscard]] auto peek() noexcept -> std::optional<char>;
-    [[nodiscard]] auto peekNext() noexcept -> std::optional<char>;
-    [[nodiscard]] auto peekPrevious() noexcept -> std::optional<char>;
+    [[nodiscard]] auto peek() const noexcept -> std::optional<char>;
+    [[nodiscard]] auto peekNext() const noexcept -> std::optional<char>;
+    [[nodiscard]] auto peekPrevious() const noexcept -> std::optional<char>;
 
     struct MultiCharMatch
     {
@@ -46,7 +45,6 @@ private:
 
     [[nodiscard]] auto makeToken(TokenType tokenType) noexcept -> Token;
 
-private:
     std::string_view m_code;
 
     usize m_start{}, m_current{};

@@ -36,7 +36,7 @@ public:
     [[nodiscard]] auto data() const noexcept -> std::span<const runtime::Value>;
 
 protected:
-    auto invalidateIterators() noexcept -> void;
+    auto invalidateIterators() const noexcept -> void;
 
     std::vector<runtime::Value> m_data;
     std::vector<Iterator*> m_activeIterators;

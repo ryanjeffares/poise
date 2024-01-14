@@ -4,6 +4,8 @@
 
 #include "Iterable.hpp"
 
+#include <ranges>
+
 namespace poise::objects::iterables {
 Iterable::Iterable(usize initialSize, const runtime::Value& defaultValue)
     : m_data(initialSize, defaultValue)
@@ -25,8 +27,8 @@ Iterable::~Iterable()
 auto Iterable::addIterator(Iterator* iterator) noexcept -> void
 {
 #ifdef POISE_DEBUG
-    const auto it = std::find(m_activeIterators.cbegin(), m_activeIterators.cend(), iterator);
-    POISE_ASSERT(it == m_activeIterators.cend(), "Iterator already added");
+    const auto it = std::ranges::find(m_activeIterators, iterator);
+    POISE_ASSERT(it == m_activeIterators.end(), "Iterator already added");
 #endif
 
     m_activeIterators.push_back(iterator);
@@ -45,9 +47,9 @@ auto Iterable::data() const noexcept -> std::span<const runtime::Value>
     return m_data;
 }
 
-auto Iterable::invalidateIterators() noexcept -> void
+auto Iterable::invalidateIterators() const noexcept -> void
 {
-    for (auto iterator : m_activeIterators) {
+    for (const auto iterator : m_activeIterators) {
         iterator->invalidate();
     }
 }

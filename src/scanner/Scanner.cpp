@@ -112,15 +112,15 @@ auto Scanner::getCodeAtLine(const std::filesystem::path& filePath, usize line) -
         }
     }
 
-    auto pos = codeString.find('\n', strIndex);
+    const auto pos = codeString.find('\n', strIndex);
     return {codeString.data() + strIndex, pos - strIndex};
 }
 
 auto Scanner::getNumLines(const std::filesystem::path& filePath) noexcept -> usize
 {
     auto count = 0_uz;
-    const auto codeString = s_fileContentLookup[filePath];
-    for (const auto i : codeString) {
+
+    for (const auto codeString = s_fileContentLookup[filePath]; const auto i : codeString) {
         if (i == '\n') {
             count++;
         }
@@ -210,52 +210,50 @@ auto Scanner::advance() noexcept -> std::optional<char>
 {
     if (m_current >= m_code.length()) {
         return {};
-    } else {
-        m_current++;
-        m_column++;
-        return m_code[m_current - 1_uz];
     }
+
+    m_current++;
+    m_column++;
+    return m_code[m_current - 1_uz];
 }
 
-auto Scanner::peek() noexcept -> std::optional<char>
+auto Scanner::peek() const noexcept -> std::optional<char>
 {
     if (m_current >= m_code.length()) {
         return {};
-    } else {
-        return m_code[m_current];
     }
+
+    return m_code[m_current];
 }
 
-auto Scanner::peekNext() noexcept -> std::optional<char>
+auto Scanner::peekNext() const noexcept -> std::optional<char>
 {
     if (m_current >= m_code.length() - 1_uz) {
         return {};
-    } else {
-        return m_code[m_current + 1_uz];
     }
+
+    return m_code[m_current + 1_uz];
 }
 
-auto Scanner::peekPrevious() noexcept -> std::optional<char>
+auto Scanner::peekPrevious() const noexcept -> std::optional<char>
 {
     if (m_current == 0_uz) {
         return {};
-    } else {
-        return m_code[m_current - 1_uz];
     }
+
+    return m_code[m_current - 1_uz];
 }
 
 auto Scanner::multiCharSymbol(std::initializer_list<const MultiCharMatch> matches, TokenType defaultType) noexcept -> Token
 {
     for (const auto& [match, tokenType] : matches) {
         if (match.index() == 0) {
-            auto c = std::get<0>(match);
-            if (peek() == c) {
+            if (const auto c = std::get<0>(match); peek() == c) {
                 advance();
                 return makeToken(tokenType);
             }
         } else if (match.index() == 1) {
-            auto [c1, c2] = std::get<1>(match);
-            if (peek() == c1 && peekNext() == c2) {
+            if (auto [c1, c2] = std::get<1>(match); peek() == c1 && peekNext() == c2) {
                 advance();
                 advance();
                 return makeToken(tokenType);
@@ -335,7 +333,7 @@ auto Scanner::string() noexcept -> Token
 
 auto Scanner::makeToken(TokenType tokenType) noexcept -> Token
 {
-    auto length = m_current - m_start;
+    const auto length = m_current - m_start;
     return {tokenType, m_line, m_column - length, std::string_view{m_code.data() + m_start, length}};
 }
 }   // namespace poise::scanner

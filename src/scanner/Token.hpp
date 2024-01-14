@@ -4,7 +4,6 @@
 #include "../Poise.hpp"
 #include "TokenType.hpp"
 
-#include <cstdlib>
 #include <string_view>
 
 namespace poise::scanner {

@@ -1,12 +1,14 @@
 #include "Dict.hpp"
-#include "../Tuple.hpp"
 #include "../../Exception.hpp"
+#include "../Tuple.hpp"
+
+#include <ranges>
 
 namespace poise::objects::iterables::hashables {
 Dict::Dict(std::span<runtime::Value> pairs)
 {
     for (auto& pair : pairs) {
-        auto tuple = pair.object()->asTuple();
+        const auto tuple = pair.object()->asTuple();
         POISE_ASSERT(tuple != nullptr, fmt::format("Expected Tuple to construct Dict but got {}", pair.type()));
         POISE_ASSERT(tuple->size() == 2_uz, fmt::format("Expected Tuple to have size 2 but got {}", tuple->size()));
         insertOrUpdate(std::move(tuple->atMut(0_uz)), std::move(tuple->atMut(1_uz)));
@@ -31,9 +33,9 @@ auto Dict::end() noexcept -> IteratorType
 
 auto Dict::incrementIterator(IteratorType& iterator) noexcept -> void
 {
-    usize index{};
+    usize index;
     do {
-        iterator++;
+        ++iterator;
         index = static_cast<usize>(std::distance(m_data.begin(), iterator));
     } while (!isAtEnd(iterator) && m_cellStates[index] != CellState::Occupied);
 }
@@ -109,8 +111,7 @@ auto Dict::containsKey(const runtime::Value& key) const noexcept -> bool
             case CellState::NeverUsed:
                 return false;
             case CellState::Occupied: {
-                const auto tuple = m_data[index].object()->asTuple();
-                if (tuple->at(0_uz) == key) {
+                if (const auto tuple = m_data[index].object()->asTuple(); tuple->at(0_uz) == key) {
                     return true;
                 }
 
@@ -141,8 +142,7 @@ auto Dict::at(const runtime::Value& key) const -> const runtime::Value&
                     fmt::format("{} was not present in the Dict", key)
                 };
             case CellState::Occupied: {
-                const auto tuple = m_data[index].object()->asTuple();
-                if (tuple->at(0_uz) == key) {
+                if (const auto tuple = m_data[index].object()->asTuple(); tuple->at(0_uz) == key) {
                     return tuple->at(1_uz);
                 }
 
@@ -167,7 +167,7 @@ auto Dict::tryInsert(runtime::Value key, runtime::Value value) noexcept -> bool
     }
 
     const auto hash = key.hash();
-    auto index = hash % capacity();;
+    auto index = hash % capacity();
 
     while (true) {
         switch (m_cellStates[index]) {
@@ -177,8 +177,7 @@ auto Dict::tryInsert(runtime::Value key, runtime::Value value) noexcept -> bool
                 return true;
             }
             case CellState::Occupied: {
-                const auto tuple = m_data[index].object()->asTuple();
-                if (tuple->at(0_uz) == key) {
+                if (const auto tuple = m_data[index].object()->asTuple(); tuple->at(0_uz) == key) {
                     return false;
                 }
 
@@ -224,18 +223,20 @@ auto Dict::insertOrUpdate(runtime::Value key, runtime::Value value) noexcept -> 
 
 auto Dict::growAndRehash() noexcept -> void
 {
-    auto pairs = toVector();
+    const auto pairs = toVector();
+
     m_capacity *= 2_uz;
     m_size = 0_uz;
     m_data.resize(m_capacity);
     m_cellStates.resize(m_capacity);
-    std::fill(m_data.begin(), m_data.end(), runtime::Value::none());
-    std::fill(m_cellStates.begin(), m_cellStates.end(), CellState::NeverUsed);
+
+    std::ranges::fill(m_data, runtime::Value::none());
+    std::ranges::fill(m_cellStates, CellState::NeverUsed);
 
     // these are things that were already in the dict, so there should be no duplicates
     // but insertOrUpdate does less than tryInsert
     for (auto& pair : pairs) {
-        auto tuple = pair.object()->asTuple();
+        const auto tuple = pair.object()->asTuple();
         insertOrUpdate(std::move(tuple->atMut(0_uz)), std::move(tuple->atMut(1_uz)));
     }
 

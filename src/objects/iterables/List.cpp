@@ -7,6 +7,8 @@
 #include "hashables/Dict.hpp"
 #include "Range.hpp"
 
+#include <ranges>
+
 namespace poise::objects::iterables {
 
 List::List(runtime::Value value)
@@ -54,12 +56,12 @@ auto List::end() noexcept -> IteratorType
     return m_data.end();
 }
 
-auto List::incrementIterator(Iterable::IteratorType& iterator) noexcept -> void
+auto List::incrementIterator(IteratorType& iterator) noexcept -> void
 {
-    iterator++;
+    ++iterator;
 }
 
-auto List::isAtEnd(const Iterable::IteratorType& iterator) noexcept -> bool
+auto List::isAtEnd(const IteratorType& iterator) noexcept -> bool
 {
     return iterator == end();
 }
@@ -182,8 +184,8 @@ auto List::remove(const runtime::Value& value) noexcept -> i64
 
 auto List::removeFirst(const runtime::Value& value) noexcept -> bool
 {
-    const auto it = std::find(m_data.cbegin(), m_data.cend(), value);
-    if (it == m_data.cend()) {
+    const auto it = std::ranges::find(m_data, value);
+    if (it == m_data.end()) {
         return false;
     }
 
@@ -217,7 +219,7 @@ auto List::repeat(isize n) const -> runtime::Value
     std::vector<runtime::Value> data;
     data.resize(m_data.size() * static_cast<usize>(n));
     for (auto i = 0_iz; i < n; i++) {
-        std::copy(m_data.begin(), m_data.end(), std::next(data.begin(), i * std::ssize(m_data)));
+        std::ranges::copy(m_data, std::next(data.begin(), i * std::ssize(m_data)));
     }
     return runtime::Value::createObject<List>(std::move(data));
 }

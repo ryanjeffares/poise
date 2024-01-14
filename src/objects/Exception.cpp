@@ -12,7 +12,7 @@ Exception::Exception(std::string message)
 
 }
 
-Exception::Exception(Exception::ExceptionType exceptionType, std::string message)
+Exception::Exception(ExceptionType exceptionType, std::string message)
     : m_exceptionType{exceptionType}
     , m_message{std::move(message)}
 {
@@ -50,11 +50,9 @@ auto Exception::message() const noexcept -> std::string_view
 }
 }   // namespace poise::objects
 
-namespace fmt
-{
 using namespace poise::objects;
 
-auto formatter<Exception::ExceptionType>::format(Exception::ExceptionType exceptionType, fmt::format_context& context) -> decltype(context.out())
+auto fmt::formatter<Exception::ExceptionType>::format(Exception::ExceptionType exceptionType, format_context& context) const -> decltype(context.out())
 {
     string_view res = "unknown";
 
@@ -102,4 +100,3 @@ auto formatter<Exception::ExceptionType>::format(Exception::ExceptionType except
 
     return formatter<string_view>::format(res, context);
 }
-}   // namespace fmt

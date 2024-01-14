@@ -189,7 +189,7 @@ auto Compiler::varDeclaration(bool isFinal) -> void
         return;
     }
 
-    std::vector<std::string> varNames{m_previous->string()};
+    std::vector varNames{m_previous->string()};
     m_localNames.push_back({m_previous->string(), isFinal});
     
     if (match(scanner::TokenType::Colon)) {
