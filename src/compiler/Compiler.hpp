@@ -42,7 +42,7 @@ private:
 
     enum class JumpType
     {
-        Break, IfFalse, IfTrue, Jump
+        IfFalse, IfTrue, Jump
     };
 
     [[nodiscard]] auto emitJump() const noexcept -> JumpIndexes;

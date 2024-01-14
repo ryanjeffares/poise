@@ -52,7 +52,7 @@ Vm::Vm(std::string mainFilePath)
         {types::Type::None, Value::createObject<Type>(types::Type::None, "None",
                 [](std::span<Value> args) -> Value {
                     return args.empty() 
-                        ? runtime::Value::none() 
+                        ? Value::none()
                         : throw Exception{ 
                             Exception::ExceptionType::InvalidType,
                             fmt::format("Expected no args to construct None but got {}", args.size())
@@ -72,7 +72,7 @@ Vm::Vm(std::string mainFilePath)
         {types::Type::Dict, Value::createObject<Type>(types::Type::Dict, "Dict",
                 [](std::span<Value> args) -> Value {
                     for (auto i = 0_uz; i < args.size(); i++) {
-                        if (args[i].type() != runtime::types::Type::Tuple) {
+                        if (args[i].type() != types::Type::Tuple) {
                             throw Exception{
                                 Exception::ExceptionType::InvalidType,
                                 fmt::format("Expected all args to construct Dict to be Tuple, but got {} at position {}", args[i].type(), i)
@@ -80,7 +80,7 @@ Vm::Vm(std::string mainFilePath)
                         }
                     }
 
-                    return runtime::Value::createObject<Dict>(args);
+                    return Value::createObject<Dict>(args);
                 })},
         {types::Type::Exception, Value::createObject<Type>(types::Type::Exception, "Exception",
                 [](std::span<Value> args) -> Value {
@@ -91,7 +91,7 @@ Vm::Vm(std::string mainFilePath)
                         }; 
                     } 
 
-                    return runtime::Value::createObject<Exception>(args[0_uz].toString());
+                    return Value::createObject<Exception>(args[0_uz].toString());
                 })},
         {types::Type::Function, Value::createObject<Type>(types::Type::Function, "Function",
                 [](std::span<Value> args) -> Value {
@@ -103,14 +103,14 @@ Vm::Vm(std::string mainFilePath)
                     }
 
                     if (const auto object = args[0_uz].object()) {
-                        if (const auto function = object->asFunction()) {
+                        if (object->asFunction() != nullptr) {
                             return args[0_uz];
-                        } else {
-                            throw Exception{
-                                Exception::ExceptionType::InvalidType,
-                                fmt::format("Function can only be constructed from Function or Lambda but got {}", args[0_uz].type())
-                            };
                         }
+
+                        throw Exception{
+                            Exception::ExceptionType::InvalidType,
+                            fmt::format("Function can only be constructed from Function or Lambda but got {}", args[0_uz].type())
+                        };
                     } else {
                         throw Exception{
                             Exception::ExceptionType::InvalidType,
@@ -122,9 +122,9 @@ Vm::Vm(std::string mainFilePath)
         {types::Type::List, Value::createObject<Type>(types::Type::List, "List",
                 [](std::span<Value> args) -> Value {
                     if (args.size() == 1_uz) {
-                        return runtime::Value::createObject<List>(std::move(args[0_uz]));
+                        return Value::createObject<List>(std::move(args[0_uz]));
                     } else {
-                        return runtime::Value::createObject<List>(std::vector<runtime::Value>{
+                        return Value::createObject<List>(std::vector<Value>{
                             std::make_move_iterator(args.begin()),
                             std::make_move_iterator(args.end())
                         });
@@ -140,21 +140,21 @@ Vm::Vm(std::string mainFilePath)
                         };
                     }
 
-                    if (args[0_uz].type() != runtime::types::Type::Int) {
+                    if (args[0_uz].type() != types::Type::Int) {
                         throw Exception{
                             Exception::ExceptionType::InvalidType,
                             fmt::format("Expected Int for range start but got {}", args[0_uz].type())
                         };
                     }
 
-                    if (args[1_uz].type() != runtime::types::Type::Int) {
+                    if (args[1_uz].type() != types::Type::Int) {
                         throw Exception{
                             Exception::ExceptionType::InvalidType,
                             fmt::format("Expected Int for range end but got {}", args[1_uz].type())
                         };
                     }
 
-                    if (args.size() == 4_uz && args[2_uz].type() != runtime::types::Type::Int) {
+                    if (args.size() == 4_uz && args[2_uz].type() != types::Type::Int) {
                         throw Exception{
                             Exception::ExceptionType::InvalidType,
                             fmt::format("Expected Int for range increment but got {}", args[2_uz].type())
@@ -162,14 +162,14 @@ Vm::Vm(std::string mainFilePath)
                     }
 
                     if (args.size() == 4_uz) {
-                        return runtime::Value::createObject<Range>(
+                        return Value::createObject<Range>(
                             std::move(args[0_uz]),
                             std::move(args[1_uz]),
                             std::move(args[2_uz]),
                             args[3_uz].value<bool>()
                         );
                     } else {
-                        return runtime::Value::createObject<Range>(
+                        return Value::createObject<Range>(
                             std::move(args[0_uz]),
                             std::move(args[1_uz]),
                             1,
@@ -188,8 +188,8 @@ Vm::Vm(std::string mainFilePath)
                 })},
         {types::Type::Tuple, Value::createObject<Type>(types::Type::Tuple, "Tuple",
                 [](std::span<Value> args) -> Value {
-                    return runtime::Value::createObject<Tuple>(
-                        std::vector<runtime::Value>{
+                    return Value::createObject<Tuple>(
+                        std::vector<Value>{
                             std::make_move_iterator(args.begin()),
                             std::make_move_iterator(args.end())
                         }
@@ -480,8 +480,7 @@ auto Vm::run() noexcept -> RunResult
                     const auto pushParentBack = constantList[constantIndex++].toBool();
 
                     if (auto function = type->findExtensionFunction(memberNameHash)) {
-                        const auto p = function->object()->asFunction();
-                        if (currentFunction->namespaceHash() != p->namespaceHash()) {
+                        if (const auto p = function->object()->asFunction(); currentFunction->namespaceHash() != p->namespaceHash()) {
                             if (!m_namespaceManager.namespaceHasImportedNamespace(currentFunction->namespaceHash(), p->namespaceHash())) {
                                 throw Exception(Exception::ExceptionType::FunctionNotFound, fmt::format("Extension function '{}' not found for type '{}' - are you missing an import?", p->name(), type->typeName()));
                             }
@@ -657,8 +656,7 @@ auto Vm::run() noexcept -> RunResult
                     break;
                 }
                 case Op::AssignIndex: {
-                    auto [collection, index, value] = popThree();
-                    switch (collection.type()) {
+                    switch (auto [collection, index, value] = popThree(); collection.type()) {
                         case types::Type::Dict: {
                             collection.object()->asDictionary()->insertOrUpdate(std::move(index), std::move(value));
                             break;
@@ -684,8 +682,7 @@ auto Vm::run() noexcept -> RunResult
                     break;
                 }
                 case Op::LoadIndex: {
-                    auto [collection, index] = popTwo();
-                    switch (collection.type()) {
+                    switch (auto [collection, index] = popTwo(); collection.type()) {
                         case types::Type::Dict: {
                             stack.push_back(collection.object()->asDictionary()->at(index));
                             break;
@@ -710,7 +707,7 @@ auto Vm::run() noexcept -> RunResult
                             }
 
                             const auto& s = collection.string();
-                            const auto i = index.value<isize>(); 
+                            const auto i = index.value<isize>();
                             if (i < 0_i64 || i >= std::ssize(s)) {
                                 throw Exception(
                                     Exception::ExceptionType::IndexOutOfBounds,
@@ -741,13 +738,6 @@ auto Vm::run() noexcept -> RunResult
                             );
                         }
                     }
-                    break;
-                }
-                case Op::Break: {
-                    const auto jumpConstantIndex = constantList[constantIndex++].value<usize>();
-                    const auto jumpOpIndex = constantList[constantIndex++].value<usize>();
-                    callStackTop.constantIndex = jumpConstantIndex;
-                    callStackTop.opIndex = jumpOpIndex;
                     break;
                 }
                 case Op::Call: {
@@ -1029,7 +1019,7 @@ auto Vm::run() noexcept -> RunResult
                 stack.resize(stackSize);
                 stack.push_back(Value::createObject<Exception>(exception.exceptionType(), std::string{exception.message()}));
             } else {
-                fmt::print(stderr, fmt::emphasis::bold | fmt::fg(fmt::color::red), "Runtime Error: ");
+                print(stderr, fmt::emphasis::bold | fg(fmt::color::red), "Runtime Error: ");
                 fmt::print(stderr, "{}\n", exception.toString());
 
                 fmt::print(stderr, "  At {}:{} in function '{}'\n", currentFunction->filePath().string(), line, currentFunction->name());

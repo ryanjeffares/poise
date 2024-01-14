@@ -62,7 +62,6 @@ enum class Op : u8
     LoadIndex,
 
     // jumping/control flow
-    Break,
     Call,
     CallNative,
     Exit,

@@ -143,9 +143,6 @@ auto formatter<Op>::format(poise::runtime::Op op, fmt::format_context& context) 
         case Op::LoadIndex:
             result = "LoadIndex";
             break;
-        case Op::Break:
-            result = "Break";
-            break;
         case Op::Call:
             result = "Call";
             break;

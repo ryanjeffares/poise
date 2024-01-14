@@ -458,7 +458,7 @@ auto Compiler::breakStatement() -> void
         emitOp(runtime::Op::ExitTry, m_previous->line());
     }
 
-    m_breakJumpIndexesStack.top().push_back(emitJump(JumpType::Break, false));
+    m_breakJumpIndexesStack.top().push_back(emitJump(JumpType::Jump, false));
 
     EXPECT_SEMICOLON();
 }
