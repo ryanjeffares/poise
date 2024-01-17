@@ -90,7 +90,6 @@ Scanner::Scanner(const std::filesystem::path& inFilePath)
 
     s_fileContentLookup[inFilePath] = std::move(codeString);
     m_code = s_fileContentLookup[inFilePath];
-
 }
 
 auto Scanner::getCodeAtLine(const std::filesystem::path& filePath, usize line) -> std::string
