@@ -283,12 +283,24 @@ auto Scanner::identifier() noexcept -> Token
 
 auto Scanner::number() noexcept -> Token
 {
+    if (peek() == 'b' || peek() == 'B' || peek() == 'x' || peek() == 'X') {
+        advance();
+    }
+
+    const auto isBinary = peekPrevious() == 'b' || peekPrevious() == 'B';
+    const auto isHex = peekPrevious() == 'x' || peekPrevious() == 'X';
+
     while (const auto c = peek()) {
-        if (std::isdigit(*c)) {
+        if (std::isdigit(*c) || (isHex && std::isalnum(*c))) {
             advance();
         } else {
             break;
         }
+    }
+
+    if (isBinary || isHex) {
+        // end of token, treat '.' as a function call
+        return makeToken(TokenType::Int);
     }
 
     if (peek() == '.' && peekNext() && std::isdigit(*peekNext())) {
@@ -330,7 +342,7 @@ auto Scanner::string() noexcept -> Token
     return makeToken(TokenType::String);
 }
 
-auto Scanner::makeToken(TokenType tokenType) noexcept -> Token
+auto Scanner::makeToken(TokenType tokenType) const noexcept -> Token
 {
     const auto length = m_current - m_start;
     return {tokenType, m_line, m_column - length, std::string_view{m_code.data() + m_start, length}};

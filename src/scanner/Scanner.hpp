@@ -43,7 +43,7 @@ private:
     [[nodiscard]] auto number() noexcept -> Token;
     [[nodiscard]] auto string() noexcept -> Token;
 
-    [[nodiscard]] auto makeToken(TokenType tokenType) noexcept -> Token;
+    [[nodiscard]] auto makeToken(TokenType tokenType) const noexcept -> Token;
 
     std::string_view m_code;
 

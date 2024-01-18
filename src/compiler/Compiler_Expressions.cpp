@@ -810,15 +810,46 @@ auto Compiler::parseString() -> void
 
 auto Compiler::parseInt() -> void
 {
-    auto result{0_i64};
+    auto value{0_i64};
     const auto text = m_previous->text();
-    const auto [_, ec] = std::from_chars(text.data(), text.data() + text.length(), result);
+
+    const auto isBinary = text.size() >= 2_uz && (text[1_uz] == 'b' || text[1_uz] == 'B');
+    const auto isHex = text.size() >= 2_uz && (text[1_uz] == 'x' || text[1_uz] == 'X');
+    
+    std::from_chars_result result{};
+    if (isBinary) {
+        for (auto i = 2_uz; i < text.size(); i++) {
+            if (text[i] != '0' && text[i] != '1') {
+                errorAtPrevious("Binary literals must only contain '1' and '0'");
+                return;
+            }
+        }
+
+        result = std::from_chars(text.data() + 2, text.data() + 2 + text.size(), value, 2);
+    } else if (isHex) {
+        auto isHexChar = [] (char c) -> bool {
+            return std::isdigit(c) || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+        };
+
+        for (auto i = 2_uz; i < text.size(); i++) {
+            if (!isHexChar(text[i])) {
+                errorAtPrevious("Hex literals must only contain digits or characters in the range 'A' - 'F'");
+                return;
+            }
+        }
+
+        result = std::from_chars(text.data() + 2, text.data() + 2 + text.size(), value, 16);
+    } else {
+        result = std::from_chars(text.data(), text.data() + text.size(), value);
+    }
+
+    const auto [ptr, ec] = result;
 
     if (ec == std::errc{}) {
-        emitConstant(result);
+        emitConstant(value);
         emitOp(runtime::Op::LoadConstant, m_previous->line());
     } else if (ec == std::errc::invalid_argument) {
-        errorAtPrevious(fmt::format("Unable to parse Int '{}'", text));
+        errorAtPrevious(fmt::format("Unable to parse Int '{}', failed at '{}'", text, *ptr));
     } else if (ec == std::errc::result_out_of_range) {
         errorAtPrevious(fmt::format("Int out of range '{}'", text));
     }

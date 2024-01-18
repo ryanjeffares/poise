@@ -1,0 +1,12 @@
+func main() {
+    println(69);
+    println(0b1);
+    println(0b10);
+    println(0b100);
+    println(0b1000);
+    println(0b10000);
+    println(0b100000);
+    println(0b1000000);
+
+    println(0xFF00);
+}
