@@ -5,7 +5,7 @@ func main() {
         i = i * 2;
 
         try {
-            if i >= 256 {
+            if i >= 0xFF {
                 break;
             }
         } catch e {}

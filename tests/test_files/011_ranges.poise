@@ -40,4 +40,7 @@ func main() {
     println(range.increment());
     println(range.contains(4));
     println(List(range));
+
+    for i in 0..100_000 {
+    }
 }

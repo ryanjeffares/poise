@@ -818,29 +818,46 @@ auto Compiler::parseInt() -> void
     
     std::from_chars_result result{};
     if (isBinary) {
+        std::string cleaned;
         for (auto i = 2_uz; i < text.size(); i++) {
-            if (text[i] != '0' && text[i] != '1') {
+            if (text[i] != '0' && text[i] != '1' && text[i] != '_') {
                 errorAtPrevious("Binary literals must only contain '1' and '0'");
                 return;
             }
+
+            if (text[i] != '_') {
+                cleaned.push_back(text[i]);
+            }
         }
 
-        result = std::from_chars(text.data() + 2, text.data() + 2 + text.size(), value, 2);
+        result = std::from_chars(cleaned.data(), cleaned.data() + cleaned.size(), value, 2);
     } else if (isHex) {
         auto isHexChar = [] (char c) -> bool {
             return std::isdigit(c) || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
         };
 
+        std::string cleaned;
         for (auto i = 2_uz; i < text.size(); i++) {
-            if (!isHexChar(text[i])) {
-                errorAtPrevious("Hex literals must only contain digits or characters in the range 'A' - 'F'");
+            if (!isHexChar(text[i]) && text[i] != '_') {
+                errorAtPrevious("Hex literals must only contain digits or characters in the range 'A' to 'F'");
                 return;
+            }
+
+            if (text[i] != '_') {
+                cleaned.push_back(text[i]);
             }
         }
 
-        result = std::from_chars(text.data() + 2, text.data() + 2 + text.size(), value, 16);
+        result = std::from_chars(cleaned.data(), cleaned.data() + cleaned.size(), value, 16);
     } else {
-        result = std::from_chars(text.data(), text.data() + text.size(), value);
+        std::string cleaned;
+        for (auto i = 0_uz; i < text.size(); i++) {
+            if (text[i] != '_') {
+                cleaned.push_back(text[i]);
+            }
+        }
+
+        result = std::from_chars(cleaned.data(), cleaned.data() + cleaned.size(), value);
     }
 
     const auto [ptr, ec] = result;

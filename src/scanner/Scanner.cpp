@@ -291,7 +291,7 @@ auto Scanner::number() noexcept -> Token
     const auto isHex = peekPrevious() == 'x' || peekPrevious() == 'X';
 
     while (const auto c = peek()) {
-        if (std::isdigit(*c) || (isHex && std::isalnum(*c))) {
+        if (std::isdigit(*c) || (isHex && std::isalnum(*c)) || *c == '_') {
             advance();
         } else {
             break;

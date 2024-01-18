@@ -103,7 +103,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * Member variable access as well as extension function access
     * Need to generate `PoiseType` instances for these, and hook them into everything else...
 * GC for cycles
-* Binary/Hex literals
+* ~~Binary/Hex literals~~
 * Digit separators
 * Constants
     * Constant expressions
