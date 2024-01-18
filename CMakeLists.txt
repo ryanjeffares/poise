@@ -6,7 +6,7 @@ include(FetchContent)
 FetchContent_Declare(
     fmt
     GIT_REPOSITORY  https://github.com/fmtlib/fmt.git
-    GIT_TAG         master
+    GIT_TAG         10.2.1
     GIT_SHALLOW     ON
 )
 FetchContent_MakeAvailable(fmt)
@@ -28,7 +28,7 @@ if(MSVC)
     set(POISE_COMPILE_OPTIONS /W4 /WX /external:templates- /external:W0 /std:c++latest)
 else()
     list(APPEND POISE_COMPILE_DEFINITIONS POISE_GCC_CLANG)
-    set(POISE_COMPILE_OPTIONS -Wall -Werror -Wpedantic -Wextra -Wconversion -std=c++20)
+    set(POISE_COMPILE_OPTIONS -Wall -Werror -Wpedantic -Wextra -Wconversion -std=c++23)
 endif()
     
 if (CMAKE_BUILD_TYPE MATCHES "Debug")

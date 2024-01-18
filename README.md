@@ -6,17 +6,10 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 
 ## Issues/Things on the Long Finger
 * Parse argv properly, main function/file in general
-* Error Handling
-    * Option/Result types as built in language types
-    * Eh, still need exceptions that can be thrown internally for binary operations for example
-    * Would it be messy to mix these two approaches in the language core/stdlib?
 * Testing
     * Test individual important functions
     * Fuzzing
 * Think about object -> bool conversion
-* Imports
-    * The code is really messy
-    * Give nicer compiler errors
 * Generally improve compiler errors and stop it from spitting out nonsense after one error, eg lambda capture errors
 * Use hashes instead of strings in runtime
     * Function names, namespace lookups, etc
@@ -82,14 +75,14 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * ~~Binary ops for the above~~
     * Could we do some kind of rust/c# linq/ranges style lazy evaluation...
     * ~~Option and Result types?~~
-        * No need, `try` assignments work like Results, everything is an option because anything can be `none` - implement `is_none()` and `is_some()` on `Any`
-* For loops
-    * Make sure everything's working fine for more collections we add
+        * ~~No need, `try` assignments work like Results, everything is an option because anything can be `none` - implement `is_none()` and `is_some()` on `Any`~~
+* ~~For loops~~
+    * ~~Make sure everything's working fine for more collections we add~~
 * ~~Zig style try assignment~~
     * ~~Could this be like a unary operator as opposed to only valid on assignment, so `foo(try bar())` is valid?~~
 * Parameter packing and unpacking
     * ~~Expand unpacking into collections~~
-        * Remember this when we add Dicts and Sets...
+        * ~~Remember this when we add Dicts and Sets...~~
     * ~~Unpack a collection~~
     * Multiple assignments on one line (`a, b = b, a`) or assigning an unpack (`a, b = ...pack`)
         * How to parse `var a, b, c = try ...expr`?
@@ -105,11 +98,11 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * Have type aliases, eg `type OrderedCollection = List|Range`
     * You should be able to export and import these
     * Maybe leave this until we do user defined classes, and we can come up with a nice generic way to handle it, since we'll have to work off of identifiers rather than builtin type keywords.
-* Break/continue statements
+* ~~Break/continue statements~~
 * Classes
     * Member variable access as well as extension function access
     * Need to generate `PoiseType` instances for these, and hook them into everything else...
-* GC
+* GC for cycles
 * Binary/Hex literals
 * Digit separators
 * Constants
