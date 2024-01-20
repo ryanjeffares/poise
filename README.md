@@ -104,7 +104,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * Need to generate `PoiseType` instances for these, and hook them into everything else...
 * GC for cycles
 * ~~Binary/Hex literals~~
-* Digit separators
+* ~~Digit separators~~
 * Constants
     * Constant expressions
 * Pattern matching
@@ -123,11 +123,12 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 
 ## Iterable Inheritance Diagram
 ```
-PoiseObject
-    |
-    |   _______________________________________ PoiseIterable
-    |__|___________|      |           |
-    |  |       |   |      |   ________|________ PoiseHashable
-    |  |       |   |      |  |        |   |
-PoiseList   PoiseRange  PoiseDict   PoiseSet
+Object
+ |
+ |   _______________________ Iterable
+ |__|_______|__________         |
+ |  |   |   |   |______|____ Hashable
+ |  |   |   |   |  |   | |
+ List   Range   Dict   Set
 ```
+
