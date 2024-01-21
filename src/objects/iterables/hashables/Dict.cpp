@@ -162,10 +162,6 @@ auto Dict::at(const runtime::Value& key) const -> const runtime::Value&
 
 auto Dict::tryInsert(runtime::Value key, runtime::Value value) noexcept -> bool
 {
-    if (containsKey(key)) {
-        return false;
-    }
-
     const auto hash = key.hash();
     auto index = hash % capacity();
 
