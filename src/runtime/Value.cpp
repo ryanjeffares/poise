@@ -4,6 +4,7 @@
 
 #include <charconv>
 #include <functional>
+#include <version>
 
 namespace poise::runtime {
 using objects::Exception;
@@ -185,6 +186,15 @@ auto Value::toFloat() const -> f64
         case TypeInternal::Int:
             return static_cast<f64>(value<i64>());
         case TypeInternal::String: {
+#ifdef _LIBCPP_VERSION
+            try {
+                return std::stod(string());
+            } catch (const std::invalid_argument&) {
+                throw Exception(Exception::ExceptionType::InvalidCast, fmt::format("Cannot convert '{}' to Float", string()));
+            } catch (const std::out_of_range&) {
+                throw Exception(Exception::ExceptionType::InvalidCast, fmt::format("{} out of range for Float", string()));
+            }
+#else
             auto res{0.0};
             const auto [ptr, ec] = std::from_chars(string().data(), string().data() + string().length(), res);
 
@@ -197,6 +207,7 @@ auto Value::toFloat() const -> f64
             }
 
             return res;
+#endif
         }
         default:
             throw Exception(Exception::ExceptionType::InvalidType, fmt::format("Cannot convert {} to Float", type()));

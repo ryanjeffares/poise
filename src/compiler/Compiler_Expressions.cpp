@@ -6,6 +6,7 @@
 #include "Compiler_Macros.hpp"
 
 #include <charconv>
+#include <version>
 
 namespace poise::compiler {
 auto Compiler::expression(bool canAssign, bool canUnpack) -> void
@@ -874,6 +875,18 @@ auto Compiler::parseInt() -> void
 
 auto Compiler::parseFloat() -> void
 {
+#ifdef _LIBCPP_VERSION
+    try {
+        const auto text = m_previous->string();
+        const auto result = std::stod(text);
+        emitConstant(result);
+        emitOp(runtime::Op::LoadConstant, m_previous->line());
+    } catch (const std::invalid_argument&) {
+        errorAtPrevious(fmt::format("Invalid Float '{}'", m_previous->text()));
+    } catch (const std::out_of_range&) {
+        errorAtPrevious(fmt::format("Float '{}' out of range", m_previous->text()));
+    }
+#else
     auto result{0.0};
     const auto text = m_previous->string();
     const auto [_, ec] = std::from_chars(text.data(), text.data() + text.length(), result);
@@ -886,5 +899,6 @@ auto Compiler::parseFloat() -> void
     } else if (ec == std::errc::result_out_of_range) {
         errorAtPrevious(fmt::format("Float out of range '{}'", text));
     }
+#endif
 }
 }   // namespace poise::compiler
