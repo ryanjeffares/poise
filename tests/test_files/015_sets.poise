@@ -42,4 +42,7 @@ func main() {
 
     println(a.symmetric_difference(b));
     println(a ^ b);
+
+    println(a.remove(-1));
+    println(a.remove("Foo"));
 }

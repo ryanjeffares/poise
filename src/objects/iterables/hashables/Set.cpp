@@ -195,6 +195,37 @@ auto Set::tryInsert(runtime::Value value) noexcept -> bool
     }
 }
 
+auto Set::remove(const runtime::Value& value) noexcept -> bool
+{
+    auto index = value.hash() % capacity();
+
+    while (true) {
+        switch (m_cellStates[index]) {
+            case CellState::NeverUsed: {
+                return false;
+            }
+            case CellState::Occupied: {
+                if (m_data[index] == value) {
+                    m_data[index] = runtime::Value::none();
+                    m_cellStates[index] = CellState::Tombstone;
+                    m_size--;
+                    invalidateIterators();
+                    return true;
+                }
+
+                [[fallthrough]];
+            }
+            case CellState::Tombstone: {
+                index = (index + 1_uz) % capacity();
+                break;
+            }
+            default:
+                POISE_UNREACHABLE();
+                break;
+        }
+    }
+}
+
 auto Set::isSubset(const Set& other) const noexcept -> bool
 {
     if (size() == 0_uz || this == &other) {

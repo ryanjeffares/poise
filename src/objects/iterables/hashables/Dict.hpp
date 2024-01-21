@@ -10,7 +10,7 @@ namespace poise::objects::iterables::hashables {
 class Dict : public Object, public Hashable
 {
 public:
-    Dict(std::span<runtime::Value> pairs);
+    explicit Dict(std::span<runtime::Value> pairs);
     ~Dict() override = default;
 
     [[nodiscard]] auto begin() noexcept -> IteratorType override;
@@ -32,6 +32,7 @@ public:
 
     [[nodiscard]] auto tryInsert(runtime::Value key, runtime::Value value) noexcept -> bool;
     auto insertOrUpdate(runtime::Value key, runtime::Value value) noexcept -> void;
+    [[nodiscard]] auto remove(const runtime::Value& key) noexcept -> bool;
     
 protected:
     auto growAndRehash() noexcept -> void override;

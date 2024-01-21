@@ -1,4 +1,5 @@
 export func contains_key(this final Dict dict, final key): Bool => __NATIVE_DICT_CONTAINS_KEY(dict, key);
 export func try_insert(this final Dict dict, final key, final value): Bool => __NATIVE_DICT_TRY_INSERT(dict, key, value);
 export func insert(this final Dict dict, final key, final value): None => __NATIVE_DICT_INSERT(dict, key, value);
+export func remove(this final Dict dict, final key): Bool => __NATIVE_DICT_REMOVE(dict, key);
 

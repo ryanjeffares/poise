@@ -40,7 +40,4 @@ if __name__ == '__main__':
             ret_code = os.system(f'cmake --build build --config {config} -- -j')
         else:
             ret_code = os.system(f'cmake --build build --config {config}')
-    
-        if ret_code == 0 and shutil.which('compdb-vs') is not None:
-            os.system(f'compdb-vs -c {config}')
 

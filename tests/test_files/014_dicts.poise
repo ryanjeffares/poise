@@ -52,5 +52,8 @@ func main() {
 
     name_size_lookup.insert("Ryan", []);
     println(name_size_lookup);
+
+    println(name_size_lookup.remove("Ryan"));
+    println(name_size_lookup.remove(420));
 }
 

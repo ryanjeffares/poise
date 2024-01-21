@@ -27,6 +27,7 @@ public:
 
     [[nodiscard]] auto contains(const runtime::Value& value) const noexcept -> bool;
     auto tryInsert(runtime::Value value) noexcept -> bool;
+    [[nodiscard]] auto remove(const runtime::Value& value) noexcept -> bool;
 
     [[nodiscard]] auto isSubset(const Set& other) const noexcept -> bool;
     [[nodiscard]] auto isSuperset(const Set& other) const noexcept -> bool;

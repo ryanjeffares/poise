@@ -182,6 +182,9 @@ TEST_CASE("Dictionary", "[objects]")
     REQUIRE(dict.capacity() == Hashable::s_initialCapacity * 2_uz);
     REQUIRE(dict.size() == 10_uz);
 
+    REQUIRE(dict.remove("Ryan2"));
+    REQUIRE(!dict.remove("Foo"));
+
     Iterator iterator{&dict};
     REQUIRE(!iterator.isAtEnd());
     iterator.increment();
@@ -254,6 +257,9 @@ TEST_CASE("Set", "[objects]")
     a.tryInsert(-3);
 
     REQUIRE(a.symmetricDifference(b).object()->asSet()->size() == 6_uz);
+
+    REQUIRE(a.remove(-1));
+    REQUIRE(!a.remove("Foo"));
 
     REQUIRE(Set{"RyanRyanRyan"}.size() == 4_uz);
 

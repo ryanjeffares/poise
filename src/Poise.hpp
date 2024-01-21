@@ -89,7 +89,7 @@ inline constexpr auto operator ""_f64(long double value) noexcept -> f64
     return static_cast<f64>(value);
 }
 
-#if defined(POISE_MSVC) && !defined(CRT_SECURE_NO_WARNINGS)
+#ifndef CRT_SECURE_NO_WARNINGS
 inline auto getEnv(const char* varName) noexcept -> std::string
 {
     std::string res;

@@ -142,7 +142,7 @@ auto Dict::at(const runtime::Value& key) const -> const runtime::Value&
                     fmt::format("{} was not present in the Dict", key)
                 };
             case CellState::Occupied: {
-                if (const auto tuple = m_data[index].object()->asTuple(); tuple->at(0_uz) == key) {
+                if (const auto& tuple = m_data[index].object()->asTuple(); tuple->at(0_uz) == key) {
                     return tuple->at(1_uz);
                 }
 
@@ -173,7 +173,7 @@ auto Dict::tryInsert(runtime::Value key, runtime::Value value) noexcept -> bool
                 return true;
             }
             case CellState::Occupied: {
-                if (const auto tuple = m_data[index].object()->asTuple(); tuple->at(0_uz) == key) {
+                if (m_data[index].object()->asTuple()->at(0_uz) == key) {
                     return false;
                 }
 
@@ -206,6 +206,39 @@ auto Dict::insertOrUpdate(runtime::Value key, runtime::Value value) noexcept -> 
                     return;
                 }
 
+                index = (index + 1_uz) % capacity();
+                break;
+            }
+            default: {
+                POISE_UNREACHABLE();
+                break;
+            }
+        }
+    }
+}
+
+auto Dict::remove(const runtime::Value& key) noexcept -> bool
+{
+    const auto hash = key.hash();
+    auto index = hash % capacity();
+
+    while (true) {
+        switch (m_cellStates[index]) {
+            case CellState::NeverUsed: {
+                return false;
+            }
+            case CellState::Occupied: {
+                if (m_data[index].object()->asTuple()->at(0_uz) == key) {
+                    m_data[index] = runtime::Value::none();
+                    m_cellStates[index] = CellState::Tombstone;
+                    m_size--;
+                    invalidateIterators();
+                    return true;
+                }
+
+                [[fallthrough]];
+            }
+            case CellState::Tombstone: {
                 index = (index + 1_uz) % capacity();
                 break;
             }

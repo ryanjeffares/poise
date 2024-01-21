@@ -68,6 +68,12 @@ auto Vm::registerDictNatives() noexcept -> void
             args[0_uz].object()->asDictionary()->insertOrUpdate(std::move(args[1_uz]), std::move(args[2_uz]));
             return Value::none();
         }});
+
+    m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_DICT_REMOVE"), NativeFunction{
+        2_u8, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0_uz, args[0_uz], types::Type::Dict);
+            return args[0_uz].object()->asDictionary()->remove(args[1_uz]);
+        }});
 }
 
 auto Vm::registerFloatNatives() noexcept -> void
@@ -203,6 +209,12 @@ auto Vm::registerSetNatives() noexcept -> void
         2_u8, [](std::span<Value> args) -> Value {
             throwIfWrongType(0_uz, args[0_uz], types::Type::Set);
             return args[0_uz].object()->asSet()->contains(args[1_uz]);
+        }});
+
+    m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_SET_REMOVE"), NativeFunction{
+        2_u8, [](std::span<Value> args) -> Value {
+            throwIfWrongType(0_uz, args[0_uz], types::Type::Set);
+            return args[0_uz].object()->asSet()->remove(args[1_uz]);
         }});
 
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_SET_IS_SUBSET"), NativeFunction{
