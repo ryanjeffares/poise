@@ -8,6 +8,7 @@ arg_parser.add_argument('-c', '--config')
 arg_parser.add_argument('-bp', '--boost_path')
 arg_parser.add_argument('-g', '--generator')
 arg_parser.add_argument('-j', '--jobs', action='store_true')
+arg_parser.add_argument('-is', '--intern_strings', action='store_true')
 
 if __name__ == '__main__':
     if not os.path.isdir('build'):
@@ -18,6 +19,7 @@ if __name__ == '__main__':
     config = args.config
     boost_path = args.boost_path
     generator = args.generator
+    intern_strings = args.intern_strings
 
     if config:
         if config not in ['Debug', 'Release']:
@@ -27,11 +29,15 @@ if __name__ == '__main__':
         config = 'Debug'
 
     command = f'cmake -B build -S . -DCMAKE_BUILD_TYPE={config} -DCMAKE_EXPORT_COMPILE_COMMANDS=1'
+
     if generator:
         command += f' -G {generator}'
 
     if boost_path:
         command += f' -DPOISE_BOOST_PATH={boost_path}'
+
+    if intern_strings:
+        command += ' -DPOISE_INTERN_STRINGS=ON'
 
     ret_code = os.system(command)
 

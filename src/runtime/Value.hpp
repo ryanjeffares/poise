@@ -2,6 +2,7 @@
 #define POISE_VALUE_HPP
 
 #include "../Poise.hpp"
+#include "memory/StringInterner.hpp"
 #include "../objects/Object.hpp"
 #include "Types.hpp"
 
@@ -47,7 +48,12 @@ public:
     {
         if constexpr (IsString<T>) {
             m_type = TypeInternal::String;
+
+#ifdef POISE_INTERN_STRINGS
+            m_data.string = memory::internString(std::move(value));
+#else
             m_data.string = new std::string{std::move(value)};
+#endif
         } else if constexpr (IsNone<T>) {
             m_type = TypeInternal::None;
             m_data.none = value;
@@ -83,9 +89,13 @@ public:
     template<Primitive T>
     Value& operator=(T value)
     {
+#ifndef POISE_INTERN_STRINGS
         if (typeInternal() == TypeInternal::String) {
             delete m_data.string;
-        } else if (typeInternal() == TypeInternal::Object) {
+        } else
+#endif
+
+        if (typeInternal() == TypeInternal::Object) {
             if (object()->decrementRefCount() == 0_uz) {
                 delete m_data.object;
             }
@@ -93,7 +103,12 @@ public:
 
         if constexpr (IsString<T>) {
             m_type = TypeInternal::String;
+
+#ifdef POISE_INTERN_STRINGS
+            m_data.string = memory::internString(std::move(value));
+#else
             m_data.string = new std::string{std::move(value)};
+#endif
         } else if constexpr (IsNone<T>) {
             m_type = TypeInternal::None;
             m_data.none = value;
@@ -174,7 +189,11 @@ private:
     {
         objects::Object* object;
         std::nullptr_t none;
+#ifdef POISE_INTERN_STRINGS
+        usize string;
+#else
         std::string* string;
+#endif
         i64 integer;
         f64 floating;
         bool boolean;

@@ -164,7 +164,6 @@ auto Set::iterable() const -> bool
             }
             default:
                 POISE_UNREACHABLE();
-                break;
         }
     }
 }
@@ -190,7 +189,6 @@ auto Set::tryInsert(runtime::Value value) noexcept -> bool
             }
             default:
                 POISE_UNREACHABLE();
-                return false;
         }
     }
 }
@@ -221,7 +219,6 @@ auto Set::remove(const runtime::Value& value) noexcept -> bool
             }
             default:
                 POISE_UNREACHABLE();
-                break;
         }
     }
 }

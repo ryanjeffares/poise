@@ -123,7 +123,6 @@ auto Dict::containsKey(const runtime::Value& key) const noexcept -> bool
             }
             default: {
                 POISE_UNREACHABLE();
-                return false;
             }
         }
     }
@@ -154,7 +153,6 @@ auto Dict::at(const runtime::Value& key) const -> const runtime::Value&
             }
             default: {
                 POISE_UNREACHABLE();
-                break;
             }
         }
     }
@@ -182,7 +180,6 @@ auto Dict::tryInsert(runtime::Value key, runtime::Value value) noexcept -> bool
             }
             default: {
                 POISE_UNREACHABLE();
-                break;
             }
         }
     }
@@ -211,7 +208,6 @@ auto Dict::insertOrUpdate(runtime::Value key, runtime::Value value) noexcept -> 
             }
             default: {
                 POISE_UNREACHABLE();
-                break;
             }
         }
     }
@@ -244,7 +240,6 @@ auto Dict::remove(const runtime::Value& key) noexcept -> bool
             }
             default: {
                 POISE_UNREACHABLE();
-                break;
             }
         }
     }

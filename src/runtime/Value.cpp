@@ -19,7 +19,11 @@ Value::Value(const Value& other)
     : m_type{other.typeInternal()}
 {
     if (typeInternal() == TypeInternal::String) {
+#ifdef POISE_INTERN_STRINGS
+        m_data.string = other.m_data.string;
+#else
         m_data.string = new std::string{other.string()};
+#endif
     } else if (typeInternal() == TypeInternal::Object) {
         m_data.object = other.object();
         object()->incrementRefCount();
@@ -40,9 +44,13 @@ Value::Value(Value&& other) noexcept
 Value& Value::operator=(const Value& other)
 {
     if (this != &other) {
+#ifndef POISE_INTERN_STRINGS
         if (typeInternal() == TypeInternal::String) {
             delete m_data.string;
-        } else if (typeInternal() == TypeInternal::Object) {
+        } else
+#endif
+
+        if (typeInternal() == TypeInternal::Object) {
             if (object()->decrementRefCount() == 0_uz) {
                 delete m_data.object;
             }
@@ -51,7 +59,11 @@ Value& Value::operator=(const Value& other)
         m_type = other.typeInternal();
 
         if (typeInternal() == TypeInternal::String) {
-            m_data.string = new std::string{other.toString()};
+#ifdef POISE_INTERN_STRINGS
+            m_data.string = other.m_data.string;
+#else
+            m_data.string = new std::string{other.string()};
+#endif
         } else if (typeInternal() == TypeInternal::Object) {
             m_data.object = other.object();
             object()->incrementRefCount();
@@ -66,9 +78,13 @@ Value& Value::operator=(const Value& other)
 Value& Value::operator=(Value&& other) noexcept
 {
     if (this != &other) {
+#ifndef POISE_INTERN_STRINGS
         if (typeInternal() == TypeInternal::String) {
             delete m_data.string;
-        } else if (typeInternal() == TypeInternal::Object) {
+        } else
+#endif
+
+        if (typeInternal() == TypeInternal::Object) {
             if (object()->decrementRefCount() == 0_uz) {
                 delete m_data.object;
             }
@@ -87,9 +103,13 @@ Value& Value::operator=(Value&& other) noexcept
 
 Value::~Value()
 {
+#ifndef POISE_INTERN_STRINGS
     if (typeInternal() == TypeInternal::String) {
         delete m_data.string;
-    } else if (typeInternal() == TypeInternal::Object) {
+    } else
+#endif
+
+    if (typeInternal() == TypeInternal::Object) {
         if (object()->decrementRefCount() == 0_uz) {
             delete m_data.object;
         }
@@ -103,7 +123,11 @@ auto Value::none() -> Value
 
 auto Value::string() const noexcept -> const std::string&
 {
+#ifdef POISE_INTERN_STRINGS
+    return memory::findInternedString(m_data.string);
+#else
     return *m_data.string;
+#endif
 }
 
 auto Value::object() const noexcept -> objects::Object*
@@ -137,7 +161,6 @@ auto Value::hash() const noexcept -> usize
             return std::hash<objects::Object*>{}(object());
         default:
             POISE_UNREACHABLE();
-            return 0_uz;
     }
 }
 
@@ -172,7 +195,6 @@ auto Value::toBool() const noexcept -> bool
             return !string().empty();
         default:
             POISE_UNREACHABLE();
-            return false;
     }
 }
 
@@ -259,7 +281,6 @@ auto Value::toString() const noexcept -> std::string
             return string();
         default:
             POISE_UNREACHABLE();
-            return "unknown";
     }
 }
 

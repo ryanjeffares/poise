@@ -11,6 +11,7 @@
 #include <filesystem>
 #include <optional>
 #include <string>
+#include <utility>
 
 namespace poise {
 using i8 = std::int8_t;
@@ -146,7 +147,13 @@ inline auto getStdPath() noexcept -> std::optional<std::filesystem::path>
 #endif
 
 #ifndef POISE_UNREACHABLE
-#define POISE_UNREACHABLE() POISE_ASSERT(false, "Unreachable code")
+#define POISE_UNREACHABLE()                                                                 \
+    do {                                                                                    \
+        const auto stacktrace = boost::stacktrace::stacktrace{};                            \
+        fmt::print(stderr, "Unreachable code\n");                                           \
+        fmt::print(stderr, "Stacktrace:\n{}\n", boost::stacktrace::to_string(stacktrace));  \
+        std::unreachable();                                                                 \
+    } while (false)
 #endif
 
 #ifdef POISE_MSVC
