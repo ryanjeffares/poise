@@ -2,6 +2,7 @@
 #define POISE_VALUE_HPP
 
 #include "../Poise.hpp"
+#include "memory/Gc.hpp"
 #include "memory/StringInterner.hpp"
 #include "../objects/Object.hpp"
 #include "Types.hpp"
@@ -80,6 +81,20 @@ public:
         Value value;
         value.m_type = TypeInternal::Object;
         value.m_data.object = new T(std::forward<Args>(args)...);
+
+        memory::gcTrackObject(value.object());
+        value.object()->incrementRefCount();
+        value.object()->setTracking(true);
+
+        return value;
+    }
+
+    template<Object T, typename... Args>
+    [[nodiscard]] static auto createObjectUntracked(Args&& ... args) -> Value
+    {
+        Value value;
+        value.m_type = TypeInternal::Object;
+        value.m_data.object = new T(std::forward<Args>(args)...);
         value.object()->incrementRefCount();
         return value;
     }
@@ -97,7 +112,8 @@ public:
 
         if (typeInternal() == TypeInternal::Object) {
             if (object()->decrementRefCount() == 0_uz) {
-                delete m_data.object;
+                memory::gcStopTrackingObject(object());
+                delete object();
             }
         }
 

@@ -643,7 +643,10 @@ auto Compiler::lambda() -> void
 
     const auto prevFunction = m_vm->currentFunction();
     auto lambdaName = fmt::format("{}_lambda{}", prevFunction->name(), prevFunction->numLambdas());
-    auto lambda = runtime::Value::createObject<objects::Function>(std::move(lambdaName), m_filePath, m_filePathHash, arity, false, hasVariadicParams);
+
+    // untracked because this lives in the constant list
+    // during runtime, a shallow clone is made which IS tracked along with its captures
+    auto lambda = runtime::Value::createObjectUntracked<objects::Function>(std::move(lambdaName), m_filePath, m_filePathHash, arity, false, hasVariadicParams);
     auto functionPtr = lambda.object()->asFunction();
     m_vm->setCurrentFunction(functionPtr);
 

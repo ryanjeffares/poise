@@ -52,7 +52,8 @@ Value& Value::operator=(const Value& other)
 
         if (typeInternal() == TypeInternal::Object) {
             if (object()->decrementRefCount() == 0_uz) {
-                delete m_data.object;
+                memory::gcStopTrackingObject(object());
+                delete object();
             }
         }
 
@@ -86,7 +87,8 @@ Value& Value::operator=(Value&& other) noexcept
 
         if (typeInternal() == TypeInternal::Object) {
             if (object()->decrementRefCount() == 0_uz) {
-                delete m_data.object;
+                memory::gcStopTrackingObject(object());
+                delete object();
             }
         }
 
@@ -111,7 +113,8 @@ Value::~Value()
 
     if (typeInternal() == TypeInternal::Object) {
         if (object()->decrementRefCount() == 0_uz) {
-            delete m_data.object;
+            memory::gcStopTrackingObject(object());
+            delete object();
         }
     }
 }

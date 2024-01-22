@@ -14,7 +14,8 @@ Iterator::Iterator(runtime::Value iterable)
     , m_iterablePtr{m_iterableValue.object()->asIterable()}
     , m_isValid{true}
 {
-    m_iterableValue.object()->incrementRefCount();
+    // no need to increase reference count on the iterable
+    // holding the Value does this
     m_iterablePtr->addIterator(this);
     m_iterator = m_iterablePtr->begin();
 }

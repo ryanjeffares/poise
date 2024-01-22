@@ -16,6 +16,16 @@ auto Object::refCount() const noexcept -> usize
     return m_refCount;
 }
 
+auto Object::tracking() const noexcept -> bool
+{
+    return m_tracking;
+}
+
+auto Object::setTracking(bool tracking) noexcept -> void
+{
+    m_tracking = tracking;
+}
+
 auto Object::asIterable() noexcept -> iterables::Iterable*
 {
     return nullptr;

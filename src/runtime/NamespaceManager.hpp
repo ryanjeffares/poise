@@ -7,9 +7,9 @@
 
 #include "../Poise.hpp"
 
-#include "NativeFunction.hpp"
 #include "Value.hpp"
 
+#include <span>
 #include <unordered_map>
 #include <vector>
 

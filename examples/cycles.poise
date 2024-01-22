@@ -1,0 +1,6 @@
+import std::list;
+
+func main() {
+    final l = [];
+    l.append(l);
+}

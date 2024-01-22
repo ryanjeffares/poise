@@ -42,6 +42,8 @@ public:
     auto incrementRefCount() noexcept -> usize;
     [[nodiscard]] auto decrementRefCount() noexcept -> usize;
     [[nodiscard]] auto refCount() const noexcept -> usize;
+    [[nodiscard]] auto tracking() const noexcept -> bool;
+    auto setTracking(bool track) noexcept -> void;
 
     [[nodiscard]] virtual auto asIterable() noexcept -> iterables::Iterable*;
     [[nodiscard]] virtual auto asHashable() noexcept -> iterables::hashables::Hashable*;
@@ -62,6 +64,7 @@ public:
 
 private:
     usize m_refCount{};
+    bool m_tracking{};
 };  // class PoiseObjects
 }   // namespace poise::objects
 

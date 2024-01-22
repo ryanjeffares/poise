@@ -1,6 +1,7 @@
 add_library(
     poise-runtime
 
+    memory/Gc.cpp
     memory/StringInterner.cpp
     NamespaceManager.cpp
     NativeFunction.cpp

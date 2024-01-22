@@ -118,7 +118,6 @@ auto typeDisplayName(TokenType tokenType) noexcept -> std::string_view
             return "Tuple";
         default:
             POISE_UNREACHABLE();
-            return "";
     }
 }
 

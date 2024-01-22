@@ -100,7 +100,7 @@ auto Compiler::funcDeclaration(bool isExported) -> void
         parseTypeAnnotation();
     }
 
-    auto function = runtime::Value::createObject<objects::Function>(std::move(functionName), m_filePath.string(), m_filePathHash, numParams, isExported, hasVariadicParams);
+    auto function = runtime::Value::createObjectUntracked<objects::Function>(std::move(functionName), m_filePath.string(), m_filePathHash, numParams, isExported, hasVariadicParams);
     auto functionPtr = function.object()->asFunction();
     m_vm->setCurrentFunction(functionPtr);
 
