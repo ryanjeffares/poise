@@ -222,12 +222,10 @@ private:
 };  // class Value
 }   // namespace poise::runtime
 
-namespace fmt {
 template<>
-struct formatter<poise::runtime::Value> : formatter<string_view>
+struct fmt::formatter<poise::runtime::Value> : formatter<string_view>
 {
     [[nodiscard]] auto format(const poise::runtime::Value& value, format_context& context) const -> decltype(context.out());
 };
-}   // namespace fmt
 
 #endif  // #ifndef POISE_VALUE_HPP

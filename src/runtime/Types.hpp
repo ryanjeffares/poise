@@ -5,6 +5,8 @@
 #ifndef POISE_TYPES_HPP
 #define POISE_TYPES_HPP
 
+#include "../Poise.hpp"
+
 #include <fmt/format.h>
 
 namespace poise::runtime {
@@ -21,11 +23,10 @@ enum class Type
 }   // namespace types
 }   // namespace poise::runtime
 
-namespace fmt {
 template<>
-struct formatter<poise::runtime::types::Type> : formatter<string_view>
+struct fmt::formatter<poise::runtime::types::Type> : formatter<string_view>
 {
     [[nodiscard]] auto format(poise::runtime::types::Type type, format_context& context) const -> decltype(context.out());
 };
-}
+
 #endif  // #ifndef POISE_TYPES_HPP

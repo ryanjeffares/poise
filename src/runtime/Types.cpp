@@ -9,53 +9,37 @@ using poise::runtime::types::Type;
 
 auto formatter<Type>::format(Type type, format_context& context) const -> decltype(context.out())
 {
-    string_view res = "unknown";
-
     switch (type) {
         case Type::Bool:
-            res = "Bool";
-            break;
+            return formatter<string_view>::format("Bool", context);
         case Type::Float:
-            res = "Float";
-            break;
+            return formatter<string_view>::format("Float", context);
         case Type::Int:
-            res = "Int";
-            break;
+            return formatter<string_view>::format("Int", context);
         case Type::None:
-            res = "None";
-            break;
+            return formatter<string_view>::format("None", context);
         case Type::String:
-            res = "String";
-            break;
+            return formatter<string_view>::format("String", context);
         case Type::Dict:
-            res = "Dict";
-            break;
+            return formatter<string_view>::format("Dict", context);
         case Type::Exception:
-            res = "Exception";
-            break;
+            return formatter<string_view>::format("Exception", context);
         case Type::Function:
-            res = "Function";
-            break;
+            return formatter<string_view>::format("Function", context);
         case Type::Iterator:
-            res = "Iterator";
-            break;
+            return formatter<string_view>::format("Iterator", context);
         case Type::List:
-            res = "List";
-            break;
+            return formatter<string_view>::format("List", context);
         case Type::Range:
-            res = "Range";
-            break;
+            return formatter<string_view>::format("Range", context);
         case Type::Set:
-            res = "Set";
-            break;
+            return formatter<string_view>::format("Set", context);
         case Type::Tuple:
-            res = "Tuple";
-            break;
+            return formatter<string_view>::format("Tuple", context);
         case Type::Type:
-            res = "Type";
-            break;
+            return formatter<string_view>::format("Type", context);
+        default:
+            POISE_UNREACHABLE();
     }
-
-    return formatter<string_view>::format(res, context);
 }
 }   // namespace fmt

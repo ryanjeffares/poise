@@ -4,172 +4,116 @@ using namespace poise::runtime;
 
 auto fmt::formatter<Op>::format(Op op, format_context& context) const -> decltype(context.out())
 {
-    string_view result = "unknown";
-
     switch (op) {
         case Op::AssignLocal:
-            result = "AssignLocal";
-            break;
+            return formatter<string_view>::format("AssignLocal", context);
         case Op::CaptureLocal:
-            result = "CaptureLocal";
-            break;
+            return formatter<string_view>::format("CaptureLocal", context);
         case Op::ConstructBuiltin:
-            result = "ConstructBuiltin";
-            break;
+            return formatter<string_view>::format("ConstructBuiltin", context);
         case Op::DeclareLocal:
-            result = "DeclareLocal";
-            break;
+            return formatter<string_view>::format("DeclareLocal", context);
         case Op::DeclareMultipleLocals:
-            result = "DeclareMultipleLocals";
-            break;
+            return formatter<string_view>::format("DeclareMultipleLocals", context);
         case Op::EnterTry:
-            result = "EnterTry";
-            break;
+            return formatter<string_view>::format("EnterTry", context);
         case Op::ExitTry:
-            result = "ExitTry";
-            break;
+            return formatter<string_view>::format("ExitTry", context);
         case Op::LoadCapture:
-            result = "LoadCapture";
-            break;
+            return formatter<string_view>::format("LoadCapture", context);
         case Op::LoadConstant:
-            result = "LoadConstant";
-            break;
+            return formatter<string_view>::format("LoadConstant", context);
         case Op::LoadFunction:
-            result = "LoadFunction";
-            break;
+            return formatter<string_view>::format("LoadFunction", context);
         case Op::LoadLocal:
-            result = "LoadLocal";
-            break;
+            return formatter<string_view>::format("LoadLocal", context);
         case Op::LoadMember:
-            result = "LoadMember";
-            break;
+            return formatter<string_view>::format("LoadMember", context);
         case Op::LoadType:
-            result = "LoadType";
-            break;
+            return formatter<string_view>::format("LoadType", context);
         case Op::Pop:
-            result = "Pop";
-            break;
+            return formatter<string_view>::format("Pop", context);
         case Op::PopIterator:
-            result = "PopIterator";
-            break;
+            return formatter<string_view>::format("PopIterator", context);
         case Op::PopLocals:
-            result = "PopLocals";
-            break;
+            return formatter<string_view>::format("PopLocals", context);
         case Op::Throw:
-            result = "Throw";
-            break;
+            return formatter<string_view>::format("Throw", context);
         case Op::Unpack:
-            result = "Unpack";
-            break;
+            return formatter<string_view>::format("Unpack", context);
         case Op::TypeOf:
-            result = "TypeOf";
-            break;
+            return formatter<string_view>::format("TypeOf", context);
         case Op::Print:
-            result = "Print";
-            break;
+            return formatter<string_view>::format("Print", context);
         case Op::LogicOr:
-            result = "LogicOr";
-            break;
+            return formatter<string_view>::format("LogicOr", context);
         case Op::LogicAnd:
-            result = "LogicAnd";
-            break;
+            return formatter<string_view>::format("LogicAnd", context);
         case Op::BitwiseOr:
-            result = "BitwiseOr";
-            break;
+            return formatter<string_view>::format("BitwiseOr", context);
         case Op::BitwiseXor:
-            result = "BitwiseXor";
-            break;
+            return formatter<string_view>::format("BitwiseXor", context);
         case Op::BitwiseAnd:
-            result = "BitwiseAnd";
-            break;
+            return formatter<string_view>::format("BitwiseAnd", context);
         case Op::Equal:
-            result = "Equal";
-            break;
+            return formatter<string_view>::format("Equal", context);
         case Op::NotEqual:
-            result = "NotEqual";
-            break;
+            return formatter<string_view>::format("NotEqual", context);
         case Op::LessThan:
-            result = "LessThan";
-            break;
+            return formatter<string_view>::format("LessThan", context);
         case Op::LessEqual:
-            result = "LessEqual";
-            break;
+            return formatter<string_view>::format("LessEqual", context);
         case Op::GreaterThan:
-            result = "GreaterThan";
-            break;
+            return formatter<string_view>::format("GreaterThan", context);
         case Op::GreaterEqual:
-            result = "GreaterEqual";
-            break;
+            return formatter<string_view>::format("GreaterEqual", context);
         case Op::LeftShift:
-            result = "LeftShift";
-            break;
+            return formatter<string_view>::format("LeftShift", context);
         case Op::RightShift:
-            result = "RightShift";
-            break;
+            return formatter<string_view>::format("RightShift", context);
         case Op::Addition:
-            result = "Addition";
-            break;
+            return formatter<string_view>::format("Addition", context);
         case Op::Subtraction:
-            result = "Subtraction";
-            break;
+            return formatter<string_view>::format("Subtraction", context);
         case Op::Multiply:
-            result = "Multiply";
-            break;
+            return formatter<string_view>::format("Multiply", context);
         case Op::Divide:
-            result = "Divide";
-            break;
+            return formatter<string_view>::format("Divide", context);
         case Op::Modulus:
-            result = "Modulus";
-            break;
+            return formatter<string_view>::format("Modulus", context);
         case Op::LogicNot:
-            result = "LogicNot";
-            break;
+            return formatter<string_view>::format("LogicNot", context);
         case Op::BitwiseNot:
-            result = "BitwiseNot";
-            break;
+            return formatter<string_view>::format("BitwiseNot", context);
         case Op::Negate:
-            result = "Negate";
-            break;
+            return formatter<string_view>::format("Negate", context);
         case Op::Plus:
-            result = "Plus";
-            break;
+            return formatter<string_view>::format("Plus", context);
         case Op::MakeLambda:
-            result = "MakeLambda";
-            break;
+            return formatter<string_view>::format("MakeLambda", context);
         case Op::AssignIndex:
-            result = "AssignIndex";
-            break;
+            return formatter<string_view>::format("AssignIndex", context);
         case Op::LoadIndex:
-            result = "LoadIndex";
-            break;
+            return formatter<string_view>::format("LoadIndex", context);
         case Op::Call:
-            result = "Call";
-            break;
+            return formatter<string_view>::format("Call", context);
         case Op::CallNative:
-            result = "CallNative";
-            break;
+            return formatter<string_view>::format("CallNative", context);
         case Op::IncrementIterator:
-            result = "IncrementIterator";
-            break;
+            return formatter<string_view>::format("IncrementIterator", context);
         case Op::InitIterator:
-            result = "InitIterator";
-            break;
+            return formatter<string_view>::format("InitIterator", context);
         case Op::Jump:
-            result = "Jump";
-            break;
+            return formatter<string_view>::format("Jump", context);
         case Op::JumpIfFalse:
-            result = "JumpIfFalse";
-            break;
+            return formatter<string_view>::format("JumpIfFalse", context);
         case Op::JumpIfTrue:
-            result = "JumpIfTrue";
-            break;
+            return formatter<string_view>::format("JumpIfTrue", context);
         case Op::Exit:
-            result = "Exit";
-            break;
+            return formatter<string_view>::format("Exit", context);
         case Op::Return:
-            result = "Return";
-            break;
+            return formatter<string_view>::format("Return", context);
+        default:
+            POISE_UNREACHABLE();
     }
-
-    return formatter<string_view>::format(result, context);
 }

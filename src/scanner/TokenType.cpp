@@ -170,254 +170,171 @@ using namespace poise;
 
 auto formatter<scanner::TokenType>::format(scanner::TokenType tokenType, format_context& context) const -> decltype(context.out())
 {
-    string_view result = "unknown";
-
     switch (tokenType) {
         case scanner::TokenType::BoolIdent:
-            result = "BoolIdent";
-            break;
+            return formatter<string_view>::format("BoolIdent", context);
         case scanner::TokenType::FloatIdent:
-            result = "FloatIdent";
-            break;
+            return formatter<string_view>::format("FloatIdent", context);
         case scanner::TokenType::IntIdent:
-            result = "IntIdent";
-            break;
+            return formatter<string_view>::format("IntIdent", context);
         case scanner::TokenType::NoneIdent:
-            result = "NoneIdent";
-            break;
+            return formatter<string_view>::format("NoneIdent", context);
         case scanner::TokenType::StringIdent:
-            result = "StringIdent";
-            break;
+            return formatter<string_view>::format("StringIdent", context);
         case scanner::TokenType::DictIdent:
-            result = "DictIdent";
-            break;
+            return formatter<string_view>::format("DictIdent", context);
         case scanner::TokenType::ExceptionIdent:
-            result = "ExceptionIdent";
-            break;
+            return formatter<string_view>::format("ExceptionIdent", context);
         case scanner::TokenType::FunctionIdent:
-            result = "FunctionIdent";
-            break;
+            return formatter<string_view>::format("FunctionIdent", context);
         case scanner::TokenType::ListIdent:
-            result = "ListIdent";
-            break;
+            return formatter<string_view>::format("ListIdent", context);
         case scanner::TokenType::RangeIdent:
-            result = "RangeIdent";
-            break;
+            return formatter<string_view>::format("RangeIdent", context);
         case scanner::TokenType::SetIdent:
-            result = "SetIdent";
-            break;
+            return formatter<string_view>::format("SetIdent", context);
         case scanner::TokenType::TupleIdent:
-            result = "TupleIdent";
-            break;
+            return formatter<string_view>::format("TupleIdent", context);
         case scanner::TokenType::And:
-            result = "And";
-            break;
+            return formatter<string_view>::format("And", context);
         case scanner::TokenType::As:
-            result = "As";
-            break;
+            return formatter<string_view>::format("As", context);
         case scanner::TokenType::Break:
-            result = "Break";
-            break;
+            return formatter<string_view>::format("Break", context);
         case scanner::TokenType::By:
-            result = "By";
-            break;
+            return formatter<string_view>::format("By", context);
         case scanner::TokenType::Catch:
-            result = "Catch";
-            break;
+            return formatter<string_view>::format("Catch", context);
         case scanner::TokenType::Continue:
-            result = "Continue";
-            break;
+            return formatter<string_view>::format("Continue", context);
         case scanner::TokenType::Else:
-            result = "Else";
-            break;
+            return formatter<string_view>::format("Else", context);
         case scanner::TokenType::EPrint:
-            result = "EPrint";
-            break;
+            return formatter<string_view>::format("EPrint", context);
         case scanner::TokenType::EPrintLn:
-            result = "EPrintLn";
-            break;
+            return formatter<string_view>::format("EPrintLn", context);
         case scanner::TokenType::Export:
-            result = "Export";
-            break;
+            return formatter<string_view>::format("Export", context);
         case scanner::TokenType::Final:
-            result = "Final";
-            break;
+            return formatter<string_view>::format("Final", context);
         case scanner::TokenType::For:
-            result = "For";
-            break;
+            return formatter<string_view>::format("For", context);
         case scanner::TokenType::Func:
-            result = "Func";
-            break;
+            return formatter<string_view>::format("Func", context);
         case scanner::TokenType::If:
-            result = "If";
-            break;
+            return formatter<string_view>::format("If", context);
         case scanner::TokenType::Import:
-            result = "Import";
-            break;
+            return formatter<string_view>::format("Import", context);
         case scanner::TokenType::In:
-            result = "In";
-            break;
+            return formatter<string_view>::format("In", context);
         case scanner::TokenType::Or:
-            result = "Or";
-            break;
+            return formatter<string_view>::format("Or", context);
         case scanner::TokenType::Print:
-            result = "Print";
-            break;
+            return formatter<string_view>::format("Print", context);
         case scanner::TokenType::PrintLn:
-            result = "PrintLn";
-            break;
+            return formatter<string_view>::format("PrintLn", context);
         case scanner::TokenType::Return:
-            result = "Return";
-            break;
+            return formatter<string_view>::format("Return", context);
         case scanner::TokenType::Throw:
-            result = "Throw";
-            break;
+            return formatter<string_view>::format("Throw", context);
         case scanner::TokenType::This:
-            result = "This";
-            break;
+            return formatter<string_view>::format("This", context);
         case scanner::TokenType::Try:
-            result = "Try";
-            break;
+            return formatter<string_view>::format("Try", context);
         case scanner::TokenType::TypeOf:
-            result = "TypeOf";
-            break;
+            return formatter<string_view>::format("TypeOf", context);
         case scanner::TokenType::Var:
-            result = "Var";
-            break;
+            return formatter<string_view>::format("Var", context);
         case scanner::TokenType::While:
-            result = "While";
-            break;
+            return formatter<string_view>::format("While", context);
         case scanner::TokenType::Ampersand:
-            result = "Ampersand";
-            break;
+            return formatter<string_view>::format("Ampersand", context);
         case scanner::TokenType::Arrow:
-            result = "Arrow";
-            break;
+            return formatter<string_view>::format("Arrow", context);
         case scanner::TokenType::Caret:
-            result = "Caret";
-            break;
+            return formatter<string_view>::format("Caret", context);
         case scanner::TokenType::CloseBrace:
-            result = "CloseBrace";
-            break;
+            return formatter<string_view>::format("CloseBrace", context);
         case scanner::TokenType::CloseParen:
-            result = "CloseParen";
-            break;
+            return formatter<string_view>::format("CloseParen", context);
         case scanner::TokenType::CloseSquareBracket:
-            result = "CloseSquareBracket";
-            break;
+            return formatter<string_view>::format("CloseSquareBracket", context);
         case scanner::TokenType::Colon:
-            result = "Colon";
-            break;
+            return formatter<string_view>::format("Colon", context);
         case scanner::TokenType::ColonColon:
-            result = "ColonColon";
-            break;
+            return formatter<string_view>::format("ColonColon", context);
         case scanner::TokenType::Comma:
-            result = "Comma";
-            break;
+            return formatter<string_view>::format("Comma", context);
         case scanner::TokenType::Dot:
-            result = "Dot";
-            break;
+            return formatter<string_view>::format("Dot", context);
         case scanner::TokenType::DotDot:
-            result = "DotDot";
-            break;
+            return formatter<string_view>::format("DotDot", context);
         case scanner::TokenType::DotDotDot:
-            result = "DotDotDot";
-            break;
+            return formatter<string_view>::format("DotDotDot", context);
         case scanner::TokenType::DotDotEqual:
-            result = "DotDotEqual";
-            break;
+            return formatter<string_view>::format("DotDotEqual", context);
         case scanner::TokenType::Equal:
-            result = "Equal";
-            break;
+            return formatter<string_view>::format("Equal", context);
         case scanner::TokenType::EqualEqual:
-            result = "EqualEqual";
-            break;
+            return formatter<string_view>::format("EqualEqual", context);
         case scanner::TokenType::Exclamation:
-            result = "Exclamation";
-            break;
+            return formatter<string_view>::format("Exclamation", context);
         case scanner::TokenType::Greater:
-            result = "Greater";
-            break;
+            return formatter<string_view>::format("Greater", context);
         case scanner::TokenType::GreaterEqual:
-            result = "GreaterEqual";
-            break;
+            return formatter<string_view>::format("GreaterEqual", context);
         case scanner::TokenType::Less:
-            result = "Less";
-            break;
+            return formatter<string_view>::format("Less", context);
         case scanner::TokenType::LessEqual:
-            result = "LessEqual";
-            break;
+            return formatter<string_view>::format("LessEqual", context);
         case scanner::TokenType::Modulus:
-            result = "Modulus";
-            break;
+            return formatter<string_view>::format("Modulus", context);
         case scanner::TokenType::Minus:
-            result = "Subtraction";
-            break;
+            return formatter<string_view>::format("Subtraction", context);
         case scanner::TokenType::NotEqual:
-            result = "NotEqual";
-            break;
+            return formatter<string_view>::format("NotEqual", context);
         case scanner::TokenType::OpenBrace:
-            result = "OpenBrace";
-            break;
+            return formatter<string_view>::format("OpenBrace", context);
         case scanner::TokenType::OpenParen:
-            result = "OpenParen";
-            break;
+            return formatter<string_view>::format("OpenParen", context);
         case scanner::TokenType::OpenSquareBracket:
-            result = "OpenSquareBracket";
-            break;
+            return formatter<string_view>::format("OpenSquareBracket", context);
         case scanner::TokenType::Pipe:
-            result = "Pipe";
-            break;
+            return formatter<string_view>::format("Pipe", context);
         case scanner::TokenType::Plus:
-            result = "Addition";
-            break;
+            return formatter<string_view>::format("Addition", context);
         case scanner::TokenType::Semicolon:
-            result = "Semicolon";
-            break;
+            return formatter<string_view>::format("Semicolon", context);
         case scanner::TokenType::ShiftLeft:
-            result = "ShiftLeft";
-            break;
+            return formatter<string_view>::format("ShiftLeft", context);
         case scanner::TokenType::ShiftRight:
-            result = "ShiftRight";
-            break;
+            return formatter<string_view>::format("ShiftRight", context);
         case scanner::TokenType::Slash:
-            result = "Slash";
-            break;
+            return formatter<string_view>::format("Slash", context);
         case scanner::TokenType::Star:
-            result = "Star";
-            break;
+            return formatter<string_view>::format("Star", context);
         case scanner::TokenType::Tilde:
-            result = "Tilde";
-            break;
+            return formatter<string_view>::format("Tilde", context);
         case scanner::TokenType::False:
-            result = "False";
-            break;
+            return formatter<string_view>::format("False", context);
         case scanner::TokenType::Float:
-            result = "Float";
-            break;
+            return formatter<string_view>::format("Float", context);
         case scanner::TokenType::Identifier:
-            result = "Identifier";
-            break;
+            return formatter<string_view>::format("Identifier", context);
         case scanner::TokenType::Int:
-            result = "Int";
-            break;
+            return formatter<string_view>::format("Int", context);
         case scanner::TokenType::None:
-            result = "None";
-            break;
+            return formatter<string_view>::format("None", context);
         case scanner::TokenType::String:
-            result = "String";
-            break;
+            return formatter<string_view>::format("String", context);
         case scanner::TokenType::True:
-            result = "True";
-            break;
+            return formatter<string_view>::format("True", context);
         case scanner::TokenType::EndOfFile:
-            result = "EndOfFile";
-            break;
+            return formatter<string_view>::format("EndOfFile", context);
         case scanner::TokenType::Error:
-            result = "Error";
-            break;
+            return formatter<string_view>::format("Error", context);
+        default:
+            POISE_UNREACHABLE();
     }
-
-    return formatter<string_view>::format(result, context);
 }
 }   // namespace fmt
