@@ -630,7 +630,11 @@ auto Value::operator==(const Value& other) const noexcept -> bool
             return other.typeInternal() == TypeInternal::None;
         }
         case TypeInternal::String: {
+#ifdef POISE_INTERN_STRINGS
+            return other.typeInternal() == TypeInternal::String && data().string == other.data().string;
+#else
             return other.typeInternal() == TypeInternal::String && string() == other.string();
+#endif
         }
         default:
             return false;

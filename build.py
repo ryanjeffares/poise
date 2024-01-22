@@ -38,6 +38,8 @@ if __name__ == '__main__':
 
     if intern_strings:
         command += ' -DPOISE_INTERN_STRINGS=ON'
+    else:
+        command += ' -DPOISE_INTERN_STRINGS=OFF'
 
     ret_code = os.system(command)
 
