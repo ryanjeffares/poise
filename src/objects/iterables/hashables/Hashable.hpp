@@ -10,6 +10,8 @@ public:
     Hashable();
     explicit Hashable(usize initialCapacity, const runtime::Value& defaultValue = runtime::Value::none());
 
+    [[nodiscard]] auto asHashable() noexcept -> Hashable* override;
+
     [[nodiscard]] auto size() const noexcept -> usize override;
     [[nodiscard]] auto ssize() const noexcept -> isize override;
     [[nodiscard]] auto capacity() const noexcept -> usize;

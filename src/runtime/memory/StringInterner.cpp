@@ -20,11 +20,16 @@ public:
 
     static auto instance() noexcept -> StringPool&
     {
-        static auto s = [] {
-            return StringPool{};
-        }();
-
+        static auto s = StringPool{};
         return s;
+    }
+
+    auto initialise() noexcept -> void
+    {
+        m_size = 0_uz;
+        m_capacity = s_initialCapacity;
+        m_data.clear();
+        m_data.resize(m_capacity);
     }
 
     auto insert(std::string string) noexcept -> usize
@@ -176,6 +181,11 @@ private:
     std::vector<InternedString> m_data;
     usize m_size, m_capacity;
 };
+
+auto intialiseStringInterning() noexcept -> void
+{
+    StringPool::instance().initialise();
+}
 
 auto internString(std::string string) noexcept -> usize
 {

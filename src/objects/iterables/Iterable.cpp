@@ -24,6 +24,48 @@ Iterable::~Iterable()
     invalidateIterators();
 }
 
+auto Iterable::asIterable() noexcept -> Iterable*
+{
+    return this;
+}
+
+auto Iterable::findObjectMembers(std::vector<Object*>& objects) const noexcept -> void
+{
+    if (type() == runtime::types::Type::Range) {
+        return;
+    }
+
+    for (const auto& value : m_data) {
+        if (const auto object = value.object()) {
+            if (!std::ranges::contains(objects, object)) {
+                objects.push_back(object);
+                object->findObjectMembers(objects);
+            }
+        }
+    }
+}
+
+auto Iterable::removeObjectMembers() noexcept -> void
+{
+    if (type() == runtime::types::Type::Range) {
+        return;
+    }
+
+    for (auto& value : m_data) {
+        if (value.object() != nullptr) {
+            value = runtime::Value::none();
+        }
+    }
+}
+
+auto Iterable::anyMemberMatchesRecursive(const Object* object) const noexcept -> bool
+{
+    return std::ranges::any_of(m_data, [object, this] (const auto& value) -> bool {
+        const auto member = value.object();
+        return member != nullptr && (member == this || member == object || member->anyMemberMatchesRecursive(object));
+    });
+}
+
 auto Iterable::addIterator(Iterator* iterator) noexcept -> void
 {
 #ifdef POISE_DEBUG

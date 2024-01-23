@@ -6,17 +6,15 @@
 #define POISE_RANGE_HPP
 
 #include "Iterable.hpp"
-#include "../Object.hpp"
 
 namespace poise::objects::iterables {
-class Range : public Object, public Iterable
+class Range : public Iterable
 {
 public:
     // all values are required to be checked to be numbers before this is called
     Range(const runtime::Value& start, const runtime::Value& end, const runtime::Value& increment, bool inclusive);
     ~Range() override = default;
 
-    [[nodiscard]] auto asIterable() noexcept -> Iterable* override;
     [[nodiscard]] auto asRange() noexcept -> Range* override;
 
     [[nodiscard]] auto toString() const noexcept -> std::string override;

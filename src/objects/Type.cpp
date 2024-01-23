@@ -24,6 +24,16 @@ auto Type::type() const noexcept -> runtime::types::Type
     return runtime::types::Type::Type;
 }
 
+auto Type::findObjectMembers([[maybe_unused]] std::vector<Object*>& objects) const noexcept -> void
+{
+
+}
+
+auto Type::removeObjectMembers() noexcept -> void
+{
+
+}
+
 auto Type::asType() noexcept -> Type*
 {
     return this;

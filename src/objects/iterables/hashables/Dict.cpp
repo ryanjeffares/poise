@@ -61,16 +61,6 @@ auto Dict::asDictionary() noexcept -> Dict*
     return this;
 }
 
-auto Dict::asIterable() noexcept -> Iterable*
-{
-    return this;
-}
-
-auto Dict::asHashable() noexcept -> Hashable*
-{
-    return this;
-}
-
 auto Dict::toString() const noexcept -> std::string
 {
     std::string res = "{";
@@ -80,7 +70,11 @@ auto Dict::toString() const noexcept -> std::string
             continue;
         }
 
-        res.append(m_data[i].toString());
+        if (m_data[i].object()->anyMemberMatchesRecursive(this)) {
+            res.append("(...)");
+        } else {
+            res.append(m_data[i].toString());
+        }
 
         if (count++ < size() - 1_uz) {
             res.append(", ");

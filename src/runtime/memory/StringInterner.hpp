@@ -6,6 +6,8 @@
 #include <string>
 
 namespace poise::runtime::memory {
+auto intialiseStringInterning() noexcept -> void;
+
 [[nodiscard]] auto internString(std::string string) noexcept -> usize;
 [[nodiscard]] auto removeInternedString(const std::string& string) noexcept -> bool;
 [[nodiscard]] auto removeInternedStringId(usize hash) noexcept -> bool;

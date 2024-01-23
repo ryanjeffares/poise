@@ -15,6 +15,11 @@ Hashable::Hashable(usize initialCapacity, const runtime::Value& defaultValue)
 
 }
 
+auto Hashable::asHashable() noexcept -> Hashable*
+{
+    return this;
+}
+
 auto Hashable::size() const noexcept -> usize
 {
     return m_size;

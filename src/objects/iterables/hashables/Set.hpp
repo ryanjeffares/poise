@@ -4,7 +4,7 @@
 #include "Hashable.hpp"
 
 namespace poise::objects::iterables::hashables {
-class Set : public Object, public Hashable
+class Set : public Hashable
 {
 public:
     Set() = default;
@@ -17,8 +17,6 @@ public:
     auto isAtEnd(const IteratorType& iterator) noexcept -> bool override;
     auto unpack(std::vector<runtime::Value>& stack) const noexcept -> void override;
 
-    [[nodiscard]] auto asIterable() noexcept -> Iterable* override;
-    [[nodiscard]] auto asHashable() noexcept -> Hashable* override;
     [[nodiscard]] auto asSet() noexcept -> Set* override;
 
     [[nodiscard]] auto toString() const noexcept -> std::string override;

@@ -96,21 +96,10 @@ auto Set::unpack(std::vector<runtime::Value>& stack) const noexcept -> void
 }
 
 
-auto Set::asIterable() noexcept -> Iterable*
-{
-    return this;
-}
-
-auto Set::asHashable() noexcept -> Hashable*
-{
-    return this;
-}
-
 auto Set::asSet() noexcept -> Set*
 {
     return this;
 }
-
 
 auto Set::toString() const noexcept -> std::string
 {
@@ -121,7 +110,11 @@ auto Set::toString() const noexcept -> std::string
             continue;
         }
 
-        res.append(m_data[i].toString());
+        if (m_data[i].object() && m_data[i].object()->anyMemberMatchesRecursive(this)) {
+            res.append("...");
+        } else {
+            res.append(m_data[i].toString());
+        }
 
         if (count++ < size() - 1_uz) {
             res.append(", ");

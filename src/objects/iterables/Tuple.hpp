@@ -2,10 +2,9 @@
 #define POISE_TUPE_HPP
 
 #include "Iterable.hpp"
-#include "../Object.hpp"
 
 namespace poise::objects::iterables {
-class Tuple : public Object, public Iterable
+class Tuple : public Iterable
 {
 public:
     explicit Tuple(std::vector<runtime::Value> data);
@@ -21,7 +20,6 @@ public:
     [[nodiscard]] auto ssize() const noexcept -> isize override;
     auto unpack(std::vector<runtime::Value>& stack) const noexcept -> void override;
 
-    [[nodiscard]] auto asIterable() noexcept -> Iterable* override;
     [[nodiscard]] auto asTuple() noexcept -> Tuple* override;
 
     [[nodiscard]] auto toString() const noexcept -> std::string override;

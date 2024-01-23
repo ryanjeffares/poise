@@ -3,6 +3,8 @@
 #include <fmt/core.h>
 #include <fmt/format.h>
 
+#include <algorithm>
+
 namespace poise::objects {
 static std::hash<std::string> s_hasher;
 
@@ -46,6 +48,35 @@ auto Function::toString() const noexcept -> std::string
 auto Function::type() const noexcept -> runtime::types::Type
 {
     return runtime::types::Type::Function;
+}
+
+auto Function::findObjectMembers(std::vector<Object*>& objects) const noexcept -> void
+{
+    for (const auto& capture : m_captures) {
+        if (const auto object = capture.object()) {
+            if (!std::ranges::contains(objects, object)) {
+                objects.push_back(object);
+                object->findObjectMembers(objects);
+            }
+        }
+    }
+}
+
+auto Function::removeObjectMembers() noexcept -> void
+{
+    for (auto& capture : m_captures) {
+        if (capture.object() != nullptr) {
+            capture = runtime::Value::none();
+        }
+    }
+}
+
+auto Function::anyMemberMatchesRecursive(const Object* object) const noexcept -> bool
+{
+    return std::ranges::any_of(m_captures, [object, this] (const auto& capture) -> bool {
+        const auto member = capture.object();
+        return member != nullptr && (member == this || member == object || member->anyMemberMatchesRecursive(object));
+    });
 }
 
 auto Function::opList() const noexcept -> std::span<const runtime::OpLine>

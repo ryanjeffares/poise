@@ -2,12 +2,11 @@
 #define POISE_DICTIONARY_HPP
 
 #include "Hashable.hpp"
-#include "../../Object.hpp"
 
 #include <span>
 
 namespace poise::objects::iterables::hashables {
-class Dict : public Object, public Hashable
+class Dict : public Hashable
 {
 public:
     explicit Dict(std::span<runtime::Value> pairs);
@@ -20,8 +19,6 @@ public:
     auto unpack(std::vector<runtime::Value>& stack) const noexcept -> void override;
 
     [[nodiscard]] auto asDictionary() noexcept -> Dict* override;
-    [[nodiscard]] auto asIterable() noexcept -> Iterable* override;
-    [[nodiscard]] auto asHashable() noexcept -> Hashable* override;
 
     [[nodiscard]] auto toString() const noexcept -> std::string override;
     [[nodiscard]] auto type() const noexcept -> runtime::types::Type override;

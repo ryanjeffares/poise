@@ -9,10 +9,7 @@
 
 #include <fmt/format.h>
 
-namespace poise::runtime {
-class Value;
-
-namespace types {
+namespace poise::runtime::types {
 enum class Type
 {
     // keep in alphabetical order - except anything that can't be constructed with a call
@@ -20,8 +17,8 @@ enum class Type
     // so that we match this to the TokenType
     Bool, Float, Int, None, String, Dict, Exception, Function, List, Range, Set, Tuple, Type, Iterator,
 };
-}   // namespace types
-}   // namespace poise::runtime
+} // namespace poise::runtime::types
+
 
 template<>
 struct fmt::formatter<poise::runtime::types::Type> : formatter<string_view>
@@ -30,3 +27,4 @@ struct fmt::formatter<poise::runtime::types::Type> : formatter<string_view>
 };
 
 #endif  // #ifndef POISE_TYPES_HPP
+

@@ -52,11 +52,6 @@ auto Tuple::unpack(std::vector<runtime::Value>& stack) const noexcept -> void
     stack.emplace_back(size());
 }
 
-auto Tuple::asIterable() noexcept -> Iterable*
-{
-    return this;
-}
-
 auto Tuple::asTuple() noexcept -> Tuple*
 {
     return this;
@@ -67,8 +62,7 @@ auto Tuple::toString() const noexcept -> std::string
     std::string res = "(";
 
     for (auto index = 0_uz; const auto& value : m_data) {
-        // TODO - check this recursively
-        if (value.object() == this) {
+        if (value.object() && value.object()->anyMemberMatchesRecursive(this)) {
             res.append("...");
         } else {
             if (value.type() == runtime::types::Type::String) {

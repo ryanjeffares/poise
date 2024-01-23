@@ -298,7 +298,7 @@ auto Vm::run() const noexcept -> RunResult
     };
 
     std::stack<TryBlockState> tryBlockStateStack;
-    std::stack<Value> heldIterators;
+    std::vector<Value> heldIterators;
 
     auto pop = [&stack] () -> Value {
         POISE_ASSERT(!stack.empty(), "Stack is empty, there has been an error in codegen");
@@ -338,6 +338,23 @@ auto Vm::run() const noexcept -> RunResult
         return args;
     };
 
+    auto markGcRoots = [&] {
+        for (const auto& value : stack) {
+            if (auto object = value.object()) {
+                memory::Gc::instance().markRoot(object);
+            }
+        }
+
+        for (const auto& value : localVariables) {
+            if (auto object = value.object()) {
+                memory::Gc::instance().markRoot(object);
+            }
+        }
+
+        for (const auto& iterator : heldIterators) {
+            memory::Gc::instance().markRoot(iterator.object());
+        }
+    };
 #ifdef POISE_DEBUG
     auto printMemory = [&stack, &localVariables] {
         // I'm assuming this gets yeeted in release...
@@ -355,6 +372,11 @@ auto Vm::run() const noexcept -> RunResult
 #endif
 
     while (true) {
+        if (memory::Gc::instance().shouldCleanCycles()) {
+            markGcRoots();
+            memory::Gc::instance().cleanCycles();
+        }
+
         auto& callStackTop = callStack.back();
 
         const auto localIndexOffset = callStackTop.localIndexOffset;
@@ -504,7 +526,7 @@ auto Vm::run() const noexcept -> RunResult
                     break;
                 }
                 case Op::PopIterator: {
-                    heldIterators.pop();
+                    heldIterators.pop_back();
                     break;
                 }
                 case Op::PopLocals: {
@@ -824,7 +846,10 @@ auto Vm::run() const noexcept -> RunResult
                     POISE_ASSERT(heldIterators.empty(), "Held iterators not empty, there has been an error in codegen");
                     POISE_ASSERT(tryBlockStateStack.empty(), "Try block state stack not empty, there has been an error in codegen");
                     POISE_ASSERT(callStack.size() == 1_uz, "Call stack not empty, there has been an error in codegen");
-                    memory::gcFinalise();
+
+                    markGcRoots();
+                    memory::Gc::instance().finalise();
+
                     return RunResult::Success;
                 }
                 case Op::InitIterator: {
@@ -836,8 +861,8 @@ auto Vm::run() const noexcept -> RunResult
                         };
                     }
 
-                    heldIterators.push(Value::createObject<Iterator>(value));
-                    auto iteratorPtr = heldIterators.top().object()->asIterator();
+                    heldIterators.push_back(Value::createObject<Iterator>(value));
+                    auto iteratorPtr = heldIterators.back().object()->asIterator();
                     const auto isAtEnd = iteratorPtr->isAtEnd();
                     stack.emplace_back(iteratorPtr->isAtEnd());
 
@@ -893,7 +918,7 @@ auto Vm::run() const noexcept -> RunResult
                     break;
                 }
                 case Op::IncrementIterator: {
-                    auto iterator = heldIterators.top().object()->asIterator();
+                    auto iterator = heldIterators.back().object()->asIterator();
                     iterator->increment();
                     const auto isAtEnd = iterator->isAtEnd();
                     stack.emplace_back(isAtEnd);
@@ -942,7 +967,7 @@ auto Vm::run() const noexcept -> RunResult
                     }
 
                     if (isAtEnd) {
-                        heldIterators.pop();
+                        heldIterators.pop_back();
                     }
 
                     break;
@@ -995,7 +1020,7 @@ auto Vm::run() const noexcept -> RunResult
                 case Op::Return: {
                     printMemory();
                     while (heldIterators.size() != callStack.back().heldIteratorsSize) {
-                        heldIterators.pop();
+                        heldIterators.pop_back();
                     }
                     callStack.pop_back();
                     break;
@@ -1012,7 +1037,7 @@ auto Vm::run() const noexcept -> RunResult
                 callStack.back().opIndex = opIndexToJumpTo;
 
                 while (heldIterators.size() != heldIteratorsSize) {
-                    heldIterators.pop();
+                    heldIterators.pop_back();
                 }
 
                 tryBlockStateStack.pop();

@@ -82,7 +82,7 @@ public:
         value.m_type = TypeInternal::Object;
         value.m_data.object = new T(std::forward<Args>(args)...);
 
-        memory::gcTrackObject(value.object());
+        memory::Gc::instance().trackObject(value.object());
         value.object()->incrementRefCount();
         value.object()->setTracking(true);
 
@@ -112,7 +112,7 @@ public:
 
         if (typeInternal() == TypeInternal::Object) {
             if (object()->decrementRefCount() == 0_uz) {
-                memory::gcStopTrackingObject(object());
+                memory::Gc::instance().stopTrackingObject(object());
                 delete object();
             }
         }

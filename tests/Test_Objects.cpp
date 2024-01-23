@@ -2,6 +2,7 @@
 // Created by ryand on 16/12/2023.
 //
 
+#include "Test_Macros.hpp"
 #include "../src/objects/Objects.hpp"
 
 #include <catch2/catch_test_macros.hpp>
@@ -11,6 +12,8 @@ TEST_CASE("List", "[objects]")
 {
     using namespace poise::runtime;
     using namespace poise::objects::iterables;
+
+    REINITIALISE();
 
     List list{std::vector<runtime::Value>{}};
     REQUIRE(list.empty());
@@ -64,6 +67,8 @@ TEST_CASE("Range", "[objects]")
 {
     using namespace poise::runtime;
     using namespace poise::objects::iterables;
+
+    REINITIALISE();
 
     {
         Range range{0, 10, 1, false};
@@ -119,6 +124,8 @@ TEST_CASE("Tuple", "[objects]")
     using namespace poise::runtime;
     using namespace poise::objects::iterables;
 
+    REINITIALISE();
+
     Tuple tuple{std::vector<Value>{Value{0}, Value{"Hello"}, Value{true}}};
     REQUIRE(tuple.size() == 3_uz);
     REQUIRE(tuple.at(0_uz) == 0);
@@ -136,6 +143,8 @@ TEST_CASE("Dictionary", "[objects]")
     using namespace poise::runtime;
     using namespace poise::objects::iterables;
     using namespace poise::objects::iterables::hashables;
+
+    REINITIALISE();
 
     std::vector<Value> pairs;
     pairs.emplace_back(Value::createObject<Tuple>("Ryan", 24));
@@ -181,6 +190,8 @@ TEST_CASE("Set", "[objects]")
     using namespace poise::runtime;
     using namespace poise::objects::iterables;
     using namespace poise::objects::iterables::hashables;
+
+    REINITIALISE();
 
     std::vector<Value> names{
         "Ryan",

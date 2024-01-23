@@ -23,11 +23,6 @@ Range::Range(const runtime::Value& start, const runtime::Value& end, const runti
     }
 }
 
-auto Range::asIterable() noexcept -> Iterable*
-{
-    return this;
-}
-
 auto Range::asRange() noexcept -> Range*
 {
     return this;

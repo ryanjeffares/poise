@@ -8,6 +8,8 @@
 
 #include <fmt/format.h>
 
+#include <algorithm>
+
 namespace poise::objects::iterables {
 Iterator::Iterator(runtime::Value iterable)
     : m_iterableValue{std::move(iterable)}
@@ -30,7 +32,9 @@ Iterator::Iterator(Iterable* iterable)
 
 Iterator::~Iterator()
 {
-    m_iterablePtr->removeIterator(this);
+    if (m_iterablePtr != nullptr) {
+        m_iterablePtr->removeIterator(this);
+    }
 }
 
 auto Iterator::asIterator() noexcept -> Iterator*
@@ -46,6 +50,20 @@ auto Iterator::toString() const noexcept -> std::string
 auto Iterator::type() const noexcept -> runtime::types::Type
 {
     return runtime::types::Type::Iterator;
+}
+
+auto Iterator::findObjectMembers(std::vector<Object*>& objects) const noexcept -> void
+{
+    if (!std::ranges::contains(objects, m_iterablePtr)) {
+        objects.push_back(m_iterablePtr);
+        m_iterablePtr->findObjectMembers(objects);
+    }
+}
+
+auto Iterator::removeObjectMembers() noexcept -> void
+{
+    m_iterableValue = runtime::Value::none();
+    m_iterablePtr = nullptr;
 }
 
 auto Iterator::increment() -> void

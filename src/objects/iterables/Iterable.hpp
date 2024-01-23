@@ -7,12 +7,13 @@
 
 #include "../../Poise.hpp"
 #include "Iterator.hpp"
+#include "../Object.hpp"
 #include "../../runtime/Value.hpp"
 
 #include <span>
 
 namespace poise::objects::iterables {
-class Iterable
+class Iterable : public Object
 {
 public:
     using IteratorType = Iterator::IteratorType;
@@ -21,7 +22,12 @@ public:
     Iterable() = default;
     explicit Iterable(usize initialSize, const runtime::Value& defaultValue = runtime::Value::none());
     explicit Iterable(std::vector<runtime::Value> data);
-    virtual ~Iterable();
+     ~Iterable() override;
+
+    [[nodiscard]] auto asIterable() noexcept -> Iterable* override;
+    auto findObjectMembers(std::vector<Object*>& objects) const noexcept -> void override;
+    auto removeObjectMembers() noexcept -> void override;
+    [[nodiscard]] auto anyMemberMatchesRecursive(const Object* object) const noexcept -> bool override;
 
     [[nodiscard]] virtual auto begin() noexcept -> IteratorType = 0;
     [[nodiscard]] virtual auto end() noexcept -> IteratorType = 0;

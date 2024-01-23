@@ -1,3 +1,4 @@
+#include "Test_Macros.hpp"
 #include "../src/objects/Objects.hpp"
 #include "../src/runtime/memory/StringInterner.hpp"
 
@@ -11,6 +12,8 @@ TEST_CASE("Basic Reference Counting", "[memory]")
 {
     using namespace poise::runtime;
     using namespace poise::objects;
+
+    REINITIALISE();
 
     const auto function = Value::createObject<Function>("test", "", 0_uz, 0_u8, false, false);
     const auto exception = Value::createObject<Exception>("Test");
@@ -29,6 +32,8 @@ TEST_CASE("Basic Reference Counting", "[memory]")
 TEST_CASE("String Interning", "[memory]")
 {
     using namespace poise::runtime::memory;
+ 
+    REINITIALISE();
 
     const auto helloWorld = internString("Hello world");
     const auto helloWorld2 = internString("Hello world");

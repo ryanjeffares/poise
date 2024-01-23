@@ -5,11 +5,10 @@
 #ifndef POISE_LIST_HPP
 #define POISE_LIST_HPP
 
-#include "../Object.hpp"
 #include "Iterable.hpp"
 
 namespace poise::objects::iterables {
-class List : public Object, public Iterable
+class List : public Iterable
 {
 public:
     explicit List(runtime::Value value);
@@ -24,7 +23,6 @@ public:
     [[nodiscard]] auto ssize() const noexcept -> isize override;
     auto unpack(std::vector<runtime::Value>& stack) const noexcept -> void override;
 
-    [[nodiscard]] auto asIterable() noexcept -> Iterable* override;
     [[nodiscard]] auto asList() noexcept -> List* override;
 
     [[nodiscard]] auto toString() const noexcept -> std::string override;
