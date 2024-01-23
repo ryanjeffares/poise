@@ -54,7 +54,11 @@ auto Function::findObjectMembers(std::vector<Object*>& objects) const noexcept -
 {
     for (const auto& capture : m_captures) {
         if (const auto object = capture.object()) {
+#ifdef __cpp_lib_ranges_contains
             if (!std::ranges::contains(objects, object)) {
+#else
+            if (std::find(objects.begin(), objects.end(), object) == objects.end()) {
+#endif
                 objects.push_back(object);
                 object->findObjectMembers(objects);
             }

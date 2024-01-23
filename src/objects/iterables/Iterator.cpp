@@ -54,7 +54,11 @@ auto Iterator::type() const noexcept -> runtime::types::Type
 
 auto Iterator::findObjectMembers(std::vector<Object*>& objects) const noexcept -> void
 {
+#ifdef __cpp_lib_ranges_contains
     if (!std::ranges::contains(objects, m_iterablePtr)) {
+#else
+    if (std::find(objects.begin(), objects.end(), m_iterablePtr) == objects.end()) {
+#endif
         objects.push_back(m_iterablePtr);
         m_iterablePtr->findObjectMembers(objects);
     }

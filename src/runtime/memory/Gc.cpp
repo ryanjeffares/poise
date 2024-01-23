@@ -19,7 +19,11 @@ auto Gc::initialise() noexcept -> void
 
 auto Gc::trackObject(Object* object) noexcept -> void
 {
+#ifdef __cpp_lib_ranges_contains
     POISE_ASSERT(!ranges::contains(m_trackedObjects, object), fmt::format("Already tracking object {} {} at {}", object->type(), object->toString(), fmt::ptr(object)));
+#else
+    POISE_ASSERT(std::find(m_trackedObjects.begin(), m_trackedObjects.end(), object) == m_trackedObjects.end(), fmt::format("Already tracking object {} {} at {}", object->type(), object->toString(), fmt::ptr(object)));
+#endif
     m_trackedObjects.push_back(object);
     m_totalAllocatedObjects++;
 }
@@ -30,7 +34,11 @@ auto Gc::stopTrackingObject(Object* object) noexcept -> void
         return;
     }
 
+#ifdef __cpp_lib_ranges_contains
     POISE_ASSERT(ranges::contains(m_trackedObjects, object), fmt::format("Not tracking {} {} at {}", object->type(), object->toString(), fmt::ptr(object)));
+#else
+    POISE_ASSERT(std::find(m_trackedObjects.begin(), m_trackedObjects.end(), object) != m_trackedObjects.end(), fmt::format("Not tracking {} {} at {}", object->type(), object->toString(), fmt::ptr(object)));
+#endif
 
     const auto it = ranges::find(m_trackedObjects, object);
     m_trackedObjects.erase(it);
@@ -38,7 +46,13 @@ auto Gc::stopTrackingObject(Object* object) noexcept -> void
 
 auto Gc::markRoot(Object* root) noexcept -> void
 {
-    m_roots.push_back(root);
+#ifdef __cpp_lib_ranges_contains
+    if (!ranges::contains(m_roots, root)) {
+#else
+    if (std::find(m_roots.begin(), m_roots.end(), root) == m_roots.end()) {
+#endif
+        m_roots.push_back(root);
+    }
 }
 
 auto Gc::finalise() noexcept -> void
@@ -72,24 +86,36 @@ auto Gc::cleanCycles() noexcept -> void
     // so find every object reachable from these roots
     std::vector<Object*> reachableObjects;
     for (auto object : m_roots) {
-        reachableObjects.push_back(object);
-        object->findObjectMembers(reachableObjects);
+#ifdef __cpp_lib_ranges_contains
+        if (!ranges::contains(reachableObjects, object)) {
+#else
+        if (std::find(reachableObjects.begin(), reachableObjects.end(), object) == reachableObjects.end()) {
+#endif
+            reachableObjects.push_back(object);
+            object->findObjectMembers(reachableObjects);
+        }
     }
 
     // anything that's not reachable needs to be deleted
-    // give them an extra reference...
-    std::vector<Object*> temps;
+    std::vector<Object*> unreachableObjects;
     for (const auto object : m_trackedObjects) {
+#ifdef __cpp_lib_ranges_contains
         if (!ranges::contains(reachableObjects, object)) {
+#else
+        if (std::find(reachableObjects.begin(), reachableObjects.end(), object) == reachableObjects.end()) {
+#endif
+            // disable tracking and remove them from our lists here
+            // and give them an extra reference...
             object->incrementRefCount();
-            temps.push_back(object);
+            stopTrackingObject(object);
+            object->setTracking(false);
+            unreachableObjects.push_back(object);
         }
     }
 
     // ...so we can remove their members and safely delete them
-    for (auto object : temps) {
+    for (const auto object : unreachableObjects) {
         object->removeObjectMembers();
-        stopTrackingObject(object);
         delete object;
     }
 

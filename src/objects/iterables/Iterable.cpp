@@ -37,7 +37,11 @@ auto Iterable::findObjectMembers(std::vector<Object*>& objects) const noexcept -
 
     for (const auto& value : m_data) {
         if (const auto object = value.object()) {
+#ifdef __cpp_lib_ranges_contains
             if (!std::ranges::contains(objects, object)) {
+#else
+            if (std::find(objects.begin(), objects.end(), object) == objects.end()) {
+#endif
                 objects.push_back(object);
                 object->findObjectMembers(objects);
             }
