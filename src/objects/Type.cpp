@@ -34,6 +34,11 @@ auto Type::removeObjectMembers() noexcept -> void
 
 }
 
+auto Type::anyMemberMatchesRecursive(const Object* object) const noexcept -> bool
+{
+    return object == this;
+}
+
 auto Type::asType() noexcept -> Type*
 {
     return this;

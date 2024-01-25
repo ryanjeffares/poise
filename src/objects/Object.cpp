@@ -85,9 +85,4 @@ auto Object::iterable() const -> bool
 {
     return false;
 }
-
-auto Object::anyMemberMatchesRecursive([[maybe_unused]] const Object* object) const noexcept -> bool
-{
-    return false;
-}
 }   // namespace poise::objects

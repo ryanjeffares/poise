@@ -39,6 +39,11 @@ auto Exception::removeObjectMembers() noexcept -> void
 
 }
 
+auto Exception::anyMemberMatchesRecursive(const Object* object) const noexcept -> bool
+{
+    return object == this;
+}
+
 auto Exception::asException() noexcept -> Exception*
 {
     return this;

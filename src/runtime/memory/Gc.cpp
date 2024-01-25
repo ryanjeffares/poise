@@ -68,21 +68,17 @@ auto Gc::finalise() noexcept -> void
     }
 }
 
-auto Gc::shouldCleanCycles() noexcept -> bool
+auto Gc::shouldCleanCycles() const noexcept -> bool
 {
-    if (m_totalAllocatedObjects > m_nextCleanCycles) {
-        m_nextCleanCycles *= 2_uz;
-        return true;
-    }
-
-    return false;
+    return m_totalAllocatedObjects > m_nextCleanCycles;
 }
 
 auto Gc::cleanCycles() noexcept -> void
 {
+    m_nextCleanCycles *= 2_uz;
     fmt::print("Cleaning cycles\n");
 
-    // roots have been marked (the stack and local variables)
+    // roots have been marked (the stack, iterators, and local variables)
     // so find every object reachable from these roots
     std::vector<Object*> reachableObjects;
     for (auto object : m_roots) {
@@ -104,18 +100,23 @@ auto Gc::cleanCycles() noexcept -> void
 #else
         if (std::find(reachableObjects.begin(), reachableObjects.end(), object) == reachableObjects.end()) {
 #endif
-            // disable tracking and remove them from our lists here
-            // and give them an extra reference...
+            // give them an extra reference to make sure they don't get deleted indirectly
             object->incrementRefCount();
+
+            // disable tracking and remove them from our lists here
             stopTrackingObject(object);
             object->setTracking(false);
             unreachableObjects.push_back(object);
         }
     }
 
-    // ...so we can remove their members and safely delete them
+    // remove their members to avoid indirect deletions of deleted objects
     for (const auto object : unreachableObjects) {
         object->removeObjectMembers();
+    }
+
+    // and safely delete them
+    for (const auto object : unreachableObjects) {
         delete object;
     }
 

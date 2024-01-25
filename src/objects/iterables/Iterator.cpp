@@ -70,6 +70,15 @@ auto Iterator::removeObjectMembers() noexcept -> void
     m_iterablePtr = nullptr;
 }
 
+auto Iterator::anyMemberMatchesRecursive(const Object* object) const noexcept -> bool
+{
+    if (m_iterablePtr == nullptr) {
+        return object == this;
+    }
+
+    return object == this || object == m_iterablePtr || m_iterablePtr->anyMemberMatchesRecursive(object);
+}
+
 auto Iterator::increment() -> void
 {
     throwIfInvalid();

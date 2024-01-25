@@ -64,6 +64,10 @@ auto Iterable::removeObjectMembers() noexcept -> void
 
 auto Iterable::anyMemberMatchesRecursive(const Object* object) const noexcept -> bool
 {
+    if (type() == runtime::types::Type::Range) {
+        return object == this;
+    }
+
     return std::ranges::any_of(m_data, [object, this] (const auto& value) -> bool {
         const auto member = value.object();
         return member != nullptr && (member == this || member == object || member->anyMemberMatchesRecursive(object));

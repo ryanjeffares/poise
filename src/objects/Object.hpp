@@ -62,7 +62,7 @@ public:
     [[nodiscard]] virtual auto type() const noexcept -> runtime::types::Type = 0;
     virtual auto findObjectMembers(std::vector<Object*>& objects) const noexcept -> void = 0;
     virtual auto removeObjectMembers() noexcept -> void = 0;
-    [[nodiscard]] virtual auto anyMemberMatchesRecursive(const Object* object) const noexcept -> bool;
+    [[nodiscard]] virtual auto anyMemberMatchesRecursive(const Object* object) const noexcept -> bool = 0;
 
     [[nodiscard]] virtual auto iterable() const -> bool;
 

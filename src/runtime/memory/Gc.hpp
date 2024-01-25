@@ -26,7 +26,7 @@ public:
     auto markRoot(objects::Object* root) noexcept -> void;
     auto finalise() noexcept -> void;
 
-    auto shouldCleanCycles() noexcept -> bool;
+    auto shouldCleanCycles() const noexcept -> bool;
     auto cleanCycles() noexcept -> void;
 
 private:

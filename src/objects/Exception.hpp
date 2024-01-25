@@ -38,6 +38,7 @@ public:
     [[nodiscard]] auto type() const noexcept -> runtime::types::Type override;
     auto findObjectMembers(std::vector<Object*>& objects) const noexcept -> void override;
     auto removeObjectMembers() noexcept -> void override;
+    [[nodiscard]] auto anyMemberMatchesRecursive(const Object* object) const noexcept -> bool override;
 
     [[nodiscard]] auto asException() noexcept -> Exception* override;
 
