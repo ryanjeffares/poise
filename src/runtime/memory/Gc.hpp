@@ -26,7 +26,8 @@ public:
     auto markRoot(objects::Object* root) noexcept -> void;
     auto finalise() noexcept -> void;
 
-    auto shouldCleanCycles() const noexcept -> bool;
+    [[nodiscard]] auto numTrackedObjects() const noexcept -> usize;
+    [[nodiscard]] auto shouldCleanCycles() const noexcept -> bool;
     auto cleanCycles() noexcept -> void;
 
 private:

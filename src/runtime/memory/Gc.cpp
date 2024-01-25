@@ -68,6 +68,11 @@ auto Gc::finalise() noexcept -> void
     }
 }
 
+auto Gc::numTrackedObjects() const noexcept -> usize
+{
+    return m_trackedObjects.size();
+}
+
 auto Gc::shouldCleanCycles() const noexcept -> bool
 {
     return m_totalAllocatedObjects > m_nextCleanCycles;
@@ -76,7 +81,6 @@ auto Gc::shouldCleanCycles() const noexcept -> bool
 auto Gc::cleanCycles() noexcept -> void
 {
     m_nextCleanCycles *= 2_uz;
-    fmt::print("Cleaning cycles\n");
 
     // roots have been marked (the stack, iterators, and local variables)
     // so find every object reachable from these roots
@@ -126,4 +130,3 @@ auto Gc::cleanCycles() noexcept -> void
     m_roots.clear();
 }
 } // namespace poise::runtime::memory
-

@@ -10,7 +10,6 @@
 #include <ranges>
 
 namespace poise::objects::iterables {
-
 List::List(runtime::Value value)
 {
     switch (value.type()) {

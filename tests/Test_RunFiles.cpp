@@ -157,5 +157,15 @@ TEST_CASE("015_sets.poise", "[files]")
     REQUIRE(compiler.compile() == compiler::Compiler::CompileResult::Success);
     REQUIRE(vm.run() == runtime::Vm::RunResult::Success);
 }
+
+TEST_CASE("016_cycles.poise", "[files]")
+{
+    REINITIALISE();
+
+    runtime::Vm vm{"tests/test_files/016_cycles.poise"};
+    compiler::Compiler compiler{true, false, &vm, "tests/test_files/016_cycles.poise"};
+    REQUIRE(compiler.compile() == compiler::Compiler::CompileResult::Success);
+    REQUIRE(vm.run() == runtime::Vm::RunResult::Success);
+}
 } // namespace poise::tests
 
