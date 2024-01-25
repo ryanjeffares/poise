@@ -4,6 +4,9 @@
 #include <fmt/format.h>
 
 #include <algorithm>
+#ifdef POISE_DEBUG
+#include <chrono>
+#endif
 
 namespace poise::runtime::memory {
 namespace ranges = std::ranges;
@@ -24,6 +27,7 @@ auto Gc::trackObject(Object* object) noexcept -> void
 #else
     POISE_ASSERT(std::find(m_trackedObjects.begin(), m_trackedObjects.end(), object) == m_trackedObjects.end(), fmt::format("Already tracking object {} {} at {}", object->type(), object->toString(), fmt::ptr(object)));
 #endif
+
     m_trackedObjects.push_back(object);
     m_totalAllocatedObjects++;
 }
@@ -59,6 +63,7 @@ auto Gc::finalise() noexcept -> void
 {
     cleanCycles();
 
+#ifdef POISE_DEBUG
     if (!m_trackedObjects.empty()) {
         for (auto object : m_trackedObjects) {
             fmt::print(stderr, "{} {} at {} is still being tracked with {} references\n", object->type(), object->toString(), fmt::ptr(object), object->refCount());
@@ -66,6 +71,7 @@ auto Gc::finalise() noexcept -> void
         
         POISE_ASSERT(false, "Objects were still being tracked at shutdown");
     }
+#endif
 }
 
 auto Gc::numTrackedObjects() const noexcept -> usize
@@ -80,6 +86,12 @@ auto Gc::shouldCleanCycles() const noexcept -> bool
 
 auto Gc::cleanCycles() noexcept -> void
 {
+#ifdef POISE_DEBUG
+    fmt::print("CLEANING CYCLES\n");
+    const auto start = std::chrono::steady_clock::now();
+    auto numObjectsDeleted = 0_uz;
+#endif
+
     m_nextCleanCycles *= 2_uz;
 
     // roots have been marked (the stack, iterators, and local variables)
@@ -123,10 +135,20 @@ auto Gc::cleanCycles() noexcept -> void
 
     // and safely delete them
     for (const auto object : unreachableObjects) {
+#ifdef POISE_DEBUG
+        fmt::print("Deleting unreachable {} at {}\n", object->type(), fmt::ptr(object));
+        numObjectsDeleted++;
+#endif
         delete object;
     }
 
     // clear roots for the next call to cleanCycles()
     m_roots.clear();
+
+#ifdef POISE_DEBUG
+    const auto end = std::chrono::steady_clock::now();
+    const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    fmt::print("Deleted {} objects in {} ms\n", numObjectsDeleted, duration);
+#endif
 }
 } // namespace poise::runtime::memory

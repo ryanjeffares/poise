@@ -365,9 +365,10 @@ auto Vm::run() const noexcept -> RunResult
             }
         }
     };
+
 #ifdef POISE_DEBUG
     auto printMemory = [&stack, &localVariables] {
-        I'm assuming this gets yeeted in release...
+        // I'm assuming this gets yeeted in release...
         fmt::print("STACK:\n");
         for (const auto& value : stack) {
             fmt::print("\t{}\n", value);

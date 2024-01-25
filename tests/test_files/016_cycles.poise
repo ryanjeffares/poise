@@ -2,21 +2,30 @@ import std::list;
 
 func main() {
     for i in 0..10000 {
-        final l = [];
-        l.append(l);
+        final l1 = [];
+        l1.append(l1);
 
-        final l2 = [l];
-        l.append(l2);
+        final l2 = [l1];
+        l1.append(l2);
 
-        final l3 = [l2, l];
+        final l3 = [l2, l1];
         l3.append(l3);
         l2.append(l3);
 
-        final l4 = [l, l2, l3];
+        final l4 = [l1, l2, l3];
         l4.append(l4);
-        l.append(l4);
+        l1.append(l4);
         l2.append(l4);
 
-        println(l);
+        final d1 = {
+            (l1, l3),
+            (l2, l4),
+        };
+
+        final d2 = {};
+        d2[d2] = d1;
+        d2[d1] = d2;
+        d1[d1] = d2;
+        d2[l4] = l2;
     }
 }
