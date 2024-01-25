@@ -102,12 +102,14 @@ auto Gc::cleanCycles() noexcept -> void
 #endif
             // give them an extra reference to make sure they don't get deleted indirectly
             object->incrementRefCount();
-
-            // disable tracking and remove them from our lists here
-            stopTrackingObject(object);
-            object->setTracking(false);
             unreachableObjects.push_back(object);
         }
+    }
+
+    for (const auto object : unreachableObjects) {
+        // disable tracking and remove them from our lists here
+        stopTrackingObject(object);
+        object->setTracking(false);
     }
 
     // remove their members to avoid indirect deletions of deleted objects

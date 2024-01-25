@@ -354,6 +354,16 @@ auto Vm::run() const noexcept -> RunResult
         for (const auto& iterator : heldIterators) {
             memory::Gc::instance().markRoot(iterator.object());
         }
+
+        for (const auto& entry : callStack) {
+            if (entry.calleeFunction != nullptr) {
+                memory::Gc::instance().markRoot(entry.calleeFunction);
+            }
+
+            if (entry.callerFunction != nullptr) {
+                memory::Gc::instance().markRoot(entry.callerFunction);
+            }
+        }
     };
 #ifdef POISE_DEBUG
     auto printMemory = [&stack, &localVariables] {
