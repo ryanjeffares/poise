@@ -25,7 +25,7 @@ public:
      ~Iterable() override;
 
     [[nodiscard]] auto asIterable() noexcept -> Iterable* override;
-    auto findObjectMembers(std::vector<Object*>& objects) const noexcept -> void override;
+    auto findObjectMembers(std::unordered_set<Object*>& objects) const noexcept -> void override;
     auto removeObjectMembers() noexcept -> void override;
     [[nodiscard]] auto anyMemberMatchesRecursive(const Object* object) const noexcept -> bool override;
 

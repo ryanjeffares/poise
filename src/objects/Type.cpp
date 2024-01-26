@@ -24,7 +24,7 @@ auto Type::type() const noexcept -> runtime::types::Type
     return runtime::types::Type::Type;
 }
 
-auto Type::findObjectMembers([[maybe_unused]] std::vector<Object*>& objects) const noexcept -> void
+auto Type::findObjectMembers([[maybe_unused]] std::unordered_set<Object*>& objects) const noexcept -> void
 {
 
 }

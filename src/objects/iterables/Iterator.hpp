@@ -29,7 +29,7 @@ public:
 
     [[nodiscard]] auto toString() const noexcept -> std::string override;
     [[nodiscard]] auto type() const noexcept -> runtime::types::Type override;
-    auto findObjectMembers(std::vector<Object*>& objects) const noexcept -> void override;
+    auto findObjectMembers(std::unordered_set<Object*>& objects) const noexcept -> void override;
     auto removeObjectMembers() noexcept -> void override;
     [[nodiscard]] auto anyMemberMatchesRecursive(const Object* object) const noexcept -> bool override;
 

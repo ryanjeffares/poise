@@ -29,7 +29,7 @@ auto Exception::type() const noexcept -> runtime::types::Type
     return runtime::types::Type::Exception;
 }
 
-auto Exception::findObjectMembers([[maybe_unused]] std::vector<Object*>& objects) const noexcept -> void
+auto Exception::findObjectMembers([[maybe_unused]] std::unordered_set<Object*>& objects) const noexcept -> void
 {
 
 }

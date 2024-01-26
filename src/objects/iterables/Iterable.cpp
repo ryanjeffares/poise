@@ -29,7 +29,7 @@ auto Iterable::asIterable() noexcept -> Iterable*
     return this;
 }
 
-auto Iterable::findObjectMembers(std::vector<Object*>& objects) const noexcept -> void
+auto Iterable::findObjectMembers(std::unordered_set<Object*>& objects) const noexcept -> void
 {
     if (type() == runtime::types::Type::Range) {
         return;
@@ -37,12 +37,7 @@ auto Iterable::findObjectMembers(std::vector<Object*>& objects) const noexcept -
 
     for (const auto& value : m_data) {
         if (const auto object = value.object()) {
-#ifdef __cpp_lib_ranges_contains
-            if (!std::ranges::contains(objects, object)) {
-#else
-            if (std::find(objects.begin(), objects.end(), object) == objects.end()) {
-#endif
-                objects.push_back(object);
+            if (auto [it, inserted] = objects.insert(object); inserted) {
                 object->findObjectMembers(objects);
             }
         }

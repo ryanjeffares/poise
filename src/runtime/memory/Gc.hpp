@@ -4,7 +4,7 @@
 #include "../../Poise.hpp"
 #include "../../objects/Object.hpp"
 
-#include <vector>
+#include <unordered_set>
 
 namespace poise::runtime::memory {
 class Gc
@@ -36,8 +36,8 @@ private:
     usize m_totalAllocatedObjects = 0_uz;
     usize m_nextCleanCycles = 8_uz;
 
-    std::vector<objects::Object*> m_roots;
-    std::vector<objects::Object*> m_trackedObjects;
+    std::unordered_set<objects::Object*> m_roots;
+    std::unordered_set<objects::Object*> m_trackedObjects;
 };
 } // namespace poise::runtime::memory
 

@@ -50,16 +50,11 @@ auto Function::type() const noexcept -> runtime::types::Type
     return runtime::types::Type::Function;
 }
 
-auto Function::findObjectMembers(std::vector<Object*>& objects) const noexcept -> void
+auto Function::findObjectMembers(std::unordered_set<Object*>& objects) const noexcept -> void
 {
     for (const auto& capture : m_captures) {
         if (const auto object = capture.object()) {
-#ifdef __cpp_lib_ranges_contains
-            if (!std::ranges::contains(objects, object)) {
-#else
-            if (std::find(objects.begin(), objects.end(), object) == objects.end()) {
-#endif
-                objects.push_back(object);
+            if (auto [it, inserted] = objects.insert(object); inserted) {
                 object->findObjectMembers(objects);
             }
         }

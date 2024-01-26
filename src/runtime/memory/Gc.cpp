@@ -7,6 +7,7 @@
 #ifdef POISE_DEBUG
 #include <chrono>
 #endif
+#include <vector>
 
 namespace poise::runtime::memory {
 namespace ranges = std::ranges;
@@ -25,10 +26,10 @@ auto Gc::trackObject(Object* object) noexcept -> void
 #ifdef __cpp_lib_ranges_contains
     POISE_ASSERT(!ranges::contains(m_trackedObjects, object), fmt::format("Already tracking object {} {} at {}", object->type(), object->toString(), fmt::ptr(object)));
 #else
-    POISE_ASSERT(std::find(m_trackedObjects.begin(), m_trackedObjects.end(), object) == m_trackedObjects.end(), fmt::format("Already tracking object {} {} at {}", object->type(), object->toString(), fmt::ptr(object)));
+    POISE_ASSERT(!m_trackedObjects.contains(object), fmt::format("Already tracking object {} {} at {}", object->type(), object->toString(), fmt::ptr(object)));
 #endif
 
-    m_trackedObjects.push_back(object);
+    m_trackedObjects.insert(object);
     m_totalAllocatedObjects++;
 }
 
@@ -41,22 +42,22 @@ auto Gc::stopTrackingObject(Object* object) noexcept -> void
 #ifdef __cpp_lib_ranges_contains
     POISE_ASSERT(ranges::contains(m_trackedObjects, object), fmt::format("Not tracking {} {} at {}", object->type(), object->toString(), fmt::ptr(object)));
 #else
-    POISE_ASSERT(std::find(m_trackedObjects.begin(), m_trackedObjects.end(), object) != m_trackedObjects.end(), fmt::format("Not tracking {} {} at {}", object->type(), object->toString(), fmt::ptr(object)));
+    POISE_ASSERT(m_trackedObjects.contains(object), fmt::format("Not tracking {} {} at {}", object->type(), object->toString(), fmt::ptr(object)));
 #endif
 
-    const auto it = ranges::find(m_trackedObjects, object);
-    m_trackedObjects.erase(it);
+    m_trackedObjects.erase(object);
 }
 
 auto Gc::markRoot(Object* root) noexcept -> void
 {
-#ifdef __cpp_lib_ranges_contains
+/*#ifdef __cpp_lib_ranges_contains
     if (!ranges::contains(m_roots, root)) {
 #else
     if (std::find(m_roots.begin(), m_roots.end(), root) == m_roots.end()) {
 #endif
         m_roots.push_back(root);
-    }
+    }*/
+    m_roots.insert(root);
 }
 
 auto Gc::finalise() noexcept -> void
@@ -68,7 +69,7 @@ auto Gc::finalise() noexcept -> void
         for (auto object : m_trackedObjects) {
             fmt::print(stderr, "{} {} at {} is still being tracked with {} references\n", object->type(), object->toString(), fmt::ptr(object), object->refCount());
         }
-        
+
         POISE_ASSERT(false, "Objects were still being tracked at shutdown");
     }
 #endif
@@ -96,29 +97,21 @@ auto Gc::cleanCycles() noexcept -> void
 
     // roots have been marked (the stack, iterators, and local variables)
     // so find every object reachable from these roots
-    std::vector<Object*> reachableObjects;
+    std::unordered_set<Object*> reachableObjects;
+
     for (auto object : m_roots) {
-#ifdef __cpp_lib_ranges_contains
-        if (!ranges::contains(reachableObjects, object)) {
-#else
-        if (std::find(reachableObjects.begin(), reachableObjects.end(), object) == reachableObjects.end()) {
-#endif
-            reachableObjects.push_back(object);
+        if (auto [it, inserted] = reachableObjects.insert(object); inserted) {
             object->findObjectMembers(reachableObjects);
         }
     }
 
     // anything that's not reachable needs to be deleted
-    std::vector<Object*> unreachableObjects;
+    std::unordered_set<Object*> unreachableObjects;
     for (const auto object : m_trackedObjects) {
-#ifdef __cpp_lib_ranges_contains
-        if (!ranges::contains(reachableObjects, object)) {
-#else
-        if (std::find(reachableObjects.begin(), reachableObjects.end(), object) == reachableObjects.end()) {
-#endif
+        if (!reachableObjects.contains(object)) {
             // give them an extra reference to make sure they don't get deleted indirectly
             object->incrementRefCount();
-            unreachableObjects.push_back(object);
+            unreachableObjects.insert(object);
         }
     }
 
