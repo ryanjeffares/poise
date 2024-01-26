@@ -84,7 +84,8 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * ~~Expand unpacking into collections~~
         * ~~Remember this when we add Dicts and Sets...~~
     * ~~Unpack a collection~~
-    * Multiple assignments on one line (`a, b = b, a`) or assigning an unpack (`a, b = ...pack`)
+    * Multiple assignments on one line (`a, b = b, a`) or assigning an unpack (`a, b = ...collection`)
+        * Partial unpacking - `var (a, b, ...rest) = ...collection` unpacks the first two items into `a` and `b` and the remaining into `rest`.
         * How to parse `var a, b, c = try ...expr`?
         * How badly do we want multiple assignments? Right now it works for variable declarations, but not for...
             * Reassigning variables
@@ -103,6 +104,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * Member variable access as well as extension function access
     * Need to generate `PoiseType` instances for these, and hook them into everything else...
 * ~~GC for cycles~~
+    * Investigate horrible performance with Clang with cycles.poise (n=10000)
 * ~~Binary/Hex literals~~
 * ~~Digit separators~~
 * Constants

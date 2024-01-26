@@ -126,10 +126,7 @@ auto Gc::cleanCycles() noexcept -> void
         // disable tracking and remove them from our lists here
         stopTrackingObject(object);
         object->setTracking(false);
-    }
-
-    // remove their members to avoid indirect deletions of deleted objects
-    for (const auto object : unreachableObjects) {
+        // remove their members to avoid indirect deletions of deleted objects
         object->removeObjectMembers();
     }
 
