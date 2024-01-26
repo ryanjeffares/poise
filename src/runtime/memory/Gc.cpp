@@ -98,9 +98,8 @@ auto Gc::cleanCycles() noexcept -> void
     // roots have been marked (the stack, iterators, and local variables)
     // so find every object reachable from these roots
     std::unordered_set<Object*> reachableObjects;
-
-    for (auto object : m_roots) {
-        if (auto [it, inserted] = reachableObjects.insert(object); inserted) {
+    for (const auto object : m_roots) {
+        if (const auto [it, inserted] = reachableObjects.insert(object); inserted) {
             object->findObjectMembers(reachableObjects);
         }
     }

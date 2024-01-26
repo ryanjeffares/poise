@@ -4,7 +4,7 @@
 
 #include "Iterable.hpp"
 
-#include <ranges>
+#include <algorithm>
 
 namespace poise::objects::iterables {
 Iterable::Iterable(usize initialSize, const runtime::Value& defaultValue)
@@ -37,7 +37,7 @@ auto Iterable::findObjectMembers(std::unordered_set<Object*>& objects) const noe
 
     for (const auto& value : m_data) {
         if (const auto object = value.object()) {
-            if (auto [it, inserted] = objects.insert(object); inserted) {
+            if (const auto [it, inserted] = objects.insert(object); inserted) {
                 object->findObjectMembers(objects);
             }
         }

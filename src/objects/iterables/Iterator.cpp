@@ -8,8 +8,6 @@
 
 #include <fmt/format.h>
 
-#include <algorithm>
-
 namespace poise::objects::iterables {
 Iterator::Iterator(runtime::Value iterable)
     : m_iterableValue{std::move(iterable)}
@@ -54,7 +52,7 @@ auto Iterator::type() const noexcept -> runtime::types::Type
 
 auto Iterator::findObjectMembers(std::unordered_set<Object*>& objects) const noexcept -> void
 {
-    if (auto [it, inserted] = objects.insert(m_iterablePtr); inserted) {
+    if (const auto [it, inserted] = objects.insert(m_iterablePtr); inserted) {
         m_iterablePtr->findObjectMembers(objects);
     }
 }

@@ -54,7 +54,7 @@ auto Function::findObjectMembers(std::unordered_set<Object*>& objects) const noe
 {
     for (const auto& capture : m_captures) {
         if (const auto object = capture.object()) {
-            if (auto [it, inserted] = objects.insert(object); inserted) {
+            if (const auto [it, inserted] = objects.insert(object); inserted) {
                 object->findObjectMembers(objects);
             }
         }

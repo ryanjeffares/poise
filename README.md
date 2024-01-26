@@ -104,7 +104,9 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * Member variable access as well as extension function access
     * Need to generate `PoiseType` instances for these, and hook them into everything else...
 * ~~GC for cycles~~
-    * Investigate horrible performance with Clang with cycles.poise (n=10000)
+    * ~~Investigate horrible performance with Clang with cycles.poise (n=10000)~~
+    * Ah, so using `unordered_set` instead of `vector` solved this
+    * But, I bet performance is better for small amounts of objects - test this, and decide which should we optimise for? Is swapping between the two depending on the load viable?
 * ~~Binary/Hex literals~~
 * ~~Digit separators~~
 * Constants
