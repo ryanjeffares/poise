@@ -1,10 +1,8 @@
+import std::int;
 
 func main() {
-    final a = try "Hello" + "World";
-    println(a);
-
-    final b = try a / 2;
-    println(b);
+    final pow = 0.pow;
+    println(pow);
+    println(pow(2, 63) - 1);
 }
-
 

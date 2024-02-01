@@ -488,7 +488,7 @@ auto Vm::run() const noexcept -> RunResult
                 case Op::LoadFunction: {
                     const auto namespaceHash = constantList[constantIndex++].value<NamespaceManager::NamespaceHash>();
                     const auto functionNameHash = constantList[constantIndex++].value<usize>();
-                    const auto& functionName = constantList[constantIndex++].string();
+                    const auto& functionName = memory::findInternedString(functionNameHash);
 
                     if (auto function = m_namespaceManager.namespaceFunction(namespaceHash, functionNameHash)) {
                         stack.push_back(std::move(*function));
@@ -507,10 +507,12 @@ auto Vm::run() const noexcept -> RunResult
                 case Op::LoadMember: {
                     // TODO: class member variables
                     auto value = pop();
-                    const auto type = typeValue(value.type()).object()->asType();
-                    const auto& memberName = constantList[constantIndex++].string();
-                    const auto& memberNameHash = constantList[constantIndex++].value<usize>();
+
+                    const auto memberNameHash = constantList[constantIndex++].value<usize>();
+                    const auto& memberName = memory::findInternedString(memberNameHash);
                     const auto pushParentBack = constantList[constantIndex++].toBool();
+
+                    const auto type = typeValue(value.type()).object()->asType();
 
                     if (auto function = type->findExtensionFunction(memberNameHash)) {
                         if (const auto p = function->object()->asFunction(); currentFunction->namespaceHash() != p->namespaceHash()) {

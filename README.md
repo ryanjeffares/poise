@@ -113,6 +113,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * Constant expressions
 * Pattern matching
 * Ifs as expressions
+* Identifier loading in runtime can be simplified now that strings are interned
 * ~~Single expression lambdas~~
     * ~~But, perhaps we could do `|| => <expr>` and then also have single line functions like that too (`func foo() => <expr>`)~~
     * ~~Figure out how to compile this as a statement rather than an expression - need to return null in case of a print or loop statement etc.~~

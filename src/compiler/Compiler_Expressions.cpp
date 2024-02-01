@@ -4,6 +4,7 @@
 
 #include "Compiler.hpp"
 #include "Compiler_Macros.hpp"
+#include "../runtime/memory/StringInterner.hpp"
 
 #include <charconv>
 #include <version>
@@ -266,8 +267,7 @@ auto Compiler::call(bool canAssign) -> void
             }
         } else if (match(scanner::TokenType::Dot)) {
             RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected identifier");
-            emitConstant(m_previous->string());
-            emitConstant(m_stringHasher(m_previous->string()));
+            emitConstant(runtime::memory::internString(m_previous->string()));
             emitOp(runtime::Op::LoadMember, m_previous->line());
 
             if (match(scanner::TokenType::OpenParen)) {
@@ -279,6 +279,8 @@ auto Compiler::call(bool canAssign) -> void
                     emitConstant(true);
                     emitOp(runtime::Op::Call, m_previous->line());
                 }
+            } else {
+                emitConstant(false); // don't push parent back on to the stack
             }
         } else if (match(scanner::TokenType::OpenSquareBracket)) {
             expression(false, false);
@@ -381,8 +383,7 @@ auto Compiler::identifier(bool canAssign) -> void
             // so trying to call/load a function in the same namespace
             // resolve this at runtime
             emitConstant(m_filePathHash);
-            emitConstant(m_stringHasher(identifier));
-            emitConstant(std::move(identifier));
+            emitConstant(runtime::memory::internString(std::move(identifier)));
             emitOp(runtime::Op::LoadFunction, m_previous->line());
         }
     }
@@ -470,7 +471,6 @@ auto Compiler::namespaceQualifiedCall() -> void
         }
     }
 
-    const auto functionName = m_previous->string();
     const auto namespaceManager = m_vm->namespaceManager();
 
     if (!namespaceFilePath.has_extension()) {
@@ -485,8 +485,7 @@ auto Compiler::namespaceQualifiedCall() -> void
     }
 
     emitConstant(namespaceHash);
-    emitConstant(m_stringHasher(functionName));
-    emitConstant(functionName);
+    emitConstant(runtime::memory::internString(m_previous->string()));
     emitOp(runtime::Op::LoadFunction, m_previous->line());
 
     if (match(scanner::TokenType::OpenParen)) {
@@ -822,34 +821,48 @@ auto Compiler::parseInt() -> void
     
     std::from_chars_result result{};
     if (isBinary) {
+        if (text[0_uz] != '0') {
+            errorAtPrevious("Binary literals must start with '0'");
+            return;
+        }
+
         std::string cleaned;
         for (auto i = 2_uz; i < text.size(); i++) {
+            if (text[i] == '_') {
+                continue;
+            }
+
             if (text[i] != '0' && text[i] != '1' && text[i] != '_') {
                 errorAtPrevious("Binary literals must only contain '1' and '0'");
                 return;
             }
 
-            if (text[i] != '_') {
-                cleaned.push_back(text[i]);
-            }
+            cleaned.push_back(text[i]);
         }
 
         result = std::from_chars(cleaned.data(), cleaned.data() + cleaned.size(), value, 2);
     } else if (isHex) {
+        if (text[0_uz] != '0') {
+            errorAtPrevious("Hex literals must start with '0'");
+            return;
+        }
+
         auto isHexChar = [] (char c) -> bool {
             return std::isdigit(c) || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
         };
 
         std::string cleaned;
         for (auto i = 2_uz; i < text.size(); i++) {
+            if (text[i] == '_') {
+                continue;
+            }
+
             if (!isHexChar(text[i]) && text[i] != '_') {
                 errorAtPrevious("Hex literals must only contain digits or characters in the range 'A' to 'F'");
                 return;
             }
 
-            if (text[i] != '_') {
-                cleaned.push_back(text[i]);
-            }
+            cleaned.push_back(text[i]);
         }
 
         result = std::from_chars(cleaned.data(), cleaned.data() + cleaned.size(), value, 16);

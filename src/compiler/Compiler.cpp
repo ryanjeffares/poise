@@ -1,4 +1,5 @@
 #include "Compiler.hpp"
+#include "../runtime/memory/StringInterner.hpp"
 
 #include <fmt/color.h>
 #include <fmt/core.h>
@@ -52,8 +53,7 @@ auto Compiler::compile() -> CompileResult
     if (m_mainFile) {
         if (m_mainFunction) {
             emitConstant(m_filePathHash);
-            emitConstant(m_stringHasher("main"));
-            emitConstant("main");
+            emitConstant(runtime::memory::internString("main"));
             emitOp(runtime::Op::LoadFunction, 0_uz);
             emitConstant(0);
             emitConstant(false);
