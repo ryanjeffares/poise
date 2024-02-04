@@ -300,9 +300,46 @@ auto Compiler::constantPrimary() -> std::optional<runtime::Value>
         RETURN_VALUE_IF_NO_MATCH(scanner::TokenType::CloseParen, "Expected ')'", {});
         return value;
     } else if (match(scanner::TokenType::Identifier)) {
-        return {};
+        if (check(scanner::TokenType::ColonColon)) {
+            return constantNamespaceQualifiedCall();
+        } else {
+            if (const auto constant = m_vm->namespaceManager()->getConstant(m_filePathHash, m_previous->text())) {
+                return constant->value;
+            }
+
+            errorAtPrevious(fmt::format("Constant '{}' not found in this namespace", m_previous->text()));
+            return {};
+        }
     } else {
         errorAtCurrent("Invalid token in constant expression");
+        return {};
+    }
+}
+
+auto Compiler::constantNamespaceQualifiedCall() -> std::optional<runtime::Value>
+{
+    const auto parseResult = parseNamespaceQualification();
+    if (!parseResult) {
+        return {};
+    }
+
+    const auto& [namespaceText, namespaceHash] = *parseResult;
+    const auto namespaceManager = m_vm->namespaceManager();
+
+    if (!namespaceManager->namespaceHasImportedNamespace(m_filePathHash, namespaceHash)) {
+        errorAtPrevious(fmt::format("Namespace '{}' not imported", namespaceText));
+        return {};
+    }
+
+    if (const auto constant = namespaceManager->getConstant(namespaceHash, m_previous->text())) {
+        if (!constant->isExported) {
+            errorAtPrevious(fmt::format("Constant '{}' in namespace '{}' is not exported", m_previous->text(), namespaceText));
+            return {};
+        }
+
+        return constant->value;
+    } else {
+        errorAtPrevious(fmt::format("Constant '{}' not defined in namespace '{}'", m_previous->text(), namespaceText));
         return {};
     }
 }

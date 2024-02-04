@@ -1,6 +1,9 @@
 import std::int;
+import constants;
 
-func main() {
+export const TEST = "Test";
+
+export func main() {
     final pow = 0.pow;
     println(pow);
     println(pow(2, 63) - 1);

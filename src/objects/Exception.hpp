@@ -18,6 +18,7 @@ public:
         AmbiguousCall,
         ArgumentOutOfRange,
         Exception,
+        FunctionNotExported,
         FunctionNotFound,
         IncorrectArgCount,
         IndexOutOfBounds,

@@ -18,10 +18,12 @@ auto Compiler::declaration() -> void
     } else if (match(scanner::TokenType::Final)) {
         varDeclaration(true);
     } else if (match(scanner::TokenType::Const)) {
-        constDeclaration();
+        constDeclaration(false);
     } else if (match(scanner::TokenType::Export)) {
         if (match(scanner::TokenType::Func)) {
             funcDeclaration(true);
+        } else if (match(scanner::TokenType::Const)) {
+            constDeclaration(true);
         } else {
             errorAtCurrent("Expected function");
         }
@@ -102,7 +104,9 @@ auto Compiler::funcDeclaration(bool isExported) -> void
         parseTypeAnnotation();
     }
 
-    auto function = runtime::Value::createObjectUntracked<objects::Function>(std::move(functionName), m_filePath.string(), m_filePathHash, numParams, isExported, hasVariadicParams);
+    const auto isMainFunction = m_mainFile && functionName == "main";
+
+    auto function = runtime::Value::createObjectUntracked<objects::Function>(std::move(functionName), m_filePath.string(), m_filePathHash, numParams, isExported || isMainFunction, hasVariadicParams);
     auto functionPtr = function.object()->asFunction();
     m_vm->setCurrentFunction(functionPtr);
 
@@ -140,7 +144,7 @@ auto Compiler::funcDeclaration(bool isExported) -> void
 
     m_vm->setCurrentFunction(nullptr);
 
-    if (functionPtr->name() == "main") {
+    if (isMainFunction) {
         m_mainFunction = function;
     }
 
@@ -182,6 +186,11 @@ auto Compiler::varDeclaration(bool isFinal) -> void
             return false;
         }
         
+        if (m_vm->namespaceManager()->hasConstant(m_filePathHash, varName)) {
+            errorAtPrevious("Constant with the same name already declared in this namespace");
+            return false;
+        }
+
         return true;
     };
 
@@ -241,7 +250,7 @@ auto Compiler::varDeclaration(bool isFinal) -> void
     EXPECT_SEMICOLON();
 }
 
-auto Compiler::constDeclaration() -> void
+auto Compiler::constDeclaration(bool isExported) -> void
 {
     RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected identifier");
 
@@ -251,10 +260,14 @@ auto Compiler::constDeclaration() -> void
         return;
     }
 
+    if (match(scanner::TokenType::Colon)) {
+        parseTypeAnnotation();
+    }
+
     RETURN_IF_NO_MATCH(scanner::TokenType::Equal, "Expected assignment to 'const'");
 
     if (auto value = constantExpression()) {
-        m_vm->namespaceManager()->addConstant(m_filePathHash, std::move(*value), std::move(constantName));
+        m_vm->namespaceManager()->addConstant(m_filePathHash, std::move(*value), std::move(constantName), isExported);
     }
 
     EXPECT_SEMICOLON();

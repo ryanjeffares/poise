@@ -1,5 +1,7 @@
 import std::int;
 
+export const FOO = "Foo";
+
 export func say_hello() {
     println("Hello from lib::lib()!");
 }

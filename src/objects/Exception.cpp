@@ -81,6 +81,9 @@ auto fmt::formatter<Exception::ExceptionType>::format(Exception::ExceptionType e
         case Exception::ExceptionType::Exception:
             res = "Exception";
             break;
+        case Exception::ExceptionType::FunctionNotExported:
+            res = "FunctionNotExportedException";
+            break;
         case Exception::ExceptionType::FunctionNotFound:
             res = "FunctionNotFoundException";
             break;

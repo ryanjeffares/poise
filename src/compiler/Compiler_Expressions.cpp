@@ -380,6 +380,9 @@ auto Compiler::identifier(bool canAssign) -> void
             emitConstant(*localIndex);
             emitOp(runtime::Op::LoadLocal, m_previous->line());
         }
+    } else if (const auto constant = m_vm->namespaceManager()->getConstant(m_filePathHash, identifier)) {
+        emitConstant(constant->value);
+        emitOp(runtime::Op::LoadConstant, m_previous->line());
     } else {
         if (identifier.starts_with("__")) {
             // trying to call a native function
@@ -438,72 +441,40 @@ auto Compiler::nativeCall() -> void
 
 auto Compiler::namespaceQualifiedCall() -> void
 {
-    // currently, the only things you can have at the top level that you could try and load
-    // are functions, and since we've already compiled the file you're looking in, we can verify this now
-    // TODO: constants
-
-    // so first, parse the rest of the namespace...
-    const auto identifier = m_previous->string();
-
-    std::filesystem::path namespaceFilePath;
-    std::string namespaceText = identifier;
-
-    advance(); // consume the first '::'
-
-    if (m_importAliasLookup.contains(namespaceText)) {
-        namespaceFilePath = m_importAliasLookup[namespaceText];
-        advance(); // consume the function name
-    } else {
-        if (identifier == "std") {
-            if (auto stdPath = getStdPath()) {
-                namespaceFilePath.swap(*stdPath);
-            } else {
-                errorAtPrevious("The environment variable `POISE_STD_PATH` has not been set, cannot open std file");
-                return;
-            }
-        } else {
-            namespaceFilePath = m_filePath.parent_path() / identifier;
-        }
-
-        // current token is EITHER the next part of the namespace OR the function
-        while (match(scanner::TokenType::Identifier)) {
-            const auto text = m_previous->text();
-
-            if (match(scanner::TokenType::ColonColon)) {
-                // continue namespace
-                namespaceFilePath /= text;
-                namespaceText += "::";
-                namespaceText += text;
-            } else {
-                break;
-            }
-        }
+    auto parseResult = parseNamespaceQualification();
+    if (!parseResult) {
+        return;
     }
 
+    const auto& [namespaceText, namespaceHash] = *parseResult;
     const auto namespaceManager = m_vm->namespaceManager();
-
-    if (!namespaceFilePath.has_extension()) {
-        namespaceFilePath += ".poise";
-    }
-
-    const auto namespaceHash = namespaceManager->namespaceHash(namespaceFilePath);
 
     if (!namespaceManager->namespaceHasImportedNamespace(m_filePathHash, namespaceHash)) {
         errorAtPrevious(fmt::format("Namespace '{}' not imported", namespaceText));
         return;
     }
 
-    emitConstant(namespaceHash);
-    emitConstant(runtime::memory::internString(m_previous->string()));
-    emitOp(runtime::Op::LoadFunction, m_previous->line());
+    if (const auto constant = namespaceManager->getConstant(namespaceHash, m_previous->text())) {
+        if (!constant->isExported) {
+            errorAtPrevious(fmt::format("Constant '{}' in namespace '{}' is not exported", m_previous->text(), namespaceText));
+            return;
+        }
 
-    if (match(scanner::TokenType::OpenParen)) {
-        if (const auto args = parseCallArgs(scanner::TokenType::CloseParen)) {
-            const auto [numArgs, hasUnpack] = *args;
-            emitConstant(numArgs);
-            emitConstant(hasUnpack);
-            emitConstant(false);
-            emitOp(runtime::Op::Call, m_previous->line());
+        emitConstant(constant->value);
+        emitOp(runtime::Op::LoadConstant, m_previous->line());
+    } else {
+        emitConstant(namespaceHash);
+        emitConstant(runtime::memory::internString(m_previous->string()));
+        emitOp(runtime::Op::LoadFunction, m_previous->line());
+
+        if (match(scanner::TokenType::OpenParen)) {
+            if (const auto args = parseCallArgs(scanner::TokenType::CloseParen)) {
+                const auto [numArgs, hasUnpack] = *args;
+                emitConstant(numArgs);
+                emitConstant(hasUnpack);
+                emitConstant(false);
+                emitOp(runtime::Op::Call, m_previous->line());
+            }
         }
     }
 }
@@ -918,13 +889,14 @@ auto Compiler::parseFloat() -> std::optional<f64>
     const auto [_, ec] = std::from_chars(text.data(), text.data() + text.length(), result);
 
     if (ec == std::errc{}) {
-        emitConstant(result);
-        emitOp(runtime::Op::LoadConstant, m_previous->line());
+        return result;
     } else if (ec == std::errc::invalid_argument) {
         errorAtPrevious(fmt::format("Unable to parse Float '{}'", text));
     } else if (ec == std::errc::result_out_of_range) {
         errorAtPrevious(fmt::format("Float out of range '{}'", text));
     }
+
+    return {};
 #endif
 }
 }   // namespace poise::compiler

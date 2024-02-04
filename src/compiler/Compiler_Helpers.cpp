@@ -268,7 +268,7 @@ auto Compiler::parseFunctionParams(bool isLambda) -> std::optional<FunctionParam
     return {{numParams, hasVariadicParams, std::move(extensionFunctionTypes)}};
 }
 
-auto Compiler::parseNamespaceImport() -> std::optional<NamespaceParseResult>
+auto Compiler::parseNamespaceImport() -> std::optional<NamespaceImportParseResult>
 {
     std::filesystem::path namespaceFilePath;
     std::string namespaceName = m_previous->string();
@@ -324,6 +324,54 @@ auto Compiler::parseNamespaceImport() -> std::optional<NamespaceParseResult>
     }
 
     return {{std::move(namespaceFilePath), std::move(namespaceName), isStdFile}};
+}
+
+auto Compiler::parseNamespaceQualification() -> std::optional<NamespaceQualificationParseResult>
+{
+    const auto identifier = m_previous->string();
+
+    std::filesystem::path namespaceFilePath;
+    std::string namespaceText = identifier;
+
+    advance(); // consume the first '::'
+
+    if (m_importAliasLookup.contains(namespaceText)) {
+        namespaceFilePath = m_importAliasLookup[namespaceText];
+        advance(); // consume the function name
+    } else {
+        if (identifier == "std") {
+            if (auto stdPath = getStdPath()) {
+                namespaceFilePath.swap(*stdPath);
+            } else {
+                errorAtPrevious("The environment variable `POISE_STD_PATH` has not been set, cannot open std file");
+                return {};
+            }
+        } else {
+            namespaceFilePath = m_filePath.parent_path() / identifier;
+        }
+
+        // current token is EITHER the next part of the namespace OR the function
+        while (match(scanner::TokenType::Identifier)) {
+            const auto text = m_previous->text();
+
+            if (match(scanner::TokenType::ColonColon)) {
+                // continue namespace
+                namespaceFilePath /= text;
+                namespaceText += "::";
+                namespaceText += text;
+            } else {
+                break;
+            }
+        }
+    }
+
+    if (!namespaceFilePath.has_extension()) {
+        namespaceFilePath += ".poise";
+    }
+
+    const auto namespaceHash = m_vm->namespaceManager()->namespaceHash(namespaceFilePath);
+
+    return {{std::move(namespaceText), namespaceHash}};
 }
 
 auto Compiler::parseBlock(std::string_view scopeType) -> bool

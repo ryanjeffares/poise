@@ -28,6 +28,7 @@ public:
     {
         Value value;
         std::string name;
+        bool isExported;
     };
 
     using NamespaceConstantLookup = std::unordered_map<NamespaceHash, std::vector<Constant>>;
@@ -44,9 +45,9 @@ public:
 
     [[nodiscard]] auto namespaceHasImportedNamespace(NamespaceHash parent, NamespaceHash imported) const noexcept -> bool;
 
-    auto addConstant(NamespaceHash namespaceHash, Value value, std::string name) noexcept -> void;
+    auto addConstant(NamespaceHash namespaceHash, Value value, std::string name, bool isExported) noexcept -> void;
     [[nodiscard]] auto hasConstant(NamespaceHash namespaceHash, std::string_view constantName) const noexcept -> bool;
-    [[nodiscard]] auto getConstant(NamespaceHash namespaceHash, std::string_view constantName) const noexcept -> std::optional<Value>;
+    [[nodiscard]] auto getConstant(NamespaceHash namespaceHash, std::string_view constantName) const noexcept -> std::optional<Constant>;
 
 private:
     std::hash<std::filesystem::path> m_namespaceHasher;

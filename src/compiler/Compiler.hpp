@@ -79,16 +79,23 @@ private:
         std::vector<runtime::types::Type> extensionFunctionTypes;
     };
 
-    struct NamespaceParseResult
+    struct NamespaceImportParseResult
     {
         std::filesystem::path path;
         std::string name;
         bool isStdFile;
     };
 
+    struct NamespaceQualificationParseResult
+    {
+        std::string namespaceText;
+        usize namespaceHash;
+    };
+
     [[nodiscard]] auto parseCallArgs(scanner::TokenType sentinel) -> std::optional<CallArgsParseResult>;
     [[nodiscard]] auto parseFunctionParams(bool isLambda) -> std::optional<FunctionParamsParseResult>;
-    [[nodiscard]] auto parseNamespaceImport() -> std::optional<NamespaceParseResult>;
+    [[nodiscard]] auto parseNamespaceImport() -> std::optional<NamespaceImportParseResult>;
+    [[nodiscard]] auto parseNamespaceQualification() -> std::optional<NamespaceQualificationParseResult>;
     [[nodiscard]] auto parseBlock(std::string_view scopeType) -> bool;
     auto parseTypeAnnotation() -> void;
 
@@ -96,7 +103,7 @@ private:
     auto importDeclaration() -> void;
     auto funcDeclaration(bool isExported) -> void;
     auto varDeclaration(bool isFinal) -> void;
-    auto constDeclaration() -> void;
+    auto constDeclaration(bool isExported) -> void;
 
     auto statement(bool consumeSemicolon) -> void;
     auto expressionStatement(bool consumeSemicolon) -> void;
@@ -141,6 +148,7 @@ private:
     [[nodiscard]] auto constantFactor() -> std::optional<runtime::Value>;
     [[nodiscard]] auto constantUnary() -> std::optional<runtime::Value>;
     [[nodiscard]] auto constantPrimary() -> std::optional<runtime::Value>;
+    [[nodiscard]] auto constantNamespaceQualifiedCall() -> std::optional<runtime::Value>;
 
     auto identifier(bool canAssign) -> void;
     auto nativeCall() -> void;

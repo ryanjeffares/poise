@@ -88,9 +88,9 @@ auto NamespaceManager::namespaceHasImportedNamespace(NamespaceHash parent, Names
     return std::ranges::find(namespaceVec, imported) != namespaceVec.end();
 }
 
-auto NamespaceManager::addConstant(NamespaceHash namespaceHash, Value value, std::string name) noexcept -> void
+auto NamespaceManager::addConstant(NamespaceHash namespaceHash, Value value, std::string name, bool isExported) noexcept -> void
 {
-    m_namespaceConstantLookup.at(namespaceHash).emplace_back(Constant{std::move(value), std::move(name)});
+    m_namespaceConstantLookup.at(namespaceHash).emplace_back(Constant{std::move(value), std::move(name), isExported});
 }
 
 auto NamespaceManager::hasConstant(NamespaceHash namespaceHash, std::string_view constantName) const noexcept -> bool
@@ -101,7 +101,7 @@ auto NamespaceManager::hasConstant(NamespaceHash namespaceHash, std::string_view
     });
 }
 
-auto NamespaceManager::getConstant(NamespaceHash namespaceHash, std::string_view constantName) const noexcept -> std::optional<Value>
+auto NamespaceManager::getConstant(NamespaceHash namespaceHash, std::string_view constantName) const noexcept -> std::optional<Constant>
 {
     const auto& constantList = m_namespaceConstantLookup.at(namespaceHash);
     const auto it = std::ranges::find_if(constantList, [constantName] (const Constant& constant) -> bool {
@@ -111,7 +111,7 @@ auto NamespaceManager::getConstant(NamespaceHash namespaceHash, std::string_view
     if (it == constantList.end()) {
         return {};
     } else {
-        return it->value;
+        return *it;
     }
 }
 }   // namespace poise::runtime

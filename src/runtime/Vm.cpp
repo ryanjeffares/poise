@@ -491,9 +491,18 @@ auto Vm::run() const noexcept -> RunResult
                     const auto& functionName = memory::findInternedString(functionNameHash);
 
                     if (auto function = m_namespaceManager.namespaceFunction(namespaceHash, functionNameHash)) {
+                        if (currentFunction != nullptr && namespaceHash != currentFunction->namespaceHash() && !function->object()->asFunction()->exported()) {
+                            throw Exception{
+                                Exception::ExceptionType::FunctionNotExported,
+                                fmt::format("Function '{}' in namespace '{}' is not exported", functionName, m_namespaceManager.namespaceDisplayName(namespaceHash))
+                            };
+                        }
                         stack.push_back(std::move(*function));
                     } else {
-                        throw Exception(Exception::ExceptionType::FunctionNotFound, fmt::format("Function '{}' not found in namespace '{}'", functionName, m_namespaceManager.namespaceDisplayName(namespaceHash)));
+                        throw Exception{
+                            Exception::ExceptionType::FunctionNotFound,
+                            fmt::format("Function '{}' not found in namespace '{}'", functionName, m_namespaceManager.namespaceDisplayName(namespaceHash))
+                        };
                     }
 
                     break;
@@ -517,7 +526,10 @@ auto Vm::run() const noexcept -> RunResult
                     if (auto function = type->findExtensionFunction(memberNameHash)) {
                         if (const auto p = function->object()->asFunction(); currentFunction->namespaceHash() != p->namespaceHash()) {
                             if (!m_namespaceManager.namespaceHasImportedNamespace(currentFunction->namespaceHash(), p->namespaceHash())) {
-                                throw Exception(Exception::ExceptionType::FunctionNotFound, fmt::format("Extension function '{}' not found for type '{}' - are you missing an import?", p->name(), type->typeName()));
+                                throw Exception{
+                                    Exception::ExceptionType::FunctionNotFound,
+                                    fmt::format("Extension function '{}' not found for type '{}' - are you missing an import?", p->name(), type->typeName())
+                                };
                             }
                         }
                         stack.push_back(std::move(*function));
@@ -525,7 +537,10 @@ auto Vm::run() const noexcept -> RunResult
                             stack.push_back(std::move(value));
                         }
                     } else {
-                        throw Exception(Exception::ExceptionType::FunctionNotFound, fmt::format("Function '{}' not defined for type '{}'", memberName, type->typeName()));
+                        throw Exception{
+                            Exception::ExceptionType::FunctionNotFound,
+                            fmt::format("Function '{}' not defined for type '{}'", memberName, type->typeName())
+                        };
                     }
                     break;
                 }
@@ -1061,8 +1076,12 @@ auto Vm::run() const noexcept -> RunResult
                 print(stderr, fmt::emphasis::bold | fg(fmt::color::red), "Runtime Error: ");
                 fmt::print(stderr, "{}\n", exception.toString());
 
-                fmt::print(stderr, "  At {}:{} in function '{}'\n", currentFunction->filePath().string(), line, currentFunction->name());
-                fmt::print(stderr, "    {}\n", scanner::Scanner::getCodeAtLine(currentFunction->filePath(), line));
+                if (currentFunction != nullptr) {
+                    fmt::print(stderr, "  At {}:{} in function '{}'\n", currentFunction->filePath().string(), line, currentFunction->name());
+                    fmt::print(stderr, "    {}\n", scanner::Scanner::getCodeAtLine(currentFunction->filePath(), line));
+                } else  {
+                    fmt::print(stderr, "  At entry\n");
+                }
 
                 for (const auto& entry : callStack | std::views::reverse) {
                     if (const auto caller = entry.callerFunction) {

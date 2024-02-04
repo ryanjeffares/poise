@@ -1,6 +1,18 @@
-const PI = 3.14;
-const NAME = "Ryan";
-const L = [];
+import lib::lib;
+import test;
+
+export const PI: Float     = 3.14;
+const PI2: Float    = PI * 2;
+
+const NAME: String  = "Ryan";
+const VALUE: Int    = 5 * (20 + 4);
+const TEST = test::TEST;
 
 func main() {
+    println(TEST);
+    println(PI);
+    println(PI2);
+    println(NAME);
+    println(lib::lib::FOO);
+    println(VALUE);
 }
