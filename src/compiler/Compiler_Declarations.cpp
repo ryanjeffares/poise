@@ -51,19 +51,19 @@ auto Compiler::importDeclaration() -> void
         return;
     }
 
-    const auto& [path, name, isStdFile] = *namespaceParseRes;
+    for (const auto& [path, name, isStdFile] : *namespaceParseRes) {
+        if (!std::filesystem::exists(path)) {
+            errorAtPrevious(fmt::format("Cannot open file {}", path.string()));
+            return;
+        }
 
-    if (!std::filesystem::exists(path)) {
-        errorAtPrevious(fmt::format("Cannot open file {}", path.string()));
-        return;
-    }
-
-    if (m_vm->namespaceManager()->addNamespace(path, name, m_filePathHash)) {
-        Compiler importCompiler{false, isStdFile, m_vm, path};
-        if (importCompiler.compile() != CompileResult::Success)  {
-            // set the error flag here, so we stop compiling
-            // but no need to report - the import compiler already did this
-            m_hadError = true;
+        if (m_vm->namespaceManager()->addNamespace(path, name, m_filePathHash)) {
+            Compiler importCompiler{false, isStdFile, m_vm, path};
+            if (importCompiler.compile() != CompileResult::Success)  {
+                // set the error flag here, so we stop compiling
+                // but no need to report - the import compiler already did this
+                m_hadError = true;
+            }
         }
     }
 }

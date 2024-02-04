@@ -93,7 +93,7 @@ private:
 
     [[nodiscard]] auto parseCallArgs(scanner::TokenType sentinel) -> std::optional<CallArgsParseResult>;
     [[nodiscard]] auto parseFunctionParams(bool isLambda) -> std::optional<FunctionParamsParseResult>;
-    [[nodiscard]] auto parseNamespaceImport() -> std::optional<NamespaceImportParseResult>;
+    [[nodiscard]] auto parseNamespaceImport() -> std::optional<std::vector<NamespaceImportParseResult>>;
     [[nodiscard]] auto parseNamespaceQualification() -> std::optional<NamespaceQualificationParseResult>;
     [[nodiscard]] auto parseBlock(std::string_view scopeType) -> bool;
     auto parseTypeAnnotation() -> void;

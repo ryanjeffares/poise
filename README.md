@@ -46,7 +46,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * ~~Lambda~~
 * ~~Assignment statements~~
 * ~~Error handling~~
-    * When we do constants, handle a constant value for construction Exceptions
+    * ~~When we do constants, handle a constant value for construction Exceptions~~
     * Print only the first few call stack entries on error
     * ~~`throw` statement~~
 * ~~If statements~~

@@ -7,7 +7,6 @@
 #include "../runtime/Types.hpp"
 
 #include <limits>
-#include <ranges>
 
 namespace poise::compiler {
 auto Compiler::emitOp(runtime::Op op, usize line) const noexcept -> void
@@ -268,9 +267,11 @@ auto Compiler::parseFunctionParams(bool isLambda) -> std::optional<FunctionParam
     return {{numParams, hasVariadicParams, std::move(extensionFunctionTypes)}};
 }
 
-auto Compiler::parseNamespaceImport() -> std::optional<NamespaceImportParseResult>
+auto Compiler::parseNamespaceImport() -> std::optional<std::vector<NamespaceImportParseResult>>
 {
-    std::filesystem::path namespaceFilePath;
+    namespace fs = std::filesystem;
+
+    fs::path namespaceFilePath;
     std::string namespaceName = m_previous->string();
     auto isStdFile = false;
 
@@ -286,44 +287,77 @@ auto Compiler::parseNamespaceImport() -> std::optional<NamespaceImportParseResul
         namespaceFilePath = m_filePath.parent_path() / m_previous->text();
     }
 
+    std::vector<NamespaceImportParseResult> importedNamespaces;
+
     if (match(scanner::TokenType::Semicolon)) {
         namespaceFilePath += ".poise";
     } else {
         while (match(scanner::TokenType::ColonColon)) {
             namespaceName += "::";
 
-            RETURN_VALUE_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected namespace", std::nullopt);
-
-            const auto text = m_previous->string();
-            namespaceName += text;
-
-            if (match(scanner::TokenType::Semicolon)) {
-                namespaceFilePath /= text + ".poise";
-                break;
-            }
-
-            if (match(scanner::TokenType::As)) {
-                namespaceFilePath /= text + ".poise";
-
-                RETURN_VALUE_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected alias for namespace", std::nullopt);
-
-                auto alias = m_previous->string();
-                if (m_importAliasLookup.contains(alias)) {
-                    errorAtPrevious(fmt::format("Namespace alias '{}' already used", alias));
+            if (match(scanner::TokenType::Star)) {
+                if (!fs::is_directory(namespaceFilePath)) {
+                    errorAtPrevious(fmt::format("{} is not a directory", namespaceFilePath.string()));
                     return {};
                 }
 
-                m_importAliasLookup[std::move(alias)] = namespaceFilePath;
+                for (const auto& entry : fs::directory_iterator{namespaceFilePath}) {
+                    if (fs::is_regular_file(entry.path()) && entry.path().extension() == ".poise") {
+                        importedNamespaces.push_back(NamespaceImportParseResult{
+                            .path = entry.path(),
+                            .name = namespaceName + entry.path().stem().string(),
+                            .isStdFile = isStdFile,
+                        });
+                    }
+                }
 
                 EXPECT_SEMICOLON_RETURN_VALUE(std::nullopt);
                 break;
-            }
+            } else if (match(scanner::TokenType::OpenBrace)) {
+                
+            } else if (match(scanner::TokenType::Identifier)) {
+                const auto text = m_previous->string();
+                namespaceName += text;
 
-            namespaceFilePath /= m_previous->text();
+                if (match(scanner::TokenType::Semicolon)) {
+                    namespaceFilePath /= text + ".poise";
+                    importedNamespaces.push_back(NamespaceImportParseResult{
+                        .path = std::move(namespaceFilePath),
+                        .name = std::move(namespaceName),
+                        .isStdFile = isStdFile,
+                    });
+                    break;
+                }
+
+                if (match(scanner::TokenType::As)) {
+                    namespaceFilePath /= text + ".poise";
+
+                    RETURN_VALUE_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected alias for namespace", std::nullopt);
+
+                    auto alias = m_previous->string();
+                    if (m_importAliasLookup.contains(alias)) {
+                        errorAtPrevious(fmt::format("Namespace alias '{}' already used", alias));
+                        return {};
+                    }
+
+                    m_importAliasLookup[std::move(alias)] = namespaceFilePath;
+
+                    EXPECT_SEMICOLON_RETURN_VALUE(std::nullopt);
+
+                    importedNamespaces.push_back(NamespaceImportParseResult{
+                        .path = std::move(namespaceFilePath),
+                        .name = std::move(namespaceName),
+                        .isStdFile = isStdFile,
+                    });
+                    break;
+                }
+
+                namespaceFilePath /= m_previous->text();
+            }
         }
     }
 
-    return {{std::move(namespaceFilePath), std::move(namespaceName), isStdFile}};
+    return importedNamespaces;
 }
 
 auto Compiler::parseNamespaceQualification() -> std::optional<NamespaceQualificationParseResult>
