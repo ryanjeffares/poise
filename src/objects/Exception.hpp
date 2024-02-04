@@ -29,10 +29,14 @@ public:
         InvalidType,
         IteratorOutOfBounds,
         KeyNotFound,
+
+        NumExceptionTypes,
     };
 
     explicit Exception(std::string message);
+    explicit Exception(ExceptionType exceptionType);
     Exception(ExceptionType exceptionType, std::string message);
+
     ~Exception() override = default;
 
     [[nodiscard]] auto toString() const noexcept -> std::string override;

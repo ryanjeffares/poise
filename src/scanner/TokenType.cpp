@@ -144,6 +144,7 @@ auto builtinConstructorAllowedArgCount(TokenType tokenType) noexcept -> AllowedA
         case TokenType::NoneIdent:
             return AllowedArgCount::None;
         case TokenType::ExceptionIdent:
+            return AllowedArgCount::NoneOrOneOrTwo;
         case TokenType::FunctionIdent:
             return AllowedArgCount::One;
         case TokenType::BoolIdent:

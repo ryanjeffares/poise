@@ -9,7 +9,6 @@
 
 #include <filesystem>
 #include <optional>
-#include <memory>
 #include <stack>
 #include <string>
 
@@ -176,7 +175,6 @@ private:
     bool m_passedImports{};
 
     std::unordered_map<std::string, std::filesystem::path> m_importAliasLookup;
-    std::unique_ptr<Compiler> m_importCompiler;
 
     scanner::Scanner m_scanner;
     runtime::Vm* m_vm;

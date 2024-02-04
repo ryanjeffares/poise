@@ -12,6 +12,13 @@ Exception::Exception(std::string message)
 
 }
 
+Exception::Exception(ExceptionType exceptionType)
+    : m_exceptionType{exceptionType}
+    , m_message{fmt::format("{}", exceptionType)}
+{
+
+}
+
 Exception::Exception(ExceptionType exceptionType, std::string message)
     : m_exceptionType{exceptionType}
     , m_message{std::move(message)}
@@ -69,52 +76,38 @@ using namespace poise::objects;
 
 auto fmt::formatter<Exception::ExceptionType>::format(Exception::ExceptionType exceptionType, format_context& context) const -> decltype(context.out())
 {
-    string_view res = "unknown";
-
     switch (exceptionType) {
         case Exception::ExceptionType::ArgumentOutOfRange:
-            res = "ArgumentOutOfRangeException";
-            break;
+            return formatter<string_view>::format("ArgumentOutOfRangeException", context);
         case Exception::ExceptionType::AmbiguousCall:
-            res = "AmbiguousCallException";
-            break;
+            return formatter<string_view>::format("AmbiguousCallException", context);
         case Exception::ExceptionType::Exception:
-            res = "Exception";
-            break;
+            return formatter<string_view>::format("Exception", context);
         case Exception::ExceptionType::FunctionNotExported:
-            res = "FunctionNotExportedException";
-            break;
+            return formatter<string_view>::format("FunctionNotExportedException", context);
         case Exception::ExceptionType::FunctionNotFound:
-            res = "FunctionNotFoundException";
-            break;
+            return formatter<string_view>::format("FunctionNotFoundException", context);
         case Exception::ExceptionType::IncorrectArgCount:
-            res = "IncorrectArgCountException";
-            break;
+            return formatter<string_view>::format("IncorrectArgCountException", context);
         case Exception::ExceptionType::IndexOutOfBounds:
-            res = "IndexOutOfBoundsException";
-            break;
+            return formatter<string_view>::format("IndexOutOfBoundsException", context);
         case Exception::ExceptionType::InvalidArgument:
-            res = "InvalidArgumentException";
-            break;
+            return formatter<string_view>::format("InvalidArgumentException", context);
         case Exception::ExceptionType::InvalidCast:
-            res = "InvalidCastException";
-            break;
+            return formatter<string_view>::format("InvalidCastException", context);
         case Exception::ExceptionType::InvalidIterator:
-            res = "InvalidIteratorException";
-            break;
+            return formatter<string_view>::format("InvalidIteratorException", context);
         case Exception::ExceptionType::InvalidOperand:
-            res = "InvalidOperandException";
-            break;
+            return formatter<string_view>::format("InvalidOperandException", context);
         case Exception::ExceptionType::InvalidType:
-            res = "InvalidTypeException";
-            break;
+            return formatter<string_view>::format("InvalidTypeException", context);
         case Exception::ExceptionType::IteratorOutOfBounds:
-            res = "IteratorOutOfBoundsException";
-            break;
+            return formatter<string_view>::format("IteratorOutOfBoundsException", context);
         case Exception::ExceptionType::KeyNotFound:
-            res = "KeyNotFoundException";
-            break;
+            return formatter<string_view>::format("KeyNotFoundException", context);
+        case Exception::ExceptionType::NumExceptionTypes:
+            return formatter<string_view>::format("NumExceptionTypesException", context);
+        default:
+            POISE_UNREACHABLE();
     }
-
-    return formatter<string_view>::format(res, context);
 }

@@ -59,10 +59,8 @@ auto Compiler::importDeclaration() -> void
     }
 
     if (m_vm->namespaceManager()->addNamespace(path, name, m_filePathHash)) {
-        m_importCompiler = std::make_unique<Compiler>(false, isStdFile, m_vm, path);
-        const auto res = m_importCompiler->compile();
-        m_importCompiler.reset();
-        if (res != CompileResult::Success) {
+        Compiler importCompiler{false, isStdFile, m_vm, path};
+        if (importCompiler.compile() != CompileResult::Success)  {
             // set the error flag here, so we stop compiling
             // but no need to report - the import compiler already did this
             m_hadError = true;

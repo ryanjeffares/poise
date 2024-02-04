@@ -85,14 +85,44 @@ Vm::Vm(std::string mainFilePath)
                 })},
         {types::Type::Exception, Value::createObjectUntracked<Type>(types::Type::Exception, "Exception",
                 [](std::span<Value> args) -> Value {
-                    if (args.size() != 1_uz) { 
-                        throw Exception{ 
-                            Exception::ExceptionType::IncorrectArgCount,
-                            fmt::format("Expected 1 arg to Exception but got {}", args.size())
-                        }; 
-                    } 
+                    switch (args.size()) {
+                        case 0_uz: {
+                            return Value::createObject<Exception>(Exception::ExceptionType::Exception);
+                        }
+                        case 1_uz: {
+                            if (args[0_uz].type() == types::Type::Int) {
+                                const auto exceptionType =
+                                    args[0_uz].value<i64>() >= static_cast<i64>(Exception::ExceptionType::NumExceptionTypes)
+                                    ? Exception::ExceptionType::Exception
+                                    : static_cast<Exception::ExceptionType>(args[0_uz].value<i64>());
 
-                    return Value::createObject<Exception>(args[0_uz].toString());
+                                return Value::createObject<Exception>(exceptionType);
+                            } else {
+                                return Value::createObject<Exception>(args[0_uz].toString());
+                            }
+                        }
+                        case 2_uz: {
+                            if (args[0_uz].type() != types::Type::Int) {
+                                throw Exception{
+                                    Exception::ExceptionType::InvalidType,
+                                    fmt::format("Expected Int at position 0 to construct Exception but got {}", args[0_uz].type())
+                                };
+                            }
+
+                            const auto exceptionType =
+                                args[0_uz].value<i64>() >= static_cast<i64>(Exception::ExceptionType::NumExceptionTypes)
+                                ? Exception::ExceptionType::Exception
+                                : static_cast<Exception::ExceptionType>(args[0_uz].value<i64>());
+
+                            return Value::createObject<Exception>(exceptionType, args[1_uz].toString());
+                        }
+                        default: {
+                            throw Exception{
+                                Exception::ExceptionType::IncorrectArgCount,
+                                fmt::format("Expected 2 args to construct Exception but got {}", args.size())
+                            };
+                        }
+                    }
                 })},
         {types::Type::Function, Value::createObjectUntracked<Type>(types::Type::Function, "Function",
                 [](std::span<Value> args) -> Value {

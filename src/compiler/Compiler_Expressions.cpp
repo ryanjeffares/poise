@@ -498,6 +498,14 @@ auto Compiler::typeIdent() -> void
 
                     break;
                 }
+                case scanner::AllowedArgCount::NoneOrOneOrTwo: {
+                    if (numArgs > 2_uz) {
+                        errorAtPrevious(fmt::format("{} takes <= 2 arguments", runtimeType));
+                        return;
+                    }
+
+                    break;
+                }
                 case scanner::AllowedArgCount::One: {
                     if (numArgs != 1_uz) {
                         errorAtPrevious(fmt::format("{} takes one argument", runtimeType));
@@ -508,7 +516,7 @@ auto Compiler::typeIdent() -> void
                 }
                 case scanner::AllowedArgCount::OneOrNone: {
                     if (numArgs > 1_uz) {
-                        errorAtPrevious(fmt::format("{} takes one or no arguments", runtimeType));
+                        errorAtPrevious(fmt::format("{} takes <= 1 arguments", runtimeType));
                         return;
                     }
 
@@ -516,7 +524,7 @@ auto Compiler::typeIdent() -> void
                 }
                 case scanner::AllowedArgCount::OneOrMore: {
                     if (numArgs < 1_uz) {
-                        errorAtPrevious(fmt::format("{} takes one or more arguments", runtimeType));
+                        errorAtPrevious(fmt::format("{} takes >= 1 arguments", runtimeType));
                         return;
                     }
 

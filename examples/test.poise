@@ -1,5 +1,7 @@
 import std::int;
-import constants;
+import std::exception;
+
+// import constants;
 
 export const TEST = "Test";
 
@@ -7,5 +9,7 @@ export func main() {
     final pow = 0.pow;
     println(pow);
     println(pow(2, 63) - 1);
+
+    throw Exception(std::exception::KEY_NOT_FOUND, []);
 }
 

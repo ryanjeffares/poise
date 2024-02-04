@@ -122,7 +122,7 @@ enum class AllowedGenericTypeCount
 // for the record, i hate this
 enum class AllowedArgCount
 {
-    None, One, OneOrNone, OneOrMore, TwoOrThree, Any,
+    None, NoneOrOneOrTwo, One, OneOrNone, OneOrMore, TwoOrThree, Any,
 };
 
 [[nodiscard]] auto builtinConstructorAllowedArgCount(TokenType tokenType) noexcept -> AllowedArgCount;

@@ -1,0 +1,15 @@
+export const AMBIGUOUS_CALL: Int            = 0;
+export const ARGUMENT_OUT_OF_RANGE: Int     = 1;
+export const EXCEPTION: Int                 = 2;
+export const FUNCTIO_NOT_EXPORTED: Int      = 3;
+export const FUNCTIO_NOT_FOUND: Int         = 4;
+export const INCORRECT_ARG_COUNT: Int       = 5;
+export const INDEX_OUT_OF_BOUNDS: Int       = 6;
+export const INVALID_ARGUMENT: Int          = 7;
+export const INVALID_CAST: Int              = 8;
+export const INVALID_ITERATOR: Int          = 9;
+export const INVALID_OPERAND: Int           = 10;
+export const INVALID_TYPE: Int              = 11;
+export const ITERATOR_OUT_OF_BOUNDS: Int    = 12;
+export const KEY_NOT_FOUND: Int             = 13;
+
