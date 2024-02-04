@@ -6,7 +6,6 @@
 #include "../objects/Function.hpp"
 
 #include <algorithm>
-#include <ranges>
 
 namespace poise::runtime {
 auto NamespaceManager::namespaceHash(const std::filesystem::path& namespacePath) const noexcept -> NamespaceHash
@@ -35,6 +34,7 @@ auto NamespaceManager::addNamespace(const std::filesystem::path& namespacePath, 
 
     m_namespaceFunctionLookup.emplace(hash, std::vector<Value>{});
     m_namespaceDisplayNameMap[hash] = std::move(namespaceName);
+    m_namespaceConstantLookup.emplace(hash, std::vector<Constant>{});
 
     return true;
 }
@@ -87,4 +87,32 @@ auto NamespaceManager::namespaceHasImportedNamespace(NamespaceHash parent, Names
     const auto& namespaceVec = m_namespacesImportedToNamespaceLookup.at(parent);
     return std::ranges::find(namespaceVec, imported) != namespaceVec.end();
 }
+
+auto NamespaceManager::addConstant(NamespaceHash namespaceHash, Value value, std::string name) noexcept -> void
+{
+    m_namespaceConstantLookup.at(namespaceHash).emplace_back(Constant{std::move(value), std::move(name)});
+}
+
+auto NamespaceManager::hasConstant(NamespaceHash namespaceHash, std::string_view constantName) const noexcept -> bool
+{
+    const auto& constantList = m_namespaceConstantLookup.at(namespaceHash);
+    return std::ranges::any_of(constantList, [&constantName] (const Constant& constant) -> bool {
+        return constant.name == constantName;
+    });
+}
+
+auto NamespaceManager::getConstant(NamespaceHash namespaceHash, std::string_view constantName) const noexcept -> std::optional<Value>
+{
+    const auto& constantList = m_namespaceConstantLookup.at(namespaceHash);
+    const auto it = std::ranges::find_if(constantList, [constantName] (const Constant& constant) -> bool {
+        return constant.name == constantName;
+    });
+
+    if (it == constantList.end()) {
+        return {};
+    } else {
+        return it->value;
+    }
+}
 }   // namespace poise::runtime
+

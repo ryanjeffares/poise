@@ -1,5 +1,6 @@
 add_library(poise-compiler
         Compiler.cpp
+        Compiler_Constants.cpp
         Compiler_Helpers.cpp
         Compiler_Declarations.cpp
         Compiler_Statements.cpp

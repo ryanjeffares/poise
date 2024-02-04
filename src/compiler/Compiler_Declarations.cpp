@@ -17,6 +17,8 @@ auto Compiler::declaration() -> void
         varDeclaration(false);
     } else if (match(scanner::TokenType::Final)) {
         varDeclaration(true);
+    } else if (match(scanner::TokenType::Const)) {
+        constDeclaration();
     } else if (match(scanner::TokenType::Export)) {
         if (match(scanner::TokenType::Func)) {
             funcDeclaration(true);
@@ -238,4 +240,24 @@ auto Compiler::varDeclaration(bool isFinal) -> void
 
     EXPECT_SEMICOLON();
 }
+
+auto Compiler::constDeclaration() -> void
+{
+    RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected identifier");
+
+    auto constantName = m_previous->string();
+    if (m_vm->namespaceManager()->hasConstant(m_filePathHash, constantName)) {
+        errorAtPrevious("Constant with the same name already declared");
+        return;
+    }
+
+    RETURN_IF_NO_MATCH(scanner::TokenType::Equal, "Expected assignment to 'const'");
+
+    if (auto value = constantExpression()) {
+        m_vm->namespaceManager()->addConstant(m_filePathHash, std::move(*value), std::move(constantName));
+    }
+
+    EXPECT_SEMICOLON();
+}
 }   // namespace poise::compiler
+

@@ -1,0 +1,6 @@
+const PI = 3.14;
+const NAME = "Ryan";
+const L = [];
+
+func main() {
+}

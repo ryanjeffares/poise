@@ -1,11 +1,12 @@
 program = { declaration } EOF ;
 
-declaration = importDecl | funcDecl | varDecl | finalDecl | statement ;
+declaration = importDecl | funcDecl | varDecl | finalDecl | constDeclaration | statement ;
 
 importDecl = "import", NAMESPACE, ";" ;
 funcDecl = "func", IDENTIFIER, "(", [ FUNCTION_ARGS ], ")", [ ":", TYPE_ANNOTATION ], BLOCK | ("=>", expression, ";") ;
 varDecl = "var", IDENTIFIER, [ ":", TYPE_ANNOTATION ], [ { ",", IDENTIFIER, [ ":", TYPE_ANNOTATION ], } ], [ "=", [ "try" ], expression ], ";" ;
 finalDecl = "final", IDENTIFIER, [ ":", TYPE_ANNOTATION ], [ { ",", IDENTIFIER, [ ":", TYPE_ANNOTATION ] } ], "=", [ "try" ], expression, ";" ;
+constDeclaratio = "const", IDENTIFIER, "=", constantExpression, ";" ;
 
 statement = expressionStatement
     | printlnStatement
@@ -28,12 +29,12 @@ breakStatement = "break", ";" ;
 continueStatement = "continue", ";" ;
 
 expression = [ "try" ], range | UNPACK ;
-range = logic_or, [ "..", logic_or, [ "by", expression ] ] ;
-logic_or = logic_and, [ { "or", logic_and } ] ;
-logic_and = bitwise_or, [ { "and", bitwise_or } ] ;
-bitwise_or = bitwise_xor, [ { "|", bitwise_xor } ] ;
-bitwise_xor = bitwise_and, [ { "^", bitwise_and } ] ;
-bitwise_and = equality, [ { "&", equality } ] ;
+range = logicOr, [ "..", logicOr, [ "by", expression ] ] ;
+logicOr = logicAnd, [ { "or", logicAnd } ] ;
+logicAnd = bitwiseOr, [ { "and", bitwiseOr } ] ;
+bitwiseOr = bitwiseXor, [ { "|", bitwiseXor } ] ;
+bitwiseXor = bitwiseAnd, [ { "^", bitwiseAnd } ] ;
+bitwiseAnd = equality, [ { "&", equality } ] ;
 equality = comparison, [ { ( "!=" | "==" ), comparison } ] ;
 comparison = shift, [ { ( ">" | ">=" | "<" | "<=" ), shift } ] ;
 shift = term, [ { ( "<<" | ">>" ), term } ] ;
@@ -42,6 +43,20 @@ factor = unary, [ { ( "/" | "*" ), unary } ] ;
 unary = [ ( "!" | "-" | "~" ) ], ( unary | call ) ;
 call = primary [ { ("(", [ CALL_ARGS ], ")") | (".", IDENTIFIER) | ("[", expression, "]") } ] ;
 primary = BOOL | NUMBER | STRING | "(", expression, ")" | TYPE | TYPEOF | LAMBDA | CAST | LIST ;
+
+constantExpression = constantLogicOr ;
+constantLogicOr = constantLogicAnd, [ { "or", constantLogicAnd } ] ;
+constantLogicAnd = constantBitwiseOr, [ { "and", constantBitwiseOr } ] ;
+constantBitwiseOr = constantBitwiseXor, [ { "|", constantBitwiseXor } ] ;
+constantBitwiseXor = constantBitwiseAnd, [ { "^", constantBitwiseAnd } ] ;
+constantBitwiseAnd = constantEquality, [ { "&", constantEquality } ] ;
+constantEquality = constantComparison, [ { ( "!=" | "==" ), constantComparison } ] ;
+constantComparison = constantShift, [ { ( ">" | ">=" | "<" | "<=" ), constantShift } ] ;
+constantShift = constantTerm, [ { ( "<<" | ">>" ), constantTerm } ] ;
+constantTerm = constantFactor, [ { ( "-" | "+" ), constantFactor } ] ;
+constantFactor = constantUnary, [ { ( "/" | "*" ), constantUnary } ] ;
+constantUnary = [ ( "!" | "-" | "~" ) ], ( constantUnary | constantPrimary ) ;
+constantPrimary = BOOL | NUMBER | STRING | "(", constantExpression, ")" | CAST | IDENTIFIER ;
 
 BOOL = "false" | "true" ;
 FLOAT = { DIGIT }, ".", { DIGIT } ;

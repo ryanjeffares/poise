@@ -18,11 +18,19 @@ class NamespaceManager
 {
 public:
     using FunctionNameHash = usize;
-
     using NamespaceHash = usize;
+
     using NamespaceDisplayNameLookup = std::unordered_map<NamespaceHash, std::string>;
     using NamespaceFunctionLookup = std::unordered_map<NamespaceHash, std::vector<Value>>;
     using NamespacesImportedToNamespaceLookup = std::unordered_map<NamespaceHash, std::vector<NamespaceHash>>;
+
+    struct Constant
+    {
+        Value value;
+        std::string name;
+    };
+
+    using NamespaceConstantLookup = std::unordered_map<NamespaceHash, std::vector<Constant>>;
 
     [[nodiscard]] auto namespaceHash(const std::filesystem::path& namespacePath) const noexcept -> NamespaceHash;
 
@@ -36,13 +44,17 @@ public:
 
     [[nodiscard]] auto namespaceHasImportedNamespace(NamespaceHash parent, NamespaceHash imported) const noexcept -> bool;
 
+    auto addConstant(NamespaceHash namespaceHash, Value value, std::string name) noexcept -> void;
+    [[nodiscard]] auto hasConstant(NamespaceHash namespaceHash, std::string_view constantName) const noexcept -> bool;
+    [[nodiscard]] auto getConstant(NamespaceHash namespaceHash, std::string_view constantName) const noexcept -> std::optional<Value>;
+
 private:
     std::hash<std::filesystem::path> m_namespaceHasher;
 
     NamespaceDisplayNameLookup m_namespaceDisplayNameMap;
     NamespaceFunctionLookup m_namespaceFunctionLookup;
-
     NamespacesImportedToNamespaceLookup m_namespacesImportedToNamespaceLookup;
+    NamespaceConstantLookup m_namespaceConstantLookup;
 };
 }   // namespace poise::runtime
 

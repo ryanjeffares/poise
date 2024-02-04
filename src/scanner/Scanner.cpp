@@ -38,6 +38,7 @@ Scanner::Scanner(const std::filesystem::path& inFilePath)
         {"break", TokenType::Break},
         {"by", TokenType::By},
         {"catch", TokenType::Catch},
+        {"const", TokenType::Const},
         {"continue", TokenType::Continue},
         {"else", TokenType::Else},
         {"eprint", TokenType::EPrint},

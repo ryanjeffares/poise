@@ -312,14 +312,23 @@ auto Compiler::primary(bool canAssign) -> void
         emitConstant(true);
         emitOp(runtime::Op::LoadConstant, m_previous->line());
     } else if (match(scanner::TokenType::Float)) {
-        parseFloat();
+        if (const auto f = parseFloat()) {
+            emitConstant(*f);
+            emitOp(runtime::Op::LoadConstant, m_previous->line());
+        }
     } else if (match(scanner::TokenType::Int)) {
-        parseInt();
+        if (const auto i = parseInt()) {
+            emitConstant(*i);
+            emitOp(runtime::Op::LoadConstant, m_previous->line());
+        }
     } else if (match(scanner::TokenType::None)) {
         emitConstant(runtime::Value::none());
         emitOp(runtime::Op::LoadConstant, m_previous->line());
     } else if (match(scanner::TokenType::String)) {
-        parseString();
+        if (auto s = parseString()) {
+            emitConstant(std::move(*s));
+            emitOp(runtime::Op::LoadConstant, m_previous->line());
+        }
     } else if (match(scanner::TokenType::OpenParen)) {
         tupleOrGrouping();
     } else if (match(scanner::TokenType::Identifier)) {
@@ -780,7 +789,7 @@ static auto getEscapeCharacter(char c) -> std::optional<char>
     }
 }
 
-auto Compiler::parseString() -> void
+auto Compiler::parseString() -> std::optional<std::string>
 {
     std::string result;
     const auto tokenText = m_previous->text();
@@ -791,14 +800,14 @@ auto Compiler::parseString() -> void
 
             if (i == tokenText.length() - 1_uz) {
                 errorAtPrevious("Expected escape character but string terminated");
-                return;
+                return {};
             }
 
             if (const auto escapeChar = getEscapeCharacter(tokenText[i])) {
                 result.push_back(*escapeChar);
             } else {
                 errorAtPrevious(fmt::format("Unrecognised escape character '{}'", tokenText[i]));
-                return;
+                return {};
             }
         } else {
             result.push_back(tokenText[i]);
@@ -807,11 +816,10 @@ auto Compiler::parseString() -> void
         i++;
     }
 
-    emitConstant(std::move(result));
-    emitOp(runtime::Op::LoadConstant, m_previous->line());
+    return {std::move(result)};
 }
 
-auto Compiler::parseInt() -> void
+auto Compiler::parseInt() -> std::optional<i64>
 {
     auto value{0_i64};
     const auto text = m_previous->text();
@@ -823,7 +831,7 @@ auto Compiler::parseInt() -> void
     if (isBinary) {
         if (text[0_uz] != '0') {
             errorAtPrevious("Binary literals must start with '0'");
-            return;
+            return {};
         }
 
         std::string cleaned;
@@ -834,7 +842,7 @@ auto Compiler::parseInt() -> void
 
             if (text[i] != '0' && text[i] != '1' && text[i] != '_') {
                 errorAtPrevious("Binary literals must only contain '1' and '0'");
-                return;
+                return {};
             }
 
             cleaned.push_back(text[i]);
@@ -844,7 +852,7 @@ auto Compiler::parseInt() -> void
     } else if (isHex) {
         if (text[0_uz] != '0') {
             errorAtPrevious("Hex literals must start with '0'");
-            return;
+            return {};
         }
 
         auto isHexChar = [] (char c) -> bool {
@@ -859,7 +867,7 @@ auto Compiler::parseInt() -> void
 
             if (!isHexChar(text[i]) && text[i] != '_') {
                 errorAtPrevious("Hex literals must only contain digits or characters in the range 'A' to 'F'");
-                return;
+                return {};
             }
 
             cleaned.push_back(text[i]);
@@ -880,28 +888,30 @@ auto Compiler::parseInt() -> void
     const auto [ptr, ec] = result;
 
     if (ec == std::errc{}) {
-        emitConstant(value);
-        emitOp(runtime::Op::LoadConstant, m_previous->line());
+        return value;
     } else if (ec == std::errc::invalid_argument) {
         errorAtPrevious(fmt::format("Unable to parse Int '{}', failed at '{}'", text, *ptr));
     } else if (ec == std::errc::result_out_of_range) {
         errorAtPrevious(fmt::format("Int out of range '{}'", text));
     }
+
+    return {};
 }
 
-auto Compiler::parseFloat() -> void
+auto Compiler::parseFloat() -> std::optional<f64>
 {
 #ifdef _LIBCPP_VERSION
     try {
         const auto text = m_previous->string();
         const auto result = std::stod(text);
-        emitConstant(result);
-        emitOp(runtime::Op::LoadConstant, m_previous->line());
+        return result;
     } catch (const std::invalid_argument&) {
         errorAtPrevious(fmt::format("Invalid Float '{}'", m_previous->text()));
     } catch (const std::out_of_range&) {
         errorAtPrevious(fmt::format("Float '{}' out of range", m_previous->text()));
     }
+
+    return {};
 #else
     auto result{0.0};
     const auto text = m_previous->string();

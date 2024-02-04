@@ -205,6 +205,8 @@ auto formatter<scanner::TokenType>::format(scanner::TokenType tokenType, format_
             return formatter<string_view>::format("By", context);
         case scanner::TokenType::Catch:
             return formatter<string_view>::format("Catch", context);
+        case scanner::TokenType::Const:
+            return formatter<string_view>::format("Const", context);
         case scanner::TokenType::Continue:
             return formatter<string_view>::format("Continue", context);
         case scanner::TokenType::Else:

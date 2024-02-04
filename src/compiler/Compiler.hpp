@@ -96,6 +96,7 @@ private:
     auto importDeclaration() -> void;
     auto funcDeclaration(bool isExported) -> void;
     auto varDeclaration(bool isFinal) -> void;
+    auto constDeclaration() -> void;
 
     auto statement(bool consumeSemicolon) -> void;
     auto expressionStatement(bool consumeSemicolon) -> void;
@@ -127,6 +128,20 @@ private:
     auto call(bool canAssign) -> void;
     auto primary(bool canAssign) -> void;
 
+    [[nodiscard]] auto constantExpression() -> std::optional<runtime::Value>;
+    [[nodiscard]] auto constantLogicOr() -> std::optional<runtime::Value>;
+    [[nodiscard]] auto constantLogicAnd() -> std::optional<runtime::Value>;
+    [[nodiscard]] auto constantBitwiseOr() -> std::optional<runtime::Value>;
+    [[nodiscard]] auto constantBitwiseXor() -> std::optional<runtime::Value>;
+    [[nodiscard]] auto constantBitwiseAnd() -> std::optional<runtime::Value>;
+    [[nodiscard]] auto constantEquality() -> std::optional<runtime::Value>;
+    [[nodiscard]] auto constantComparison() -> std::optional<runtime::Value>;
+    [[nodiscard]] auto constantShift() -> std::optional<runtime::Value>;
+    [[nodiscard]] auto constantTerm() -> std::optional<runtime::Value>;
+    [[nodiscard]] auto constantFactor() -> std::optional<runtime::Value>;
+    [[nodiscard]] auto constantUnary() -> std::optional<runtime::Value>;
+    [[nodiscard]] auto constantPrimary() -> std::optional<runtime::Value>;
+
     auto identifier(bool canAssign) -> void;
     auto nativeCall() -> void;
     auto namespaceQualifiedCall() -> void;
@@ -138,9 +153,9 @@ private:
     auto tupleOrGrouping() -> void;
     auto dict() -> void;
 
-    auto parseString() -> void;
-    auto parseInt() -> void;
-    auto parseFloat() -> void;
+    [[nodiscard]] auto parseString() -> std::optional<std::string>;
+    [[nodiscard]] auto parseInt() -> std::optional<i64>;
+    [[nodiscard]] auto parseFloat() -> std::optional<f64>;
 
     auto errorAtCurrent(std::string_view message) -> void;
     auto errorAtPrevious(std::string_view message) -> void;

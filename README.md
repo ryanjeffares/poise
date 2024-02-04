@@ -14,7 +14,10 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * Use hashes instead of strings in runtime
     * Function names, namespace lookups, etc
     * And maybe also in the compiler when we need to optimise that
-* Type checker for those optional type hints
+* Package manager type thingy
+    * Type checker for those optional type hints
+    * Project manager/runner
+    * Dependency stuff (not that we have the budget for that)
 * Compiler warnings
 * Optimisation
 * ~~`getCodeAtLine()` for imported files~~
@@ -111,9 +114,10 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * ~~Digit separators~~
 * Constants
     * Constant expressions
+    * Type checked and folded into bytecode
 * Pattern matching
 * Ifs as expressions
-* Identifier loading in runtime can be simplified now that strings are interned
+* ~~Identifier loading in runtime can be simplified now that strings are interned~~
 * ~~Single expression lambdas~~
     * ~~But, perhaps we could do `|| => <expr>` and then also have single line functions like that too (`func foo() => <expr>`)~~
     * ~~Figure out how to compile this as a statement rather than an expression - need to return null in case of a print or loop statement etc.~~
