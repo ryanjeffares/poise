@@ -27,7 +27,8 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * Currently, each type has a list of its extension functions. Keeping this system, an extension function on `Any` would have to be added to all current and future types when compiled
     * We'd have to reverse this association, so each function knows which types it extends, but this is tedious to look up at runtime
     * So maybe the current system is ok? A `PoiseFunction` instance in a `Value` is basically a shared pointer, so it's not too crazy
-* Vectors instead of maps!
+* Simplify data structures in `NamespaceManager`
+    * Reuse the string/ID map from the string interning, have a single data structure with all the info
 
 ## Feature Roadmap
 * ~~Pop unused expression/return results~~
@@ -54,6 +55,9 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * These are done, just need to actually implement everything else
     * ~~Disallow calling a native function outside std files~~
 * ~~Imports + Namespaces~~
+    * Wildcards
+    * Multiple imports in `{}`
+    * Back a folder
 * ~~Namespace aliases~~
 * ~~Export functions~~
 * ~~Dot functions - UFCS!~~
@@ -112,11 +116,12 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * But, I bet performance is better for small amounts of objects - test this, and decide which should we optimise for? Is swapping between the two depending on the load viable?
 * ~~Binary/Hex literals~~
 * ~~Digit separators~~
-* Constants
-    * Constant expressions
-    * Type checked and folded into bytecode
+* ~~Constants~~
+    * ~~Constant expressions~~
+    * ~~Type checked and folded into bytecode~~
 * Pattern matching
 * Ifs as expressions
+    * Do we want this, or some kind of ternary mechanism?
 * ~~Identifier loading in runtime can be simplified now that strings are interned~~
 * ~~Single expression lambdas~~
     * ~~But, perhaps we could do `|| => <expr>` and then also have single line functions like that too (`func foo() => <expr>`)~~
