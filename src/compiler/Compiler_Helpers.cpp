@@ -289,6 +289,25 @@ auto Compiler::parseNamespaceImport() -> std::optional<std::vector<NamespaceImpo
 
     std::vector<NamespaceImportParseResult> importedNamespaces;
 
+    auto parseWildcardImport = [this, &importedNamespaces, isStdFile] (const fs::path& path, const std::string& name) -> bool {
+        if (!fs::is_directory(path)) {
+            errorAtPrevious(fmt::format("{} is not a directory", path.string()));
+            return false;
+        }
+
+        for (const auto& entry : fs::directory_iterator{path}) {
+            if (fs::is_regular_file(entry.path()) && entry.path().extension() == ".poise") {
+                importedNamespaces.push_back(NamespaceImportParseResult{
+                    .path = entry.path(),
+                    .name = name + entry.path().stem().string(),
+                    .isStdFile = isStdFile,
+                });
+            }
+        }
+
+        return true;
+    };
+
     if (match(scanner::TokenType::Semicolon)) {
         namespaceFilePath += ".poise";
     } else {
@@ -296,25 +315,69 @@ auto Compiler::parseNamespaceImport() -> std::optional<std::vector<NamespaceImpo
             namespaceName += "::";
 
             if (match(scanner::TokenType::Star)) {
-                if (!fs::is_directory(namespaceFilePath)) {
-                    errorAtPrevious(fmt::format("{} is not a directory", namespaceFilePath.string()));
+                if (!parseWildcardImport(namespaceFilePath, namespaceName)) {
                     return {};
-                }
-
-                for (const auto& entry : fs::directory_iterator{namespaceFilePath}) {
-                    if (fs::is_regular_file(entry.path()) && entry.path().extension() == ".poise") {
-                        importedNamespaces.push_back(NamespaceImportParseResult{
-                            .path = entry.path(),
-                            .name = namespaceName + entry.path().stem().string(),
-                            .isStdFile = isStdFile,
-                        });
-                    }
                 }
 
                 EXPECT_SEMICOLON_RETURN_VALUE(std::nullopt);
                 break;
             } else if (match(scanner::TokenType::OpenBrace)) {
-                
+                while (!match(scanner::TokenType::CloseBrace)) {
+                    RETURN_VALUE_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected identifier", std::nullopt);
+
+                    auto wildcardImport = false;
+                    auto nestedName = namespaceName + m_previous->string();
+                    auto nestedPath = namespaceFilePath / m_previous->string();
+
+                    while (match(scanner::TokenType::ColonColon)) {
+                        if (match(scanner::TokenType::Identifier)) {
+                            nestedName += m_previous->string();
+                            nestedPath /= m_previous->string();
+                        } else if (match(scanner::TokenType::Star)) {
+                            if (!parseWildcardImport(nestedPath, nestedName)) {
+                                return {};
+                            }
+                            wildcardImport = true;
+                            break;
+                        } else {
+                            errorAtCurrent("Expected identifier or '*'");
+                            return {};
+                        }
+                    }
+
+                    if (!wildcardImport) {
+                        nestedPath += ".poise";
+
+                        if (match(scanner::TokenType::As)) {
+                            RETURN_VALUE_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected alias for namesapce", std::nullopt);
+                            auto alias = m_previous->string();
+                            if (m_importAliasLookup.contains(alias)) {
+                                errorAtPrevious(fmt::format("Namespace alias '{}' already used", alias));
+                                return {};
+                            }
+
+                            m_importAliasLookup.emplace(std::move(alias), nestedPath);
+                        }
+
+                        importedNamespaces.push_back(NamespaceImportParseResult{
+                            .path = std::move(nestedPath),
+                            .name = namespaceName + m_previous->string(),
+                            .isStdFile = isStdFile,
+                        });
+                    }
+
+                    if (!check(scanner::TokenType::CloseBrace) && !check(scanner::TokenType::Comma)) {
+                        errorAtCurrent("Expected ',' or '}'");
+                        return {};
+                    }
+
+                    if (check(scanner::TokenType::Comma)) {
+                        advance();
+                    }
+                }
+
+                EXPECT_SEMICOLON_RETURN_VALUE(std::nullopt);
+                break;
             } else if (match(scanner::TokenType::Identifier)) {
                 const auto text = m_previous->string();
                 namespaceName += text;
@@ -340,7 +403,7 @@ auto Compiler::parseNamespaceImport() -> std::optional<std::vector<NamespaceImpo
                         return {};
                     }
 
-                    m_importAliasLookup[std::move(alias)] = namespaceFilePath;
+                    m_importAliasLookup.emplace(std::move(alias), namespaceFilePath);
 
                     EXPECT_SEMICOLON_RETURN_VALUE(std::nullopt);
 
