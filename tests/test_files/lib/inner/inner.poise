@@ -1,0 +1,7 @@
+import ..::lib as l;
+
+export const INNER = "Inner";
+
+export func say_hello() {
+    // l::say_hello();
+}

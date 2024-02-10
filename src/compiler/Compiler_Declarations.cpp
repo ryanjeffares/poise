@@ -44,7 +44,10 @@ auto Compiler::importDeclaration() -> void
         return;
     }
 
-    RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected namespace");
+    if (!match(scanner::TokenType::Identifier) && !match(scanner::TokenType::DotDot)) {
+        errorAtCurrent("Expected namespace or '..'");
+        return;
+    }
 
     const auto namespaceParseRes = parseNamespaceImport();
     if (!namespaceParseRes) {

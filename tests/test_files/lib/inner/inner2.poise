@@ -1,0 +1,5 @@
+export const INNER2 = "Inner2";
+
+export func say_hello() {
+    println("Hello from inner2!");
+}

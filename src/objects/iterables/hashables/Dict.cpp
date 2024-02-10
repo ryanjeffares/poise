@@ -2,7 +2,7 @@
 #include "../../Exception.hpp"
 #include "../Tuple.hpp"
 
-#include <ranges>
+#include <algorithm>
 
 namespace poise::objects::iterables::hashables {
 Dict::Dict(std::span<runtime::Value> pairs)

@@ -1,5 +1,9 @@
 import std::int;
-import lib::lib as lib;
+import lib::{
+    lib as l,
+    inner::*,
+    inner::inner2 as i2,
+};
 
 func main() {
     println(81.sqrt());
@@ -7,5 +11,11 @@ func main() {
     println(2.pow(8));
     println(std::int::pow(2, 8));
 
-    lib::say_hello();
+    println(l::PI);
+    println(l::FOO);
+    println(i2::INNER2 + lib::inner::inner::INNER);
+
+    l::say_hello();
+    lib::inner::inner2::say_hello();
+    i2::say_hello();
 }

@@ -29,6 +29,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * So maybe the current system is ok? A `PoiseFunction` instance in a `Value` is basically a shared pointer, so it's not too crazy
 * Simplify data structures in `NamespaceManager`
     * Reuse the string/ID map from the string interning, have a single data structure with all the info
+* Namespace qualified calls are a little messy
 
 ## Feature Roadmap
 * ~~Pop unused expression/return results~~
@@ -55,8 +56,8 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * These are done, just need to actually implement everything else
     * ~~Disallow calling a native function outside std files~~
 * ~~Imports + Namespaces~~
-    * Wildcards
-    * Multiple imports in `{}`
+    * ~~Wildcards~~
+    * ~~Multiple imports in `{}`~~
     * Back a folder
 * ~~Namespace aliases~~
 * ~~Export functions~~
@@ -119,6 +120,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * ~~Constants~~
     * ~~Constant expressions~~
     * ~~Type checked and folded into bytecode~~
+* Crashes in compiler on EOF token
 * Pattern matching
 * Ifs as expressions
     * Do we want this, or some kind of ternary mechanism?

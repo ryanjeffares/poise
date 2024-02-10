@@ -81,4 +81,4 @@ PACK = IDENTIFIER, "..." ;
 UNPACK = "...", IDENTIFIER ;
 TYPE_ANNOTATION = TYPE, [ "[", TYPE, "]" ], [ "|", TYPE ] ;
 
-NAMESPACE = IDENTIFIER, [ { "::", IDENTIFIER } ], [ ("as", IDENTIFIER) | ("::", "*") ] ;
+NAMESPACE = (IDENTIFIER | ".."), [ { "::", (IDENTIFIER | "..") } ], [ ("as", IDENTIFIER) | ("::", "*") ] ;

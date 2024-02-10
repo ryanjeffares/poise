@@ -289,28 +289,38 @@ auto Compiler::parseNamespaceImport() -> std::optional<std::vector<NamespaceImpo
 
     std::vector<NamespaceImportParseResult> importedNamespaces;
 
-    auto parseWildcardImport = [this, &importedNamespaces, isStdFile] (const fs::path& path, const std::string& name) -> bool {
-        if (!fs::is_directory(path)) {
-            errorAtPrevious(fmt::format("{} is not a directory", path.string()));
-            return false;
-        }
-
-        for (const auto& entry : fs::directory_iterator{path}) {
-            if (fs::is_regular_file(entry.path()) && entry.path().extension() == ".poise") {
-                importedNamespaces.push_back(NamespaceImportParseResult{
-                    .path = entry.path(),
-                    .name = name + entry.path().stem().string(),
-                    .isStdFile = isStdFile,
-                });
-            }
-        }
-
-        return true;
-    };
-
     if (match(scanner::TokenType::Semicolon)) {
+        if (namespaceName.ends_with("..")) {
+            errorAtPrevious("Expected file name as last element of import");
+            return {};
+        }
+
         namespaceFilePath += ".poise";
+        importedNamespaces.push_back(NamespaceImportParseResult{
+            .path = std::move(namespaceFilePath),
+            .name = std::move(namespaceName),
+            .isStdFile = isStdFile,
+        });
     } else {
+        auto parseWildcardImport = [this, &importedNamespaces, isStdFile] (const fs::path& path, const std::string& name) -> bool {
+            if (!fs::is_directory(path)) {
+                errorAtPrevious(fmt::format("{} is not a directory", path.string()));
+                return false;
+            }
+
+            for (const auto& entry : fs::directory_iterator{path}) {
+                if (fs::is_regular_file(entry.path()) && entry.path().extension() == ".poise") {
+                    importedNamespaces.push_back(NamespaceImportParseResult{
+                        .path = entry.path(),
+                        .name = name + entry.path().stem().string(),
+                        .isStdFile = isStdFile,
+                    });
+                }
+            }
+
+            return true;
+        };
+
         while (match(scanner::TokenType::ColonColon)) {
             namespaceName += "::";
 
@@ -378,11 +388,21 @@ auto Compiler::parseNamespaceImport() -> std::optional<std::vector<NamespaceImpo
 
                 EXPECT_SEMICOLON_RETURN_VALUE(std::nullopt);
                 break;
-            } else if (match(scanner::TokenType::Identifier)) {
+            } else if (match(scanner::TokenType::Identifier) || match(scanner::TokenType::DotDot)) {
                 const auto text = m_previous->string();
                 namespaceName += text;
 
                 if (match(scanner::TokenType::Semicolon)) {
+                    if (text == "..") {
+                        errorAtPrevious("Expected file name as last element of import");
+                        return {};
+                    }
+
+                    if (text.contains("..")) {
+                        errorAtPrevious("An 'as' alias must be used for an import that contains '..'");
+                        return {};
+                    }
+
                     namespaceFilePath /= text + ".poise";
                     importedNamespaces.push_back(NamespaceImportParseResult{
                         .path = std::move(namespaceFilePath),
@@ -393,7 +413,13 @@ auto Compiler::parseNamespaceImport() -> std::optional<std::vector<NamespaceImpo
                 }
 
                 if (match(scanner::TokenType::As)) {
+                    if (text == "..") {
+                        errorAtPrevious("Expected file name as last element of import");
+                        return {};
+                    }
+
                     namespaceFilePath /= text + ".poise";
+                    auto normalisedPath = namespaceFilePath.lexically_normal();
 
                     RETURN_VALUE_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected alias for namespace", std::nullopt);
 
@@ -403,12 +429,12 @@ auto Compiler::parseNamespaceImport() -> std::optional<std::vector<NamespaceImpo
                         return {};
                     }
 
-                    m_importAliasLookup.emplace(std::move(alias), namespaceFilePath);
+                    m_importAliasLookup.emplace(std::move(alias), normalisedPath);
 
                     EXPECT_SEMICOLON_RETURN_VALUE(std::nullopt);
 
                     importedNamespaces.push_back(NamespaceImportParseResult{
-                        .path = std::move(namespaceFilePath),
+                        .path = std::move(normalisedPath),
                         .name = std::move(namespaceName),
                         .isStdFile = isStdFile,
                     });
@@ -435,6 +461,11 @@ auto Compiler::parseNamespaceQualification() -> std::optional<NamespaceQualifica
     if (m_importAliasLookup.contains(namespaceText)) {
         namespaceFilePath = m_importAliasLookup[namespaceText];
         advance(); // consume the function name
+
+        if (check(scanner::TokenType::ColonColon)) {
+            errorAtPrevious(fmt::format("Ambigious namespace qualification: '{}' is an alias", namespaceText));
+            return {};
+        }
     } else {
         if (identifier == "std") {
             if (auto stdPath = getStdPath()) {
@@ -466,7 +497,7 @@ auto Compiler::parseNamespaceQualification() -> std::optional<NamespaceQualifica
         namespaceFilePath += ".poise";
     }
 
-    const auto namespaceHash = m_vm->namespaceManager()->namespaceHash(namespaceFilePath);
+    const auto namespaceHash = m_vm->namespaceManager()->namespaceHash(namespaceFilePath.lexically_normal());
 
     return {{std::move(namespaceText), namespaceHash}};
 }
