@@ -8,56 +8,40 @@
 #include <algorithm>
 
 namespace poise::runtime {
-auto NamespaceManager::namespaceHash(const std::filesystem::path& namespacePath) const noexcept -> NamespaceHash
-{
-    return m_namespaceHasher(namespacePath);
-}
-
 auto NamespaceManager::addNamespace(const std::filesystem::path& namespacePath, std::string namespaceName, std::optional<NamespaceHash> parent) noexcept -> bool
 {
-    const auto hash = namespaceHash(namespacePath);
+    // may or may not have already compiled this file, either way we need to look it up
+    const auto [hash, inserted] = m_namespaceInfoLookup.insert(NamespaceInfo{
+        .path = namespacePath,
+        .displayName = std::move(namespaceName),
+    });
 
-    // sort out namespaces' imported namespaces first
-    // hacky....
-    // in any case, this needs to be present in the map
-    m_namespacesImportedToNamespaceLookup.try_emplace(hash, std::vector<NamespaceHash>{});
     if (parent) {
         // parent is only a nullopt if this was called from the constructor of the main file's compiler
         // so the parent file needs to have this import, but nothing imports the main file
-        m_namespacesImportedToNamespaceLookup[*parent].push_back(hash);
+        m_namespaceInfoLookup.find(*parent).importedNamespaces.push_back(hash);
     }
 
-    // then return false if we've already compiled this file
-    if (m_namespaceFunctionLookup.contains(hash)) {
-        return false;
-    }
-
-    m_namespaceFunctionLookup.emplace(hash, std::vector<Value>{});
-    m_namespaceDisplayNameMap[hash] = std::move(namespaceName);
-    m_namespaceConstantLookup.emplace(hash, std::vector<Constant>{});
-
-    return true;
+    return inserted;
 }
 
 auto NamespaceManager::namespaceDisplayName(NamespaceHash namespaceHash) const noexcept -> std::string_view
 {
-    return m_namespaceDisplayNameMap.at(namespaceHash);
+    return m_namespaceInfoLookup.find(namespaceHash).displayName;
 }
 
 auto NamespaceManager::addFunctionToNamespace(NamespaceHash namespaceHash, Value function) noexcept -> void
 {
-    POISE_ASSERT(m_namespaceFunctionLookup.contains(namespaceHash), "Namespace not found");
-    m_namespaceFunctionLookup[namespaceHash].emplace_back(std::move(function));
+    m_namespaceInfoLookup.find(namespaceHash).functions.emplace_back(std::move(function));
 }
 
 auto NamespaceManager::namespaceFunction(NamespaceHash namespaceHash, std::string_view functionName) const noexcept -> objects::Function*
 {
-    POISE_ASSERT(m_namespaceFunctionLookup.contains(namespaceHash), "Namespace not found");
+    const auto functions = namespaceFunctions(namespaceHash);
 
-    const auto& functionVec = m_namespaceFunctionLookup.at(namespaceHash);
-    if (const auto it = std::ranges::find_if(functionVec, [functionName] (const Value& value) -> bool {
+    if (const auto it = std::ranges::find_if(functions, [functionName] (const Value& value) -> bool {
         return value.object()->asFunction()->name() == functionName;
-    }); it != functionVec.end()) {
+    }); it != functions.end()) {
         return it->object()->asFunction();
     }
 
@@ -67,6 +51,7 @@ auto NamespaceManager::namespaceFunction(NamespaceHash namespaceHash, std::strin
 auto NamespaceManager::namespaceFunction(NamespaceHash namespaceHash, FunctionNameHash functionNameHash) const noexcept -> std::optional<Value>
 {
     const auto functions = namespaceFunctions(namespaceHash);
+
     if (const auto it = std::ranges::find_if(functions, [functionNameHash] (const Value& value) -> bool {
         return value.object()->asFunction()->nameHash() == functionNameHash;
     }); it != functions.end()) {
@@ -78,33 +63,36 @@ auto NamespaceManager::namespaceFunction(NamespaceHash namespaceHash, FunctionNa
 
 auto NamespaceManager::namespaceFunctions(NamespaceHash namespaceHash) const noexcept -> std::span<const Value>
 {
-    return m_namespaceFunctionLookup.at(namespaceHash);
+    return m_namespaceInfoLookup.find(namespaceHash).functions;
 }
 
 auto NamespaceManager::namespaceHasImportedNamespace(NamespaceHash parent, NamespaceHash imported) const noexcept -> bool
 {
-    POISE_ASSERT(m_namespacesImportedToNamespaceLookup.contains(parent), "Parent namespace not found");
-    const auto& namespaceVec = m_namespacesImportedToNamespaceLookup.at(parent);
+    const auto& namespaceVec = m_namespaceInfoLookup.find(parent).importedNamespaces;
     return std::ranges::find(namespaceVec, imported) != namespaceVec.end();
 }
 
 auto NamespaceManager::addConstant(NamespaceHash namespaceHash, Value value, std::string name, bool isExported) noexcept -> void
 {
-    m_namespaceConstantLookup.at(namespaceHash).emplace_back(Constant{std::move(value), std::move(name), isExported});
+    m_namespaceInfoLookup.find(namespaceHash).constants.emplace_back(NamespaceConstant{
+        std::move(value),
+        std::move(name),
+        isExported
+    });
 }
 
 auto NamespaceManager::hasConstant(NamespaceHash namespaceHash, std::string_view constantName) const noexcept -> bool
 {
-    const auto& constantList = m_namespaceConstantLookup.at(namespaceHash);
-    return std::ranges::any_of(constantList, [&constantName] (const Constant& constant) -> bool {
+    const auto& constantList = m_namespaceInfoLookup.find(namespaceHash).constants;
+    return std::ranges::any_of(constantList, [&constantName] (const NamespaceConstant& constant) -> bool {
         return constant.name == constantName;
     });
 }
 
-auto NamespaceManager::getConstant(NamespaceHash namespaceHash, std::string_view constantName) const noexcept -> std::optional<Constant>
+auto NamespaceManager::getConstant(NamespaceHash namespaceHash, std::string_view constantName) const noexcept -> std::optional<NamespaceConstant>
 {
-    const auto& constantList = m_namespaceConstantLookup.at(namespaceHash);
-    const auto it = std::ranges::find_if(constantList, [constantName] (const Constant& constant) -> bool {
+    const auto& constantList = m_namespaceInfoLookup.find(namespaceHash).constants;
+    const auto it = std::ranges::find_if(constantList, [constantName] (const NamespaceConstant& constant) -> bool {
         return constant.name == constantName;
     });
 

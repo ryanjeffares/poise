@@ -11,7 +11,7 @@ Compiler::Compiler(bool mainFile, bool stdFile, runtime::Vm* vm, std::filesystem
     , m_scanner{inFilePath}
     , m_vm{vm}
     , m_filePath{std::move(inFilePath)}
-    , m_filePathHash{m_vm->namespaceManager()->namespaceHash(m_filePath)}
+    , m_filePathHash{m_pathHasher(m_filePath)}
 {
 
 }

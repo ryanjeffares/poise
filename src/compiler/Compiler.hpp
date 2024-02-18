@@ -170,6 +170,9 @@ private:
     auto error(const scanner::Token& token, std::string_view message) -> void;
 
 private:
+    std::hash<std::string> m_stringHasher{};
+    std::hash<std::filesystem::path> m_pathHasher{};
+
     bool m_mainFile{};
     bool m_stdFile{};
     bool m_hadError{};
@@ -189,8 +192,6 @@ private:
     std::vector<LocalVariable> m_localNames;
 
     std::optional<runtime::Value> m_mainFunction{};
-
-    std::hash<std::string> m_stringHasher;
 };  // class Compiler
 }   // namespace poise::compiler
 

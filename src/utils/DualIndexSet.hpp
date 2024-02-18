@@ -41,7 +41,13 @@ public:
         m_capacity = s_initialCapacity;
     }
 
-    auto insert(ValueType value) noexcept -> usize
+    struct InsertResult
+    {
+        usize hash{};
+        bool inserted{};
+    };
+
+    auto insert(ValueType value) noexcept -> InsertResult
     {
         const auto hash = hashValue(value);
         auto index = hash % m_capacity;
@@ -56,7 +62,7 @@ public:
         while (m_data[index].occupied) {
             auto& old = m_data[index];
             if (old.hash == hash) {
-                return hash;
+                return {hash, false};
             }
 
             if (entry.distance > old.distance) {
@@ -71,7 +77,7 @@ public:
         m_size++;
         checkLoad();
 
-        return hash;
+        return {hash, true};
     }
 
     [[nodiscard]] auto remove(const ValueType& value) noexcept -> bool
@@ -103,6 +109,22 @@ public:
         }
 
         return false;
+    }
+
+    [[nodiscard]] auto find(usize hash) noexcept -> ValueType&
+    {
+        auto index = hash % m_capacity;
+
+        while (m_data[index].occupied) {
+            auto& entry = m_data[index];
+            if (entry.hash == hash) {
+                return entry.value;
+            }
+
+            index = (index + 1_uz) % m_capacity;
+        }
+
+        POISE_UNREACHABLE();
     }
 
     [[nodiscard]] auto find(usize hash) const noexcept -> const ValueType&

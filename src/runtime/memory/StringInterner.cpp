@@ -13,7 +13,7 @@ auto intialiseStringInterning() noexcept -> void
 
 auto internString(std::string string) noexcept -> usize
 {
-    return s_stringPool.insert(std::move(string));
+    return s_stringPool.insert(std::move(string)).hash;
 }
 
 auto removeInternedString(const std::string& string) noexcept -> bool

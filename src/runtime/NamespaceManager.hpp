@@ -6,12 +6,38 @@
 #define POISE_NAMESPACE_MANAGER_HPP
 
 #include "../Poise.hpp"
-
+#include "../utils/DualIndexSet.hpp"
 #include "Value.hpp"
 
 #include <span>
-#include <unordered_map>
 #include <vector>
+
+namespace poise::runtime {
+struct NamespaceConstant
+{
+    Value value;
+    std::string name;
+    bool isExported;
+};
+
+struct NamespaceInfo
+{
+    std::filesystem::path path{};
+    std::string displayName{};
+    std::vector<Value> functions{};
+    std::vector<NamespaceConstant> constants{};
+    std::vector<usize> importedNamespaces{};
+};
+}
+
+template<>
+struct std::hash<poise::runtime::NamespaceInfo>
+{
+    [[nodiscard]] auto operator()(const poise::runtime::NamespaceInfo& namespaceInfo) const -> std::size_t
+    {
+        return std::hash<std::filesystem::path>{}(namespaceInfo.path);
+    }
+};
 
 namespace poise::runtime {
 class NamespaceManager
@@ -20,21 +46,8 @@ public:
     using FunctionNameHash = usize;
     using NamespaceHash = usize;
 
-    using NamespaceDisplayNameLookup = std::unordered_map<NamespaceHash, std::string>;
-    using NamespaceFunctionLookup = std::unordered_map<NamespaceHash, std::vector<Value>>;
-    using NamespacesImportedToNamespaceLookup = std::unordered_map<NamespaceHash, std::vector<NamespaceHash>>;
-
-    struct Constant
-    {
-        Value value;
-        std::string name;
-        bool isExported;
-    };
-
-    using NamespaceConstantLookup = std::unordered_map<NamespaceHash, std::vector<Constant>>;
-
-    [[nodiscard]] auto namespaceHash(const std::filesystem::path& namespacePath) const noexcept -> NamespaceHash;
-
+    // returns wether this is a newly added namespace, or one that's already been compiled.
+    // in either case, it will add `namespacePath` to `parent`'s imported namespaces
     [[nodiscard]] auto addNamespace(const std::filesystem::path& namespacePath, std::string namespaceName, std::optional<NamespaceHash> parent) noexcept -> bool;
     [[nodiscard]] auto namespaceDisplayName(NamespaceHash namespaceHash) const noexcept -> std::string_view;
 
@@ -47,16 +60,12 @@ public:
 
     auto addConstant(NamespaceHash namespaceHash, Value value, std::string name, bool isExported) noexcept -> void;
     [[nodiscard]] auto hasConstant(NamespaceHash namespaceHash, std::string_view constantName) const noexcept -> bool;
-    [[nodiscard]] auto getConstant(NamespaceHash namespaceHash, std::string_view constantName) const noexcept -> std::optional<Constant>;
+    [[nodiscard]] auto getConstant(NamespaceHash namespaceHash, std::string_view constantName) const noexcept -> std::optional<NamespaceConstant>;
 
 private:
-    std::hash<std::filesystem::path> m_namespaceHasher;
-
-    NamespaceDisplayNameLookup m_namespaceDisplayNameMap;
-    NamespaceFunctionLookup m_namespaceFunctionLookup;
-    NamespacesImportedToNamespaceLookup m_namespacesImportedToNamespaceLookup;
-    NamespaceConstantLookup m_namespaceConstantLookup;
+    utils::DualIndexSet<NamespaceInfo> m_namespaceInfoLookup;
 };
 }   // namespace poise::runtime
 
 #endif  // #ifndef POISE_NAMESPACE_MANAGER_HPP
+

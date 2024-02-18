@@ -60,16 +60,16 @@ TEST_CASE("DualIndexSet<std::string>", "[utils]")
     REQUIRE(!set.remove("Foo"));
     REQUIRE(set.size() == 2_uz);
 
-    REQUIRE(set.insert("Foo") == std::hash<std::string>{}("Foo"));
-    REQUIRE(set.insert("Bar") == std::hash<std::string>{}("Bar"));
-    REQUIRE(set.insert("Baz") == std::hash<std::string>{}("Baz"));
-    REQUIRE(set.insert("Fizz") == std::hash<std::string>{}("Fizz"));
-    REQUIRE(set.insert("Buzz") == std::hash<std::string>{}("Buzz"));
+    REQUIRE(set.insert("Foo").hash == std::hash<std::string>{}("Foo"));
+    REQUIRE(set.insert("Bar").hash == std::hash<std::string>{}("Bar"));
+    REQUIRE(set.insert("Baz").hash == std::hash<std::string>{}("Baz"));
+    REQUIRE(set.insert("Fizz").hash == std::hash<std::string>{}("Fizz"));
+    REQUIRE(set.insert("Buzz").hash == std::hash<std::string>{}("Buzz"));
 
-    REQUIRE(set.insert("Buzz") == std::hash<std::string>{}("Buzz"));
-    REQUIRE(set.insert("Buzz") == std::hash<std::string>{}("Buzz"));
-    REQUIRE(set.insert("Buzz") == std::hash<std::string>{}("Buzz"));
-    REQUIRE(set.insert("Buzz") == std::hash<std::string>{}("Buzz"));
+    REQUIRE(set.insert("Buzz").hash == std::hash<std::string>{}("Buzz"));
+    REQUIRE(set.insert("Buzz").hash == std::hash<std::string>{}("Buzz"));
+    REQUIRE(set.insert("Buzz").hash == std::hash<std::string>{}("Buzz"));
+    REQUIRE(set.insert("Buzz").hash == std::hash<std::string>{}("Buzz"));
 
     REQUIRE(set.capacity() == 16_uz);
 }
@@ -90,8 +90,8 @@ TEST_CASE("DualIndexSet<CustomType>", "[utils]")
         .data = "Goodbye world :(",
     };
 
-    REQUIRE(set.insert(data1) == std::hash<fs::path>{}(fs::current_path()));
-    REQUIRE(set.insert(data2) == std::hash<CustomType>{}(data2));
+    REQUIRE(set.insert(data1).hash == std::hash<fs::path>{}(fs::current_path()));
+    REQUIRE(set.insert(data2).hash == std::hash<CustomType>{}(data2));
 
     set.insert(CustomType{
         .path = fs::current_path(),

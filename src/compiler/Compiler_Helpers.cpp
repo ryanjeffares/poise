@@ -497,8 +497,7 @@ auto Compiler::parseNamespaceQualification() -> std::optional<NamespaceQualifica
         namespaceFilePath += ".poise";
     }
 
-    const auto namespaceHash = m_vm->namespaceManager()->namespaceHash(namespaceFilePath.lexically_normal());
-
+    const auto namespaceHash = m_pathHasher(namespaceFilePath.lexically_normal());
     return {{std::move(namespaceText), namespaceHash}};
 }
 
