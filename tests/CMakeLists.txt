@@ -4,6 +4,7 @@ add_executable(
     Test_Memory.cpp
     Test_Objects.cpp
     Test_RunFiles.cpp
+    Test_Utils.cpp
     Test_Values.cpp
 )
 

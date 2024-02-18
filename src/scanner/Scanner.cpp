@@ -56,6 +56,7 @@ Scanner::Scanner(const std::filesystem::path& inFilePath)
         {"print", TokenType::Print},
         {"println", TokenType::PrintLn},
         {"return", TokenType::Return},
+        {"struct", TokenType::Struct},
         {"this", TokenType::This},
         {"throw", TokenType::Throw},
         {"true", TokenType::True},

@@ -19,11 +19,15 @@ auto Compiler::declaration() -> void
         varDeclaration(true);
     } else if (match(scanner::TokenType::Const)) {
         constDeclaration(false);
+    } else if (match(scanner::TokenType::Struct)) {
+        structDeclaration(false);
     } else if (match(scanner::TokenType::Export)) {
         if (match(scanner::TokenType::Func)) {
             funcDeclaration(true);
         } else if (match(scanner::TokenType::Const)) {
             constDeclaration(true);
+        } else if (match(scanner::TokenType::Struct)) {
+            structDeclaration(true);
         } else {
             errorAtCurrent("Expected function");
         }
@@ -272,6 +276,14 @@ auto Compiler::constDeclaration(bool isExported) -> void
     }
 
     EXPECT_SEMICOLON();
+}
+
+auto Compiler::structDeclaration([[maybe_unused]] bool isExported) -> void
+{
+    RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected identifier");
+
+    auto className = m_previous->string();
+
 }
 }   // namespace poise::compiler
 

@@ -238,6 +238,8 @@ auto formatter<scanner::TokenType>::format(scanner::TokenType tokenType, format_
             return formatter<string_view>::format("PrintLn", context);
         case scanner::TokenType::Return:
             return formatter<string_view>::format("Return", context);
+        case scanner::TokenType::Struct:
+            return formatter<string_view>::format("Struct", context);
         case scanner::TokenType::Throw:
             return formatter<string_view>::format("Throw", context);
         case scanner::TokenType::This:

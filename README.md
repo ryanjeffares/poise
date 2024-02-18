@@ -115,6 +115,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * ~~Investigate horrible performance with Clang with cycles.poise (n=10000)~~
     * Ah, so using `unordered_set` instead of `vector` solved this
     * But, I bet performance is better for small amounts of objects - test this, and decide which should we optimise for? Is swapping between the two depending on the load viable?
+    * Optimise the sweep frequency - perhaps update the graph constantly with allocations/deallocations?
 * ~~Binary/Hex literals~~
 * ~~Digit separators~~
 * ~~Constants~~

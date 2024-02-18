@@ -1,12 +1,14 @@
 program = { declaration } EOF ;
 
-declaration = importDecl | funcDecl | varDecl | finalDecl | constDeclaration | statement ;
+declaration = importDecl | funcDecl | varDecl | finalDecl | constDecl | structDecl | exportDecl | statement ;
 
 importDecl = "import", NAMESPACE, ";" ;
 funcDecl = "func", IDENTIFIER, "(", [ FUNCTION_ARGS ], ")", [ ":", TYPE_ANNOTATION ], BLOCK | ("=>", expression, ";") ;
 varDecl = "var", IDENTIFIER, [ ":", TYPE_ANNOTATION ], [ { ",", IDENTIFIER, [ ":", TYPE_ANNOTATION ], } ], [ "=", [ "try" ], expression ], ";" ;
 finalDecl = "final", IDENTIFIER, [ ":", TYPE_ANNOTATION ], [ { ",", IDENTIFIER, [ ":", TYPE_ANNOTATION ] } ], "=", [ "try" ], expression, ";" ;
-constDeclaratio = "const", IDENTIFIER, "=", constantExpression, ";" ;
+constDecl = "const", IDENTIFIER, "=", constantExpression, ";" ;
+structDecl = "struct", IDENTIFIER, "{", [ { MEMBER_VARIABLE } ], "}" ;
+exportDecl = "export", ( funcDecl | constDecl | classDecl ) ;
 
 statement = expressionStatement
     | printlnStatement
@@ -82,3 +84,5 @@ UNPACK = "...", IDENTIFIER ;
 TYPE_ANNOTATION = TYPE, [ "[", TYPE, "]" ], [ "|", TYPE ] ;
 
 NAMESPACE = (IDENTIFIER | ".."), [ { "::", (IDENTIFIER | "..") } ], [ ("as", IDENTIFIER) | ("::", "*") ] ;
+
+MEMBER_VARIABLE = IDENTIFIER, [ TYPE_ANNOTATION ], ";" ;

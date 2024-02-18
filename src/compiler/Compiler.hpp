@@ -103,6 +103,7 @@ private:
     auto funcDeclaration(bool isExported) -> void;
     auto varDeclaration(bool isFinal) -> void;
     auto constDeclaration(bool isExported) -> void;
+    auto structDeclaration(bool isExported) -> void;
 
     auto statement(bool consumeSemicolon) -> void;
     auto expressionStatement(bool consumeSemicolon) -> void;
