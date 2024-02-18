@@ -131,6 +131,14 @@ public:
         return m_capacity;
     }
 
+    auto dump() const noexcept -> void requires(fmt::is_formattable<ValueType>::value)
+    {
+        fmt::print("Contents of DualIndexSet:\n");
+        for (const auto& entry : m_data) {
+            fmt::print("\t{}\n", entry.value);
+        }
+    }
+
 private:
     struct Entry
     {
