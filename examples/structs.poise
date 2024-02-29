@@ -5,6 +5,6 @@ struct Vector3 {
 }
 
 func main() {
-    println(Vector3);
+    println(typeof(Vector3));
 }
 

@@ -108,9 +108,11 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * You should be able to export and import these
     * Maybe leave this until we do user defined classes, and we can come up with a nice generic way to handle it, since we'll have to work off of identifiers rather than builtin type keywords.
 * ~~Break/continue statements~~
-* Classes
+* Structs
     * Member variable access as well as extension function access
     * Need to generate `PoiseType` instances for these, and hook them into everything else...
+    * Need a class for instances
+    * What does `typeof` return for the name of a struct? `Type` surely? And then for instances...
 * ~~GC for cycles~~
     * ~~Investigate horrible performance with Clang with cycles.poise (n=10000)~~
     * Ah, so using `unordered_set` instead of `vector` solved this
