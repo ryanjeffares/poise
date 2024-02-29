@@ -1,10 +1,11 @@
-#ifndef DUAL_INDEX_MAP_HPP
-#define DUAL_INDEX_MAP_HPP
+#ifndef POISE_DUAL_INDEX_SET_HPP
+#define POISE_DUAL_INDEX_SET_HPP
 
 #include "../Poise.hpp"
 
 #include <algorithm>
 #include <functional>
+#include <iterator>
 #include <type_traits>
 #include <vector>
 
@@ -12,17 +13,18 @@ namespace poise::utils {
 template<typename T>
 concept DualIndexableEntry = requires(T value)
 {
-    { std::hash<T>{}(value) } -> std::convertible_to<usize>;
-
     std::is_nothrow_default_constructible_v<T>;
-
     std::is_nothrow_move_constructible_v<T>;
     std::is_nothrow_move_assignable_v<T>;
     std::is_nothrow_copy_constructible_v<T>;
     std::is_nothrow_copy_assignable_v<T>;
 };
 
-template<DualIndexableEntry ValueType>
+template<typename ValueType, typename Hash = std::hash<ValueType>> requires(requires(ValueType v)
+{
+    requires DualIndexableEntry<ValueType>;
+    { Hash{}(v) } -> std::convertible_to<usize>;
+})
 class DualIndexSet
 {
 public:
@@ -33,6 +35,11 @@ public:
     {
     }
     
+    DualIndexSet(const DualIndexSet&) = default;
+    DualIndexSet(DualIndexSet&&) = default;
+    DualIndexSet& operator=(const DualIndexSet&) = default;
+    DualIndexSet& operator=(DualIndexSet&&) = default;
+
     auto clear() noexcept -> void
     {
         m_data.clear();
@@ -55,7 +62,6 @@ public:
         auto entry = Entry{
             .value = std::move(value),
             .hash = hash,
-            .distance = 0_uz,
             .occupied = true,
         };
 
@@ -143,6 +149,25 @@ public:
         POISE_UNREACHABLE();
     }
 
+    [[nodiscard]] auto contains(const ValueType& value) const noexcept -> bool
+    {
+        return contains(hashValue(value));
+    }
+
+    [[nodiscard]] auto contains(usize hash) const noexcept -> bool
+    {
+        auto index = hash % m_capacity;
+        while (m_data[index].occupied) {
+            if (m_data[index].hash == hash) {
+                return true;
+            }
+
+            index = (index + 1_uz) % m_capacity;
+        }
+
+        return false;
+    }
+
     [[nodiscard]] auto size() const noexcept -> usize
     {
         return m_size;
@@ -151,6 +176,11 @@ public:
     [[nodiscard]] auto capacity() const noexcept -> usize
     {
         return m_capacity;
+    }
+
+    [[nodiscard]] auto empty() const noexcept -> bool
+    {
+        return m_size == 0_uz;
     }
 
     auto dump() const noexcept -> void requires(fmt::is_formattable<ValueType>::value)
@@ -168,6 +198,7 @@ private:
         usize hash{};
         usize distance{};
         bool occupied{};
+        Entry* next{};
     };
 
     static constexpr auto s_initialCapacity = 8_uz;
@@ -175,7 +206,7 @@ private:
 
     static auto hashValue(const ValueType& value) -> usize
     {
-        return std::hash<ValueType>{}(value);
+        return Hash{}(value);
     }
 
     auto checkLoad() noexcept -> void
@@ -225,5 +256,5 @@ private:
 }; // class DualIndexMap
 }  // namespace poise::utils
 
-#endif // #ifndef DUAL_INDEX_MAP_HPP
+#endif // #ifndef POISE_DUAL_INDEX_SET_HPP
 

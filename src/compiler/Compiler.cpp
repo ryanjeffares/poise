@@ -54,7 +54,7 @@ auto Compiler::compile() -> CompileResult
         if (m_mainFunction) {
             emitConstant(m_filePathHash);
             emitConstant(runtime::memory::internString("main"));
-            emitOp(runtime::Op::LoadFunction, 0_uz);
+            emitOp(runtime::Op::LoadFunctionOrStruct, 0_uz);
             emitConstant(0);
             emitConstant(false);
             emitConstant(false);

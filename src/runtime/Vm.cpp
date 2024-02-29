@@ -515,23 +515,49 @@ auto Vm::run() const noexcept -> RunResult
                     stack.push_back(constantList[constantIndex++]);
                     break;
                 }
-                case Op::LoadFunction: {
-                    const auto namespaceHash = constantList[constantIndex++].value<NamespaceManager::NamespaceHash>();
-                    const auto functionNameHash = constantList[constantIndex++].value<usize>();
-                    const auto& functionName = memory::findInternedString(functionNameHash);
+                case Op::LoadFunctionOrStruct: {
+                    const auto namespaceHash = constantList[constantIndex++].value<usize>();
+                    const auto typeNameHash = constantList[constantIndex++].value<usize>();
+                    const auto& typeName = memory::findInternedString(typeNameHash);
 
-                    if (auto function = m_namespaceManager.namespaceFunction(namespaceHash, functionNameHash)) {
-                        if (currentFunction != nullptr && namespaceHash != currentFunction->namespaceHash() && !function->object()->asFunction()->exported()) {
+                    if (auto function = m_namespaceManager.namespaceFunction(namespaceHash, typeNameHash)) {
+                        if (currentFunction != nullptr
+                            && namespaceHash != currentFunction->namespaceHash()
+                            && !function->object()->asFunction()->exported()) {
                             throw Exception{
-                                Exception::ExceptionType::FunctionNotExported,
-                                fmt::format("Function '{}' in namespace '{}' is not exported", functionName, m_namespaceManager.namespaceDisplayName(namespaceHash))
+                                Exception::ExceptionType::TypeNotExported,
+                                fmt::format(
+                                    "Function '{}' in namespace '{}' is not exported",
+                                    typeName,
+                                    m_namespaceManager.namespaceDisplayName(namespaceHash)
+                                )
                             };
                         }
+
                         stack.push_back(std::move(*function));
+                    } else if (auto structure = m_namespaceManager.namespaceStruct(namespaceHash, typeNameHash)) {
+                        if (currentFunction != nullptr
+                            && namespaceHash != currentFunction->namespaceHash()
+                            && !structure->object()->asStruct()->exported()) {
+                            throw Exception{
+                                Exception::ExceptionType::TypeNotExported,
+                                fmt::format(
+                                    "Struct '{}' in namespace '{}' is not exported",
+                                    typeName,
+                                    m_namespaceManager.namespaceDisplayName(namespaceHash)
+                                )
+                            };
+                        }
+
+                        stack.push_back(std::move(*structure));
                     } else {
                         throw Exception{
-                            Exception::ExceptionType::FunctionNotFound,
-                            fmt::format("Function '{}' not found in namespace '{}'", functionName, m_namespaceManager.namespaceDisplayName(namespaceHash))
+                            Exception::ExceptionType::TypeNotFound,
+                            fmt::format(
+                                "Type '{}' not found in namespace '{}'",
+                                typeName,
+                                m_namespaceManager.namespaceDisplayName(namespaceHash)
+                            )
                         };
                     }
 
@@ -557,7 +583,7 @@ auto Vm::run() const noexcept -> RunResult
                         if (const auto p = function->object()->asFunction(); currentFunction->namespaceHash() != p->namespaceHash()) {
                             if (!m_namespaceManager.namespaceHasImportedNamespace(currentFunction->namespaceHash(), p->namespaceHash())) {
                                 throw Exception{
-                                    Exception::ExceptionType::FunctionNotFound,
+                                    Exception::ExceptionType::TypeNotFound,
                                     fmt::format("Extension function '{}' not found for type '{}' - are you missing an import?", p->name(), type->typeName())
                                 };
                             }
@@ -568,7 +594,7 @@ auto Vm::run() const noexcept -> RunResult
                         }
                     } else {
                         throw Exception{
-                            Exception::ExceptionType::FunctionNotFound,
+                            Exception::ExceptionType::TypeNotFound,
                             fmt::format("Function '{}' not defined for type '{}'", memberName, type->typeName())
                         };
                     }

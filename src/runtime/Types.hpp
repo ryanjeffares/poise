@@ -15,7 +15,7 @@ enum class Type
     // keep in alphabetical order - except anything that can't be constructed with a call
     // to its type ident should always be last (Type, Iterator, Pack)
     // so that we match this to the TokenType
-    Bool, Float, Int, None, String, Dict, Exception, Function, List, Range, Set, Tuple, Type, Iterator,
+    Bool, Float, Int, None, String, Dict, Exception, Function, List, Range, Set, Tuple, Type, Iterator, Struct,
 };
 } // namespace poise::runtime::types
 

@@ -396,7 +396,7 @@ auto Compiler::identifier(bool canAssign) -> void
             // resolve this at runtime
             emitConstant(m_filePathHash);
             emitConstant(runtime::memory::internString(std::move(identifier)));
-            emitOp(runtime::Op::LoadFunction, m_previous->line());
+            emitOp(runtime::Op::LoadFunctionOrStruct, m_previous->line());
         }
     }
 }
@@ -465,7 +465,7 @@ auto Compiler::namespaceQualifiedCall() -> void
     } else {
         emitConstant(namespaceHash);
         emitConstant(runtime::memory::internString(m_previous->string()));
-        emitOp(runtime::Op::LoadFunction, m_previous->line());
+        emitOp(runtime::Op::LoadFunctionOrStruct, m_previous->line());
 
         if (match(scanner::TokenType::OpenParen)) {
             if (const auto args = parseCallArgs(scanner::TokenType::CloseParen)) {

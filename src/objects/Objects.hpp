@@ -5,6 +5,7 @@
 
 #include "Exception.hpp"
 #include "Function.hpp"
+#include "Struct.hpp"
 #include "Type.hpp"
 
 #endif  // ifndef POISE_OBJECTS_HPP

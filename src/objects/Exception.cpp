@@ -83,9 +83,9 @@ auto fmt::formatter<Exception::ExceptionType>::format(Exception::ExceptionType e
             return formatter<string_view>::format("AmbiguousCallException", context);
         case Exception::ExceptionType::Exception:
             return formatter<string_view>::format("Exception", context);
-        case Exception::ExceptionType::FunctionNotExported:
+        case Exception::ExceptionType::TypeNotExported:
             return formatter<string_view>::format("FunctionNotExportedException", context);
-        case Exception::ExceptionType::FunctionNotFound:
+        case Exception::ExceptionType::TypeNotFound:
             return formatter<string_view>::format("FunctionNotFoundException", context);
         case Exception::ExceptionType::IncorrectArgCount:
             return formatter<string_view>::format("IncorrectArgCountException", context);

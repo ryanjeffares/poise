@@ -3,11 +3,9 @@
 #include <fmt/core.h>
 #include <fmt/format.h>
 
-#include <algorithm>
 #ifdef POISE_DEBUG
 #include <chrono>
 #endif
-#include <vector>
 
 namespace poise::runtime::memory {
 namespace ranges = std::ranges;
@@ -50,13 +48,6 @@ auto Gc::stopTrackingObject(Object* object) noexcept -> void
 
 auto Gc::markRoot(Object* root) noexcept -> void
 {
-/*#ifdef __cpp_lib_ranges_contains
-    if (!ranges::contains(m_roots, root)) {
-#else
-    if (std::find(m_roots.begin(), m_roots.end(), root) == m_roots.end()) {
-#endif
-        m_roots.push_back(root);
-    }*/
     m_roots.insert(root);
 }
 

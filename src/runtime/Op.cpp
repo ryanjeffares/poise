@@ -23,7 +23,7 @@ auto fmt::formatter<Op>::format(Op op, format_context& context) const -> decltyp
             return formatter<string_view>::format("LoadCapture", context);
         case Op::LoadConstant:
             return formatter<string_view>::format("LoadConstant", context);
-        case Op::LoadFunction:
+        case Op::LoadFunctionOrStruct:
             return formatter<string_view>::format("LoadFunction", context);
         case Op::LoadLocal:
             return formatter<string_view>::format("LoadLocal", context);

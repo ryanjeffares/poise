@@ -1,16 +1,19 @@
-add_library(poise-objects
-        iterables/hashables/Dict.cpp
-        iterables/hashables/Hashable.cpp
-        iterables/hashables/Set.cpp
-        iterables/Iterable.cpp
-        iterables/Iterator.cpp
-        iterables/List.cpp
-        iterables/Range.cpp
-        iterables/Tuple.cpp
-        Exception.cpp
-        Function.cpp
-        Object.cpp
-        Type.cpp
+add_library(
+    poise-objects
+
+    Exception.cpp
+    Function.cpp
+    iterables/hashables/Dict.cpp
+    iterables/hashables/Hashable.cpp
+    iterables/hashables/Set.cpp
+    iterables/Iterable.cpp
+    iterables/Iterator.cpp
+    iterables/List.cpp
+    iterables/Range.cpp
+    iterables/Tuple.cpp
+    Object.cpp
+    Struct.cpp
+    Type.cpp
 )
 
 target_compile_definitions(poise-objects PRIVATE ${POISE_COMPILE_DEFINITIONS})

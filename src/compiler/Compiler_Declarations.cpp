@@ -4,6 +4,7 @@
 
 #include "Compiler.hpp"
 #include "Compiler_Macros.hpp"
+#include "../objects/Struct.hpp"
 #include "../objects/Type.hpp"
 
 namespace poise::compiler {
@@ -85,10 +86,10 @@ auto Compiler::funcDeclaration(bool isExported) -> void
     m_contextStack.push_back(Context::Function);
 
     RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected function name");
+
     auto functionName = m_previous->string();
 
-    if (m_vm->namespaceManager()->namespaceFunction(m_filePathHash, functionName) != nullptr) {
-        errorAtPrevious("Function with the same name already defined in this scope");
+    if (!checkNameCollisions(functionName)) {
         return;
     }
 
@@ -111,7 +112,15 @@ auto Compiler::funcDeclaration(bool isExported) -> void
 
     const auto isMainFunction = m_mainFile && functionName == "main";
 
-    auto function = runtime::Value::createObjectUntracked<objects::Function>(std::move(functionName), m_filePath.string(), m_filePathHash, numParams, isExported || isMainFunction, hasVariadicParams);
+    auto function = runtime::Value::createObjectUntracked<objects::Function>(
+        std::move(functionName),
+        m_filePath.string(),
+        m_filePathHash,
+        numParams,
+        isExported || isMainFunction,
+        hasVariadicParams
+    );
+
     auto functionPtr = function.object()->asFunction();
     m_vm->setCurrentFunction(functionPtr);
 
@@ -260,8 +269,8 @@ auto Compiler::constDeclaration(bool isExported) -> void
     RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected identifier");
 
     auto constantName = m_previous->string();
-    if (m_vm->namespaceManager()->hasConstant(m_filePathHash, constantName)) {
-        errorAtPrevious("Constant with the same name already declared");
+
+    if (!checkNameCollisions(constantName)) {
         return;
     }
 
@@ -278,12 +287,58 @@ auto Compiler::constDeclaration(bool isExported) -> void
     EXPECT_SEMICOLON();
 }
 
-auto Compiler::structDeclaration([[maybe_unused]] bool isExported) -> void
+auto Compiler::structDeclaration(bool isExported) -> void
 {
     RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected identifier");
 
-    auto className = m_previous->string();
+    auto namespaceManager = m_vm->namespaceManager();
+    auto structName = m_previous->string();
 
+    if (!checkNameCollisions(structName)) {
+        return;
+    }
+
+    RETURN_IF_NO_MATCH(scanner::TokenType::OpenBrace, "Expected '{'");
+
+    std::vector<objects::Struct::MemberVariable> memberVariables;
+
+    while (!match(scanner::TokenType::CloseBrace)) {
+        RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected member variable");
+        auto memberName = m_previous->string();
+        const auto memberNameHash = m_stringHasher(memberName);
+
+        if (match(scanner::TokenType::Colon)) {
+            parseTypeAnnotation();
+        }
+
+        if (match(scanner::TokenType::Equal)) {
+            if (auto value = constantExpression()) {
+                memberVariables.emplace_back(objects::Struct::MemberVariable{
+                    .name = std::move(memberName),
+                    .nameHash = memberNameHash,
+                    .value = std::move(*value),
+                });
+            } else {
+                return;
+            }
+        } else {
+            memberVariables.emplace_back(objects::Struct::MemberVariable{
+                .name = std::move(memberName),
+                .nameHash = memberNameHash
+            });
+        }
+
+        EXPECT_SEMICOLON();
+    }
+
+    namespaceManager->addStructToNamespace(
+        m_filePathHash,
+        runtime::Value::createObjectUntracked<objects::Struct>(
+            std::move(structName),
+            isExported,
+            std::move(memberVariables)
+        )
+    );
 }
 }   // namespace poise::compiler
 

@@ -43,6 +43,8 @@ TEST_CASE("DualIndexSet<int>", "[utils]")
     REQUIRE(set.remove(10));
     REQUIRE(!set.remove(100));
     REQUIRE(set.size() == 49_uz);
+    REQUIRE(set.contains(20));
+    REQUIRE(!set.contains(200));
 }
 
 TEST_CASE("DualIndexSet<std::string>", "[utils]")
@@ -72,6 +74,8 @@ TEST_CASE("DualIndexSet<std::string>", "[utils]")
     REQUIRE(set.insert("Buzz").hash == std::hash<std::string>{}("Buzz"));
 
     REQUIRE(set.capacity() == 16_uz);
+    REQUIRE(set.contains("Buzz"));
+    REQUIRE(!set.contains("Bazz"));
 }
 
 TEST_CASE("DualIndexSet<CustomType>", "[utils]")
@@ -99,6 +103,11 @@ TEST_CASE("DualIndexSet<CustomType>", "[utils]")
     });
 
     REQUIRE(set.size() == 2_uz);
+    REQUIRE(set.contains(data1));
+    REQUIRE(set.remove(data2));
+    REQUIRE(!set.contains(data2));
+    REQUIRE(set.remove(std::hash<fs::path>{}(fs::current_path())));
+    REQUIRE(set.empty());
 }
 } // namespace poise::tests
 

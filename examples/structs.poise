@@ -1,0 +1,10 @@
+struct Vector3 {
+    x = 0;
+    y = 0;
+    z = 0;
+}
+
+func main() {
+    println(Vector3);
+}
+

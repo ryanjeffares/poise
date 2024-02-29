@@ -36,6 +36,11 @@ auto Object::asHashable() noexcept -> iterables::hashables::Hashable*
     return nullptr;
 }
 
+auto Object::asStruct() noexcept -> Struct*
+{
+    return nullptr;
+}
+
 auto Object::asDictionary() noexcept -> iterables::hashables::Dict*
 {
     return nullptr;

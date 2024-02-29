@@ -91,6 +91,7 @@ private:
         usize namespaceHash;
     };
 
+    [[nodiscard]] auto checkNameCollisions(std::string_view structConstFuncName) -> bool;
     [[nodiscard]] auto parseCallArgs(scanner::TokenType sentinel) -> std::optional<CallArgsParseResult>;
     [[nodiscard]] auto parseFunctionParams(bool isLambda) -> std::optional<FunctionParamsParseResult>;
     [[nodiscard]] auto parseNamespaceImport() -> std::optional<std::vector<NamespaceImportParseResult>>;
@@ -183,7 +184,7 @@ private:
     scanner::Scanner m_scanner;
     runtime::Vm* m_vm;
     std::filesystem::path m_filePath;
-    runtime::NamespaceManager::NamespaceHash m_filePathHash;
+    usize m_filePathHash;
     std::optional<scanner::Token> m_previous, m_current;
     std::vector<Context> m_contextStack;
 

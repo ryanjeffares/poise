@@ -131,6 +131,29 @@ auto Compiler::lastOpWasAssignment() const noexcept -> bool
     return checkLastOp(runtime::Op::AssignLocal) || checkLastOp(runtime::Op::AssignIndex);
 }
 
+auto Compiler::checkNameCollisions(std::string_view structConstFuncName) -> bool
+{
+    const auto namespaceManager = m_vm->namespaceManager();
+    const auto nameHash = std::hash<std::string_view>{}(structConstFuncName);
+
+    if (namespaceManager->namespaceStruct(m_filePathHash, nameHash)) {
+        errorAtPrevious("Struct with the same name already declared in this namespace");
+        return false;
+    }
+
+    if (namespaceManager->namespaceFunction(m_filePathHash, nameHash)) {
+        errorAtPrevious("Function with the same name already declared in this namespace");
+        return false;
+    }
+
+    if (namespaceManager->hasConstant(m_filePathHash, structConstFuncName)) {
+        errorAtPrevious("Constant with the same name already declared in this namespace");
+        return false;
+    }
+
+    return true;
+}
+
 auto Compiler::parseCallArgs(scanner::TokenType sentinel) -> std::optional<CallArgsParseResult>
 {
     auto numArgs = 0_u8;

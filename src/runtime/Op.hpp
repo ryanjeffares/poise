@@ -18,7 +18,7 @@ enum class Op : u8
     ExitTry,    // gracefully!
     LoadCapture,
     LoadConstant,
-    LoadFunction,
+    LoadFunctionOrStruct,
     LoadLocal,
     LoadMember,
     LoadType,

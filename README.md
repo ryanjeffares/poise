@@ -137,6 +137,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * CL arg parsing
 * Standard Library
     * Precompile as bytecode files
+* Finish iterators for DualIndexSet
 
 ## Iterable Inheritance Diagram
 ```

@@ -85,4 +85,4 @@ TYPE_ANNOTATION = TYPE, [ "[", TYPE, "]" ], [ "|", TYPE ] ;
 
 NAMESPACE = (IDENTIFIER | ".."), [ { "::", (IDENTIFIER | "..") } ], [ ("as", IDENTIFIER) | ("::", "*") ] ;
 
-MEMBER_VARIABLE = IDENTIFIER, [ TYPE_ANNOTATION ], ";" ;
+MEMBER_VARIABLE = IDENTIFIER, [ TYPE_ANNOTATION ], [ "=", constantExpression ], ";" ;
