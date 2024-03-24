@@ -458,20 +458,36 @@ auto Value::operator/(const Value& other) const -> Value
     switch (typeInternal()) {
         case TypeInternal::Float: {
             switch (other.typeInternal()) {
-                case TypeInternal::Float:
+                case TypeInternal::Float: {
+                    if (other.value<f64>() == 0.0) {
+                        throw Exception(Exception::ExceptionType::DivisionByZero);
+                    }
                     return value<f64>() / other.value<f64>();
-                case TypeInternal::Int:
+                }
+                case TypeInternal::Int: {
+                    if (other.value<i64>() == 0_i64) {
+                        throw Exception(Exception::ExceptionType::DivisionByZero);
+                    }
                     return value<f64>() / static_cast<f64>(other.value<i64>());
+                }
                 default:
                     throw Exception(Exception::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for /: '{}' and '{}'", type(), other.type()));
             }
         }
         case TypeInternal::Int: {
             switch (other.typeInternal()) {
-                case TypeInternal::Float:
+                case TypeInternal::Float: {
+                    if (other.value<f64>() == 0.0) {
+                        throw Exception(Exception::ExceptionType::DivisionByZero);
+                    }
                     return static_cast<f64>(value<i64>()) / other.value<f64>();
-                case TypeInternal::Int:
+                }
+                case TypeInternal::Int: {
+                    if (other.value<i64>() == 0_i64) {
+                        throw Exception(Exception::ExceptionType::DivisionByZero);
+                    }
                     return value<i64>() / other.value<i64>();
+                }
                 default:
                     throw Exception(Exception::ExceptionType::InvalidOperand, fmt::format("Invalid operand types for /: '{}' and '{}'", type(), other.type()));
             }

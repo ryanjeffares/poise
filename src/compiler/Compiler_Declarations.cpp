@@ -208,8 +208,6 @@ auto Compiler::varDeclaration(bool isFinal) -> void
         return true;
     };
 
-    const auto numDeclarationsBefore = m_localNames.size();
-
     if (!verifyVarName(m_previous->text())) {
         return;
     }
@@ -221,6 +219,8 @@ auto Compiler::varDeclaration(bool isFinal) -> void
         parseTypeAnnotation();
     }
 
+    auto numDeclarations = 1_uz;
+
     while (match(scanner::TokenType::Comma)) {
         RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected identifier");
 
@@ -229,25 +229,60 @@ auto Compiler::varDeclaration(bool isFinal) -> void
         }
 
         m_localNames.push_back({m_previous->string(), isFinal});
+        numDeclarations++;
     }
 
-    const auto numDeclarations = m_localNames.size() - numDeclarationsBefore;
+    const auto function = m_vm->currentFunction();
 
+    // need to allow `try ...<collection>` with 0 or more other expressions
     if (match(scanner::TokenType::Equal)) {
-        if (match(scanner::TokenType::DotDotDot)) {
-            unpack();
-            emitConstant(numDeclarations);
-            emitOp(runtime::Op::DeclareMultipleLocals, m_previous->line());
-        } else {
-            for (auto i = 0_uz; i < numDeclarations; i++) {
-                expression(false, false);
-                emitOp(runtime::Op::DeclareLocal, m_previous->line());
+        auto hadUnpack = false;
+        auto numExpressions = 0_uz;
 
-                if (i < numDeclarations - 1_uz && !match(scanner::TokenType::Comma)) {
-                    errorAtCurrent("Expected ','");
-                }
+        do {
+            if (hadUnpack) {
+                errorAtCurrent(
+                    "Unpacking can only appear as the final expression in multiple variable declarations"
+                );
+                return;
+            }
+
+            if (check(scanner::TokenType::Try)) {
+                // exceptions get a bit weird if you can try unpacking in chained expressions, so don't allow it for now
+                expression(false, false);
+            } else {
+                expression(false, true);
+            }
+
+            numExpressions++;
+
+            const auto ops = function->opList();
+            if (ops.back().op == runtime::Op::Unpack
+                || (ops.size() > 1_uz && ops.back().op == runtime::Op::ExitTry && ops[ops.size() - 2_uz].op == runtime::Op::Unpack)) {
+                hadUnpack = true;
+            }
+        } while (match(scanner::TokenType::Comma));
+
+        EXPECT_SEMICOLON();
+
+        if (!hadUnpack) {
+            if (numExpressions != numDeclarations) {
+                errorAtPrevious(
+                    fmt::format(
+                        "Expected {} expressions for {} declarations but got {}",
+                        numDeclarations,
+                        numDeclarations,
+                        numExpressions
+                    )
+                );
+                return;
             }
         }
+
+        emitConstant(hadUnpack);
+        emitConstant(numDeclarations);
+        emitConstant(numExpressions);
+        emitOp(runtime::Op::DeclareLocalsWithUnpack, m_previous->line());
     } else {
         if (isFinal) {
             errorAtCurrent("Expected assignment after 'final'");
@@ -259,9 +294,9 @@ auto Compiler::varDeclaration(bool isFinal) -> void
             emitOp(runtime::Op::LoadConstant, m_previous->line());
             emitOp(runtime::Op::DeclareLocal, m_previous->line());
         }
-    }
 
-    EXPECT_SEMICOLON();
+        EXPECT_SEMICOLON();
+    }
 }
 
 auto Compiler::constDeclaration(bool isExported) -> void

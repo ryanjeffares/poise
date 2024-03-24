@@ -8,7 +8,7 @@ arg_parser.add_argument('-c', '--config')
 arg_parser.add_argument('-bp', '--boost_path')
 arg_parser.add_argument('-g', '--generator')
 arg_parser.add_argument('-j', '--jobs', action='store_true')
-arg_parser.add_argument('-is', '--intern_strings', action='store_true')
+arg_parser.add_argument('-nsi', '--no-string-interning', action='store_true')
 
 if __name__ == '__main__':
     if not os.path.isdir('build'):
@@ -19,7 +19,7 @@ if __name__ == '__main__':
     config = args.config
     boost_path = args.boost_path
     generator = args.generator
-    intern_strings = args.intern_strings
+    no_string_interning = args.no_string_interning
 
     if config:
         if config not in ['Debug', 'Release']:
@@ -36,16 +36,16 @@ if __name__ == '__main__':
     if boost_path:
         command += f' -DPOISE_BOOST_PATH={boost_path}'
 
-    if intern_strings:
-        command += ' -DPOISE_INTERN_STRINGS=ON'
-    else:
+    if no_string_interning:
         command += ' -DPOISE_INTERN_STRINGS=OFF'
+    else:
+        command += ' -DPOISE_INTERN_STRINGS=ON'
 
     ret_code = os.system(command)
 
     if ret_code == 0:
         if args.jobs:
-            ret_code = os.system(f'cmake --build build --config {config} -- -j')
+            ret_code = os.system(f'cmake --build build --config {config} -- -j 0')
         else:
             ret_code = os.system(f'cmake --build build --config {config}')
 

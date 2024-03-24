@@ -469,21 +469,37 @@ auto Vm::run() const noexcept -> RunResult
                     localVariables.emplace_back(std::move(value));
                     break;
                 }
-                case Op::DeclareMultipleLocals: {
+                case Op::DeclareLocalsWithUnpack: {
+                    const auto hadUnpack = constantList[constantIndex++].value<bool>();
                     const auto numDeclarations = constantList[constantIndex++].value<usize>();
-                    const auto numUnpacked = pop().value<usize>();
+                    const auto numExpressions = constantList[constantIndex++].value<usize>();
 
-                    if (numDeclarations != numUnpacked) {
-                        throw Exception(
-                            Exception::ExceptionType::IncorrectArgCount,
-                            fmt::format("Expected {} values to assign but unpacked {}", numDeclarations, numUnpacked)
-                        );
+                    if (hadUnpack) {
+                        // there was an unpack and 0 or more regular expressions
+                        const auto numUnpacked = pop().value<usize>();
+                        const auto numValues = numUnpacked + numExpressions - 1_uz;
+                        if (numValues != numDeclarations) {
+                            throw Exception(
+                                Exception::ExceptionType::IncorrectArgCount,
+                                fmt::format(
+                                    "Expected {} values to assign but got {}",
+                                    numDeclarations,
+                                    numUnpacked + numExpressions - 1_uz
+                                )
+                            );
+                        }
+
+                        auto values = popCallArgs(numValues);
+                        for (auto& value : values) {
+                            localVariables.emplace_back(std::move(value));
+                        }
+                    } else {
+                        auto values = popCallArgs(numExpressions);
+                        for (auto& value : values) {
+                            localVariables.emplace_back(std::move(value));
+                        }
                     }
 
-                    auto unpacked = popCallArgs(numUnpacked);
-                    for (auto i = 0_uz; i < unpacked.size(); i++) {
-                        localVariables.emplace_back(std::move(unpacked[i]));
-                    }
                     break;
                 }
                 case Op::EnterTry: {

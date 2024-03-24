@@ -13,7 +13,7 @@ enum class Op : u8
     CaptureLocal,
     ConstructBuiltin,
     DeclareLocal,
-    DeclareMultipleLocals,
+    DeclareLocalsWithUnpack,
     EnterTry,
     ExitTry,    // gracefully!
     LoadCapture,

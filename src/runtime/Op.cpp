@@ -13,8 +13,8 @@ auto fmt::formatter<Op>::format(Op op, format_context& context) const -> decltyp
             return formatter<string_view>::format("ConstructBuiltin", context);
         case Op::DeclareLocal:
             return formatter<string_view>::format("DeclareLocal", context);
-        case Op::DeclareMultipleLocals:
-            return formatter<string_view>::format("DeclareMultipleLocals", context);
+        case Op::DeclareLocalsWithUnpack:
+            return formatter<string_view>::format("DeclareLocalsWithUnpack", context);
         case Op::EnterTry:
             return formatter<string_view>::format("EnterTry", context);
         case Op::ExitTry:

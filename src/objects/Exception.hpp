@@ -17,6 +17,7 @@ public:
     {
         AmbiguousCall,
         ArgumentOutOfRange,
+        DivisionByZero,
         Exception,
         TypeNotExported,
         TypeNotFound,

@@ -8,12 +8,12 @@ func main() {
     var range = 0..3;
     foo(...range);
 
-    var a, b, c = ...range;
+    var a, b, c = 0, 0, 0;
     println(a);
     println(b);
     println(c);
 
-    var ryan, syl, hays = ...["Ryan", "Syl", "Hays"];
+    final ryan, syl, hays = "Ryan", ...["Syl", "Hays"];
     println(ryan);
     println(syl);
     println(hays);
