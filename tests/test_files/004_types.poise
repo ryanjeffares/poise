@@ -5,20 +5,20 @@ func foo(): None => println("Hello from foo()");
 func main() {
     var t_int = Int;
     println(t_int);
-    println(Int(4));
+    assert(Int(4) == 4);
 
     println(String("Hello!"));
     final five = String(Int("5"));
-    println(five);
-    println(five[0]);
-    println(Int(five));
-    println(Float("3.14"));
+    assert(five == "5");
+    assert(five[0] == "5");
+    assert(Int(five) == 5);
+    assert(Float("3.14") == 3.14);
 
-    println(t_int(69));
+    assert(t_int(69) == 69);
 
     var f = Float();
-    println(return_type(none)());
-    println(return_type(f)(3.14));
+    assert(return_type(none)() == none);
+    assert(return_type(f)(3.14) == 3.14);
 
     var t = typeof(foo);
     t(foo)();

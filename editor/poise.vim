@@ -2,7 +2,7 @@ if exists('b:current_syntax')
   finish
 endif
 
-syn keyword poiseBuiltinFunctions println print eprintln eprint typeof skipwhite
+syn keyword poiseBuiltinFunctions println print eprintln eprint typeof assert skipwhite
 syn keyword poiseBooleans true false skipwhite
 syn keyword poiseConditionals and or skipwhite
 syn keyword poiseKeywords return struct func var final const import export if else while for in by as this none throw try catch break continue skipwhite

@@ -20,12 +20,12 @@ func say_hello(final country: String) {
     } else if country == "Germany" {
         println("Hallo!");
     } else {
-        println("Fuck off");
+        println("Don't speak your language :(");
     }
 }
 
 func main() {
-    println(fib(20));
+    assert(fib(20) == 6765);
 
     say_hello("France");
     say_hello("Ireland");

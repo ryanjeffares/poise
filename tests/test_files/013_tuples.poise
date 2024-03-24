@@ -2,19 +2,18 @@ import std::iterables;
 
 func main() {
     var tuple = (0, 1, 2);
-    println(typeof(tuple));
-    println(tuple);
+    assert(typeof(tuple) == Tuple);
+    assert(tuple.size() == 3);
 
     tuple = (...tuple);
-    println(tuple);
+    assert(tuple.size() == 3);
 
     final names = ["Ryan", "Syl", "Hays"];
-    println((...names));
-    println([...tuple]);
-    println(tuple.size());
+    assert((...names).size() == 3);
+    assert([...tuple].size() == 3);
 
     tuple = (Tuple("Hello", false, [], ...names));
-    println(tuple);
+    assert(tuple.size() == 6);
     for t in tuple {
         println(t);
         println(typeof(t));

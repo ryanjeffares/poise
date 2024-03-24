@@ -3,10 +3,9 @@ func main() {
     var b: String = "Hello";
     final c: Bool = true;
 
-    println(a);
-    println(b);
-    println(c);
-    println(b * a);
-    println((b * a) or c);
-    // final d;
+    assert(a == 2);
+    assert(b == "Hello");
+    assert(c);
+    assert(b * a == "HelloHello");
+    assert((b * a) or c);
 }

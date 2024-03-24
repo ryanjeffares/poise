@@ -7,11 +7,11 @@ func bar(final s: String, multiplier: Int): String => s * multiplier;
 func main() {
     final foo: Function = make_foo();
     final res: Int = foo(4, 3);
-    println(res);
+    assert(res == 7);
 
     println(make_foo()(3, 2));
 
     make_foo();
 
-    println(bar("Hello", 10));
+    assert(bar("Hello", 10) == "HelloHelloHelloHelloHelloHelloHelloHelloHelloHello");
 }

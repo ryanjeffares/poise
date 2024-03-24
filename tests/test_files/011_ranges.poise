@@ -1,4 +1,6 @@
+import std::iterables;
 import std::range;
+
 func main() {
     final min: Int = -10;
     final max: Int = 10;
@@ -34,12 +36,12 @@ func main() {
         println(e);
     }
 
-    println(range.is_infinite_loop());
-    println(range.start());
-    println(range.end());
-    println(range.increment());
-    println(range.contains(4));
-    println(List(range));
+    assert(!range.is_infinite_loop());
+    assert(range.start() == -10);
+    assert(range.end() == 20);
+    assert(range.increment() == 2);
+    assert(range.contains(4));
+    assert(List(range).size() == 15);
 
     for i in 0..100_000 {
     }

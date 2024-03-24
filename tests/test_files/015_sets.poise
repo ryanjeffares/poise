@@ -4,16 +4,16 @@ import std::set;
 func main() {
     final set = Set("Ryan", 42, none, true, 3.14, "Ryan");
     println(set);
-    println(set.size());
+    assert(set.size() == 5);
 
     final numbers = [0, 1, 2, 3, 4, 5, 6];
-    set.insert(numbers);
-    set.insert({("Ryan", 24), ("Puffle", 12)});
+    assert(set.insert(numbers));
+    assert(set.insert({("Ryan", 24), ("Puffle", 12)}));
 
     println(set);
-    println(set.contains("Ryan"));
-    println(set.contains("Something"));
-    println(set.contains(numbers));
+    assert(set.contains("Ryan"));
+    assert(!set.contains("Something"));
+    assert(set.contains(numbers));
 
     for item in set {
         println("Item: " + item);
@@ -21,28 +21,28 @@ func main() {
 
     final a = Set(0, 1, 2);
     final b = Set(0, 1, 2, 3, 4, 5);
-    println(a);
-    println(b);
+    assert(a.size() == 3);
+    assert(b.size() == 6);
 
-    println(a.is_subset(b));
-    println(a <= b);
-    println(b.is_superset(a));
-    println(b >= a);
+    assert(a.is_subset(b));
+    assert(a <= b);
+    assert(b.is_superset(a));
+    assert(b >= a);
 
-    println(a.union(b));
-    println(a | b);
-    println(a.intersection(b));
-    println(a & b);
-    println(b.difference(a));
-    println(b - a);
+    assert(a.union(b).size() == 6);
+    assert((a | b).size() == 6);
+    assert(a.intersection(b).size() == 3);
+    assert((a & b).size() == 3);
+    assert(b.difference(a).size() == 3);
+    assert((b - a).size() == 3);
 
     a.insert(-1);
     a.insert(-2);
     a.insert(-3);
 
-    println(a.symmetric_difference(b));
-    println(a ^ b);
+    assert(a.symmetric_difference(b).size() == 6);
+    assert((a ^ b).size() == 6);
 
-    println(a.remove(-1));
-    println(a.remove("Foo"));
+    assert(a.remove(-1));
+    assert(!a.remove("Foo"));
 }

@@ -16,9 +16,9 @@ func main() {
     }
 
     var a = try 2 * 10;
-    println(a);
+    assert(a == 20);
     a = try throw_exception();
-    println(a);
+    assert(typeof(a) == Exception);
 }
 
 func foo() => bar();

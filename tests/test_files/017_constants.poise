@@ -1,11 +1,10 @@
 import lib::lib as l;
 
 func main() {
-    println(lib::lib::PI);
-    println(l::FOO);
-    println(l::FOO == "Foo");
+    assert(lib::lib::PI == 3.14);
+    assert(l::FOO == "Foo");
 
     final error = try l::BAR;
-    println(error);
+    assert(typeof(error) == Exception);
 }
 

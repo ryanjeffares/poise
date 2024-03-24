@@ -10,7 +10,7 @@ func main() {
         ("Snake", 8),
     };
 
-    println(dict);
+    assert(dict.size() == 3);
 
     final names: List[String] = ["Ryan", "Syl", "Hays"];
     names.append(none);
@@ -22,7 +22,7 @@ func main() {
     };
 
     // prints {("Ryan", 4), ("Hays", 4), ("Syl", 3)}
-    println(name_size_lookup);
+    assert(name_size_lookup.size() == 3);
 
     for pair in name_size_lookup {
         println(pair);
@@ -46,14 +46,14 @@ func main() {
     name_size_lookup["New Item"] = 69;
     println(name_size_lookup);
 
-    println(name_size_lookup.contains_key("Ryan"));
-    println(name_size_lookup.try_insert("Ryan", {}));
-    println(name_size_lookup.try_insert("Another New Item", (true, false)));
+    assert(name_size_lookup.contains_key("Ryan"));
+    assert(!name_size_lookup.try_insert("Ryan", {}));
+    assert(name_size_lookup.try_insert("Another New Item", (true, false)));
 
     name_size_lookup.insert("Ryan", []);
     println(name_size_lookup);
 
-    println(name_size_lookup.remove("Ryan"));
-    println(name_size_lookup.remove(420));
+    assert(name_size_lookup.remove("Ryan"));
+    assert(!name_size_lookup.remove(420));
 }
 
