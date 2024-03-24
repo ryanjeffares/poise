@@ -200,6 +200,8 @@ auto formatter<scanner::TokenType>::format(scanner::TokenType tokenType, format_
             return formatter<string_view>::format("And", context);
         case scanner::TokenType::As:
             return formatter<string_view>::format("As", context);
+        case scanner::TokenType::Assert:
+            return formatter<string_view>::format("Assert", context);
         case scanner::TokenType::Break:
             return formatter<string_view>::format("Break", context);
         case scanner::TokenType::By:

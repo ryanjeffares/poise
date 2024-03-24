@@ -24,8 +24,6 @@ TEST_CASE("Basic Reference Counting", "[memory]")
         function.object()->asFunction()->addCapture(exception);
         const auto functionCopy = function;
         const auto exceptionCopy = exception;
-        functionCopy.print(false, true);
-        exceptionCopy.print(false, true);
     }
 
     REQUIRE((function.object()->refCount() == 1_uz && exception.object()->refCount() == 2_uz));

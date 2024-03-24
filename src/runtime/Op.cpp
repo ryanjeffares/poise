@@ -41,6 +41,8 @@ auto fmt::formatter<Op>::format(Op op, format_context& context) const -> decltyp
             return formatter<string_view>::format("Throw", context);
         case Op::Unpack:
             return formatter<string_view>::format("Unpack", context);
+        case Op::Assert:
+            return formatter<string_view>::format("Assert", context);
         case Op::TypeOf:
             return formatter<string_view>::format("TypeOf", context);
         case Op::Print:

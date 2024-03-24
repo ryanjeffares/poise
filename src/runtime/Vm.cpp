@@ -651,15 +651,40 @@ auto Vm::run() const noexcept -> RunResult
                     value.object()->asIterable()->unpack(stack);
                     break;
                 }
+                case Op::Assert: {
+                    const auto result = pop().toBool();
+                    const auto& message = constantList[constantIndex++];
+
+                    if (!result) {
+                        throw Exception(
+                            Exception::ExceptionType::AssertionFailed,
+                            message.toString()
+                        );
+                    }
+                    break;
+                }
                 case Op::TypeOf: {
                     stack.emplace_back(typeValue(pop().type()));
                     break;
                 }
                 case Op::Print: {
-                    const auto value = pop();
+                    const auto numExpressions = constantList[constantIndex++].value<usize>();
                     const auto err = constantList[constantIndex++].value<bool>();
                     const auto newLine = constantList[constantIndex++].value<bool>();
-                    value.print(err, newLine);
+                    const auto values = popCallArgs(numExpressions);
+
+                    const auto stream = err ? stderr : stdout;
+
+                    for (const auto& value : values) {
+                        value.print(stream);
+                        if (numExpressions > 1_uz) {
+                            fmt::print(stream, " ");
+                        }
+                    }
+
+                    if (newLine) {
+                        fmt::print(stream, "\n");
+                    }
                     break;
                 }
                 case Op::LogicOr: {

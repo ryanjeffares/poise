@@ -81,6 +81,8 @@ auto fmt::formatter<Exception::ExceptionType>::format(Exception::ExceptionType e
             return formatter<string_view>::format("ArgumentOutOfRangeException", context);
         case Exception::ExceptionType::AmbiguousCall:
             return formatter<string_view>::format("AmbiguousCallException", context);
+        case Exception::ExceptionType::AssertionFailed:
+            return formatter<string_view>::format("AssertionFailedException", context);
         case Exception::ExceptionType::DivisionByZero:
             return formatter<string_view>::format("DivisionByZeroException", context);
         case Exception::ExceptionType::Exception:

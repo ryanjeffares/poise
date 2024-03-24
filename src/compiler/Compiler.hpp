@@ -108,6 +108,7 @@ private:
 
     auto statement(bool consumeSemicolon) -> void;
     auto expressionStatement(bool consumeSemicolon) -> void;
+    auto assertStatement(bool consumeSemicolon) -> void;
     auto printStatement(bool err, bool newLine, bool consumeSemicolon) -> void;
     auto returnStatement(bool consumeSemicolon) -> void;
     auto throwStatement(bool consumeSemicolon) -> void;

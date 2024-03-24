@@ -161,7 +161,7 @@ public:
     [[nodiscard]] auto type() const noexcept -> types::Type;
     [[nodiscard]] auto hash() const noexcept -> usize;
 
-    auto print(bool err, bool newLine) const -> void;
+    auto print(FILE* stream = stdout) const -> void;
 
     [[nodiscard]] auto toBool() const noexcept -> bool;
     [[nodiscard]] auto toFloat() const -> f64;

@@ -15,7 +15,9 @@ auto Compiler::statement(bool consumeSemicolon) -> void
         return;
     }
 
-    if (match(scanner::TokenType::Print) || match(scanner::TokenType::PrintLn)
+    if (match(scanner::TokenType::Assert)) {
+        assertStatement(consumeSemicolon);
+    } else if (match(scanner::TokenType::Print) || match(scanner::TokenType::PrintLn)
         || match(scanner::TokenType::EPrint) || match(scanner::TokenType::EPrintLn)) {
         const auto err = m_previous->tokenType() == scanner::TokenType::EPrint || m_previous->tokenType() == scanner::TokenType::EPrintLn;
         const auto newLine = m_previous->tokenType() == scanner::TokenType::PrintLn || m_previous->tokenType() == scanner::TokenType::EPrintLn;
@@ -74,11 +76,49 @@ auto Compiler::expressionStatement(bool consumeSemicolon) -> void
     }
 }
 
+auto Compiler::assertStatement(bool consumeSemicolon) -> void
+{
+    RETURN_IF_NO_MATCH(scanner::TokenType::OpenParen, "Expected '(' after 'assert'");
+
+    expression(false, false);
+
+    if (match(scanner::TokenType::Comma)) {
+        RETURN_IF_NO_MATCH(scanner::TokenType::String, "Expected message after expression");
+        auto message = parseString();
+        if (!message) {
+            return;
+        }
+        emitConstant(std::move(*message));
+    } else {
+        emitConstant("Assertion failed");
+    }
+
+    emitOp(runtime::Op::Assert, m_previous->line());
+
+    RETURN_IF_NO_MATCH(scanner::TokenType::CloseParen, "Expected ')' after 'assert'");
+
+    if (consumeSemicolon) {
+        EXPECT_SEMICOLON();
+    }
+}
+
 auto Compiler::printStatement(bool err, bool newLine, bool consumeSemicolon) -> void
 {
     RETURN_IF_NO_MATCH(scanner::TokenType::OpenParen, "Expected '(' after 'println'");
 
-    expression(false, false);
+    if (check(scanner::TokenType::CloseParen)) {
+        emitConstant("\n");
+        emitOp(runtime::Op::LoadConstant, m_previous->line());
+        emitConstant(1_uz);
+    } else {
+        auto numExpressions = 0_uz;
+        do {
+            expression(false, false);
+            numExpressions++;
+        } while (match(scanner::TokenType::Comma));
+        emitConstant(numExpressions);
+    }
+
     emitConstant(err);
     emitConstant(newLine);
     emitOp(runtime::Op::Print, m_previous->line());

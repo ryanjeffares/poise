@@ -32,6 +32,7 @@ enum class Op : u8
     TypeOf,
 
     // statements
+    Assert,
     Print,
 
     // expressions

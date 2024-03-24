@@ -1,0 +1,9 @@
+func main() {
+    println(0, 1, 2, 3, 4, 5);
+    print("Hello", "World");
+    println();
+
+    assert(0 == 0);
+    assert(2*10 == 20, "Phew");
+    assert(0, "Oops");
+}

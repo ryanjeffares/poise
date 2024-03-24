@@ -11,6 +11,7 @@ structDecl = "struct", IDENTIFIER, "{", [ { MEMBER_VARIABLE } ], "}" ;
 exportDecl = "export", ( funcDecl | constDecl | classDecl ) ;
 
 statement = expressionStatement
+    | assertStatement
     | printlnStatement
     | returnStatement
     | tryCatchStatement
@@ -21,6 +22,7 @@ statement = expressionStatement
     | continueStatement ;
 
 expressionStatement = call, [ { ",", call } ] [ "=", expression ], ";" ;
+assertStatement = "assert", "(", expression, ")", ";" ;
 printlnStatement = "println", "(", expression, ")" ;
 returnStatement = "return", [ expression ], ";" ;
 tryCatchStatement = "try", "{", BLOCK, "}", "catch", [ IDENTIFIER ], BLOCK ;

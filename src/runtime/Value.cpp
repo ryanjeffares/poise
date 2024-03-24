@@ -172,13 +172,9 @@ auto Value::typeInternal() const noexcept -> TypeInternal
     return m_type;
 }
 
-auto Value::print(bool err, bool newLine) const -> void
+auto Value::print(FILE* stream) const -> void
 {
-    if (newLine) {
-        fmt::print(err ? stderr : stdout, "{}\n", toString());
-    } else {
-        fmt::print(err ? stderr : stdout, "{}", toString());
-    }
+    fmt::print(stream, "{}", toString());
 }
 
 auto Value::toBool() const noexcept -> bool

@@ -35,6 +35,7 @@ Scanner::Scanner(const std::filesystem::path& inFilePath)
     , m_keywordLookup{
         {"and", TokenType::And},
         {"as", TokenType::As},
+        {"assert", TokenType::Assert},
         {"break", TokenType::Break},
         {"by", TokenType::By},
         {"catch", TokenType::Catch},
