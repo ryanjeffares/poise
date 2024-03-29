@@ -94,7 +94,8 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * ~~Unpack a collection~~
     * Multiple assignments on one line (`a, b = b, a`) or assigning an unpack (`a, b = ...collection`)
         * Partial unpacking - `var (a, b, ...rest) = ...collection` unpacks the first two items into `a` and `b` and the remaining into `rest`.
-        * How to parse `var a, b, c = try ...expr`?
+        * ~~How to parse `var a, b, c = try ...expr`?~~
+            * Doesn't really work, because exceptions get a bit strange. This implementation is sorted now.
         * How badly do we want multiple assignments? Right now it works for variable declarations, but not for...
             * Reassigning variables
             * Assigning indexing etc
@@ -110,9 +111,11 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * ~~Break/continue statements~~
 * Structs
     * Member variable access as well as extension function access
-    * Need to generate `PoiseType` instances for these, and hook them into everything else...
+    * Need to generate `PoiseType` instances for these, and hook them into everything else - we may need to do some type of verification step on extension methods when the vm starts running
     * Need a class for instances
     * What does `typeof` return for the name of a struct? `Type` surely? And then for instances...
+    * Need a class for the struct and a class for an instance. Say we have `struct Foo {}`, `typeof(Foo) == Type` and `typeof(Foo{}) == Foo`
+    * So make of that what you will
 * ~~GC for cycles~~
     * ~~Investigate horrible performance with Clang with cycles.poise (n=10000)~~
     * Ah, so using `unordered_set` instead of `vector` solved this
