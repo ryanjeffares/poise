@@ -520,7 +520,7 @@ auto Value::operator*(const Value& other) const -> Value
             switch (other.typeInternal()) {
                 case TypeInternal::Int: {
                     if (other.value<i64>() < 0) {
-                        throw Exception(Exception::ExceptionType::InvalidOperand, "Factor to repeat string cannot be type");
+                        throw Exception(Exception::ExceptionType::InvalidOperand, "Factor to repeat string cannot be negative");
                     }
 
                     std::string res;
