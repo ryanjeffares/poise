@@ -5,7 +5,6 @@
 
 #include <algorithm>
 #include <functional>
-#include <iterator>
 #include <type_traits>
 #include <vector>
 
@@ -20,10 +19,9 @@ concept DualIndexableEntry = requires(T value)
     std::is_nothrow_copy_assignable_v<T>;
 };
 
-template<typename ValueType, typename Hash = std::hash<ValueType>> requires(requires(ValueType v)
+template<DualIndexableEntry ValueType, typename Hash = std::hash<ValueType>> requires(requires(ValueType v)
 {
-    requires DualIndexableEntry<ValueType>;
-    { Hash{}(v) } -> std::convertible_to<usize>;
+    { Hash{}(v) } -> std::same_as<usize>;
 })
 class DualIndexSet
 {
@@ -84,6 +82,36 @@ public:
         checkLoad();
 
         return {hash, true};
+    }
+
+    auto update(ValueType value) noexcept -> void
+    {
+        const auto hash = hashValue(value);
+        auto index = hash % m_capacity;
+
+        auto entry = Entry{
+            .value = std::move(value),
+            .hash = hash,
+            .occupied = true,
+        };
+
+        while (m_data[index].occupied) {
+            auto& old = m_data[index];
+            if (old.hash == hash) {
+                old.value = std::move(value);
+            }
+
+            if (entry.distance > old.distance) {
+                std::swap(entry, old);
+            }
+
+            entry.distance++;
+            index = (index + 1_uz) % m_capacity;
+        }
+
+        m_data[index] = std::move(entry);
+        m_size++;
+        checkLoad();
     }
 
     [[nodiscard]] auto remove(const ValueType& value) noexcept -> bool
@@ -187,7 +215,9 @@ public:
     {
         fmt::print("Contents of DualIndexSet:\n");
         for (const auto& entry : m_data) {
-            fmt::print("\t{}\n", entry.value);
+            if (entry.occupied) {
+                fmt::print("\t{}\n", entry.value);
+            }
         }
     }
 
@@ -198,7 +228,6 @@ private:
         usize hash{};
         usize distance{};
         bool occupied{};
-        Entry* next{};
     };
 
     static constexpr auto s_initialCapacity = 8_uz;

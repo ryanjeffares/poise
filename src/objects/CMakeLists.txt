@@ -13,6 +13,7 @@ add_library(
     iterables/Tuple.cpp
     Object.cpp
     Struct.cpp
+    StructInstance.cpp
     Type.cpp
 )
 

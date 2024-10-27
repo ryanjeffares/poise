@@ -258,6 +258,7 @@ auto Compiler::call(bool canAssign) -> void
 
     while (true) {
         if (match(scanner::TokenType::OpenParen)) {
+            // calling a function
             if (const auto args = parseCallArgs(scanner::TokenType::CloseParen)) {
                 const auto [numArgs, hasUnpack] = *args;
                 emitConstant(numArgs);
@@ -265,7 +266,18 @@ auto Compiler::call(bool canAssign) -> void
                 emitConstant(false);
                 emitOp(runtime::Op::Call, m_previous->line());
             }
+        } else if (match(scanner::TokenType::OpenBrace)) {
+            // instantiating a struct
+            if (auto members = parseStructInstantiationMembers()) {
+                auto& [numArgs, memberNames] = *members;
+                emitConstant(numArgs);
+                for (auto& memberName : memberNames) {
+                    emitConstant(runtime::memory::internString(std::move(memberName)));
+                }
+                emitOp(runtime::Op::InstantiateStruct, m_previous->line());
+            }
         } else if (match(scanner::TokenType::Dot)) {
+            // accessing member
             RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected identifier");
             emitConstant(runtime::memory::internString(m_previous->string()));
             emitOp(runtime::Op::LoadMember, m_previous->line());
@@ -283,6 +295,7 @@ auto Compiler::call(bool canAssign) -> void
                 emitConstant(false); // don't push parent back on to the stack
             }
         } else if (match(scanner::TokenType::OpenSquareBracket)) {
+            // indexing
             expression(false, false);
             RETURN_IF_NO_MATCH(scanner::TokenType::CloseSquareBracket, "Expected ']'");
 
@@ -383,21 +396,19 @@ auto Compiler::identifier(bool canAssign) -> void
     } else if (const auto constant = m_vm->namespaceManager()->getConstant(m_filePathHash, identifier)) {
         emitConstant(constant->value);
         emitOp(runtime::Op::LoadConstant, m_previous->line());
+    } else if (identifier.starts_with("__")) {
+        // trying to call a native function
+        nativeCall();
+    } else if (check(scanner::TokenType::ColonColon)) {
+        // qualifying a function with a namespace
+        namespaceQualifiedCall();
     } else {
-        if (identifier.starts_with("__")) {
-            // trying to call a native function
-            nativeCall();
-        } else if (check(scanner::TokenType::ColonColon)) {
-            // qualifying a function with a namespace
-            namespaceQualifiedCall();
-        } else {
-            // not a local, native call or a namespace qualification
-            // so trying to call/load a function in the same namespace
-            // resolve this at runtime
-            emitConstant(m_filePathHash);
-            emitConstant(runtime::memory::internString(std::move(identifier)));
-            emitOp(runtime::Op::LoadFunctionOrStruct, m_previous->line());
-        }
+        // not a local, constant, native call or a namespace qualification
+        // so trying to call/load a function in the same namespace
+        // resolve this at runtime
+        emitConstant(m_filePathHash);
+        emitConstant(runtime::memory::internString(std::move(identifier)));
+        emitOp(runtime::Op::LoadFunctionOrStruct, m_previous->line());
     }
 }
 

@@ -13,6 +13,7 @@ auto intialiseStringInterning() noexcept -> void
 
 auto internString(std::string string) noexcept -> usize
 {
+    fmt::print("Interning {}\n", string);
     return s_stringPool.insert(std::move(string)).hash;
 }
 

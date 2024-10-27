@@ -16,6 +16,7 @@ enum class Op : u8
     DeclareLocalsWithUnpack,
     EnterTry,
     ExitTry,    // gracefully!
+    InstantiateStruct,
     LoadCapture,
     LoadConstant,
     LoadFunctionOrStruct,

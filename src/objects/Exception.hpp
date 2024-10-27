@@ -31,6 +31,7 @@ public:
         InvalidType,
         IteratorOutOfBounds,
         KeyNotFound,
+        MemberNotFound,
 
         NumExceptionTypes,
     };

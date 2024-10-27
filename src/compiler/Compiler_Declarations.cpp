@@ -351,7 +351,7 @@ auto Compiler::structDeclaration(bool isExported) -> void
                 memberVariables.emplace_back(objects::Struct::MemberVariable{
                     .name = std::move(memberName),
                     .nameHash = memberNameHash,
-                    .value = std::move(*value),
+                    .defaultValue = std::move(*value),
                 });
             } else {
                 return;

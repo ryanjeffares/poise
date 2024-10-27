@@ -11,6 +11,7 @@
 #include <optional>
 #include <stack>
 #include <string>
+#include <unordered_map>
 
 namespace poise::compiler {
 class Compiler
@@ -71,6 +72,12 @@ private:
         bool hasUnpack;
     };
 
+    struct StructInsantiationMembersParseResult
+    {
+        u8 numArgs;
+        std::vector<std::string> memberName;
+    };
+
     struct FunctionParamsParseResult
     {
         u8 numParams;
@@ -93,6 +100,7 @@ private:
 
     [[nodiscard]] auto checkNameCollisions(std::string_view structConstFuncName) -> bool;
     [[nodiscard]] auto parseCallArgs(scanner::TokenType sentinel) -> std::optional<CallArgsParseResult>;
+    [[nodiscard]] auto parseStructInstantiationMembers() -> std::optional<StructInsantiationMembersParseResult>;
     [[nodiscard]] auto parseFunctionParams(bool isLambda) -> std::optional<FunctionParamsParseResult>;
     [[nodiscard]] auto parseNamespaceImport() -> std::optional<std::vector<NamespaceImportParseResult>>;
     [[nodiscard]] auto parseNamespaceQualification() -> std::optional<NamespaceQualificationParseResult>;

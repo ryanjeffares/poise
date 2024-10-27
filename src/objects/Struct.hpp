@@ -6,7 +6,7 @@
 #include "Object.hpp"
 #include "../runtime/Value.hpp"
 
-#include <optional>
+#include <span>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -19,11 +19,10 @@ public:
     {
         std::string name{};
         usize nameHash{};
-        runtime::Value value{};
+        runtime::Value defaultValue{};
     };
 
-    explicit Struct(std::string name, bool exported, std::vector<MemberVariable> memberVariables);
-
+    Struct(std::string name, bool exported, std::vector<MemberVariable> memberVariables);
     ~Struct() override = default;
 
     [[nodiscard]] auto asStruct() noexcept -> Struct* override;
@@ -34,19 +33,16 @@ public:
     auto removeObjectMembers() noexcept -> void override;
     [[nodiscard]] auto anyMemberMatchesRecursive(const Object* object) const noexcept -> bool override;
 
-    [[nodiscard]] auto findMember(std::string_view memberName) const -> std::optional<runtime::Value>;
-    [[nodiscard]] auto findMember(usize memberNameHash) const -> std::optional<runtime::Value>;
-    [[nodiscard]] auto assignMember(std::string_view memberName, runtime::Value value) -> bool;
-    [[nodiscard]] auto assignMember(usize memberNameHash, runtime::Value value) -> bool;
-
     [[nodiscard]] auto exported() const noexcept -> bool;
     [[nodiscard]] auto name() const noexcept -> std::string_view;
     [[nodiscard]] auto nameHash() const noexcept -> usize;
+    [[nodiscard]] auto memberVariables() const noexcept -> std::span<const MemberVariable>;
+    [[nodiscard]] auto hasMember(usize memberNameHash) const noexcept -> bool;
 
 private:
+    bool m_exported;
     std::string m_name;
     usize m_nameHash;
-    bool m_exported;
     std::vector<MemberVariable> m_memberVariables;
 };
 } // namespace poise::objects

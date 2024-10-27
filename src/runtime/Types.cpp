@@ -36,6 +36,8 @@ auto formatter<Type>::format(Type type, format_context& context) const -> declty
             return formatter<string_view>::format("Set", context);
         case Type::Struct:
             return formatter<string_view>::format("Struct", context);
+        case Type::StructInstance:
+            return formatter<string_view>::format("StructInstance", context);
         case Type::Tuple:
             return formatter<string_view>::format("Tuple", context);
         case Type::Type:

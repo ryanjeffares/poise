@@ -12,9 +12,10 @@ class Value;
 }
 
 namespace poise::objects {
-class Struct;
 class Exception;
 class Function;
+class Struct;
+class StructInstance;
 class Type;
 
 namespace iterables {
@@ -58,6 +59,7 @@ public:
     [[nodiscard]] virtual auto asRange() noexcept -> iterables::Range*;
     [[nodiscard]] virtual auto asSet() noexcept -> iterables::hashables::Set*;
     [[nodiscard]] virtual auto asStruct() noexcept -> Struct*;
+    [[nodiscard]] virtual auto asStructInstance() noexcept -> StructInstance*;
     [[nodiscard]] virtual auto asTuple() noexcept -> iterables::Tuple*;
     [[nodiscard]] virtual auto asType() noexcept -> Type*;
 

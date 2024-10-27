@@ -192,6 +192,46 @@ auto Compiler::parseCallArgs(scanner::TokenType sentinel) -> std::optional<CallA
     return {{numArgs, hasUnpack}};
 }
 
+auto Compiler::parseStructInstantiationMembers() -> std::optional<StructInsantiationMembersParseResult>
+{
+    auto numArgs = 0_u8;
+    std::vector<std::string> memberNames;
+
+    while (!match(scanner::TokenType::CloseBrace)) {
+        if (numArgs == std::numeric_limits<u8>::max()) {
+            errorAtCurrent("Maximum members of 255 exceeded");
+            return {};
+        }
+
+        RETURN_VALUE_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected identifier", {});
+
+        auto memberName = m_previous->string();
+        if (std::ranges::contains(memberNames, memberName)) {
+            errorAtPrevious(fmt::format("Member {} already assigned in instantiation", memberName));
+            return {};
+        }
+
+        RETURN_VALUE_IF_NO_MATCH(scanner::TokenType::Equal, "Expected '='", {});
+
+        expression(false, false);
+        numArgs++;
+        memberNames.emplace_back(std::move(memberName));
+
+        // trailing commas are allowed but all arguments must be comma separated
+        // so here, if the next token is not a comma or a close paren, it's invalid
+        if (!check(scanner::TokenType::CloseBrace) && !check(scanner::TokenType::Comma)) {
+            errorAtCurrent("Expected ',' or '}'");
+            return {};
+        }
+
+        if (check(scanner::TokenType::Comma)) {
+            advance();
+        }
+    }
+
+    return {{numArgs, std::move(memberNames)}};
+}
+
 auto Compiler::parseFunctionParams(bool isLambda) -> std::optional<FunctionParamsParseResult>
 {
     auto hasThisArg = false;

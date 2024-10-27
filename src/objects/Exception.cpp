@@ -109,6 +109,8 @@ auto fmt::formatter<Exception::ExceptionType>::format(Exception::ExceptionType e
             return formatter<string_view>::format("IteratorOutOfBoundsException", context);
         case Exception::ExceptionType::KeyNotFound:
             return formatter<string_view>::format("KeyNotFoundException", context);
+        case Exception::ExceptionType::MemberNotFound:
+            return formatter<string_view>::format("MemberNotFoundException", context);
         case Exception::ExceptionType::NumExceptionTypes:
             return formatter<string_view>::format("NumExceptionTypesException", context);
         default:

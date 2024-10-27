@@ -519,6 +519,22 @@ auto Vm::run() const noexcept -> RunResult
                     tryBlockStateStack.pop();
                     break;
                 }
+                case Op::InstantiateStruct: {
+                    const auto numMembers = constantList[constantIndex++].value<usize>();
+                    auto values = popCallArgs(numMembers);
+                    auto structure = pop();
+                    auto instanceValue = Value::createObject<objects::StructInstance>(structure);
+                    auto instance = instanceValue.object()->asStructInstance();
+
+                    for (auto& value : values) {
+                        const auto memberNameHash = constantList[constantIndex++].value<usize>();
+                        instance->assignMember(memberNameHash, std::move(value));
+                    }
+
+                    instance->assignMissingMembers();
+                    stack.emplace_back(std::move(instanceValue));
+                    break;
+                }
                 case Op::LoadCapture: {
                     // captures need to be inserted before call args
                     const auto index = constantList[constantIndex++].value<usize>();

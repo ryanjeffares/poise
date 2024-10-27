@@ -19,12 +19,14 @@ auto fmt::formatter<Op>::format(Op op, format_context& context) const -> decltyp
             return formatter<string_view>::format("EnterTry", context);
         case Op::ExitTry:
             return formatter<string_view>::format("ExitTry", context);
+        case Op::InstantiateStruct:
+            return formatter<string_view>::format("InstantiateStruct", context);
         case Op::LoadCapture:
             return formatter<string_view>::format("LoadCapture", context);
         case Op::LoadConstant:
             return formatter<string_view>::format("LoadConstant", context);
         case Op::LoadFunctionOrStruct:
-            return formatter<string_view>::format("LoadFunction", context);
+            return formatter<string_view>::format("LoadFunctionOrStruct", context);
         case Op::LoadLocal:
             return formatter<string_view>::format("LoadLocal", context);
         case Op::LoadMember:

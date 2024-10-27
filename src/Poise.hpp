@@ -1,7 +1,7 @@
 #ifndef POISE_HPP
 #define POISE_HPP
 
-// #include <boost/stacktrace.hpp>
+#include <boost/stacktrace.hpp>
 
 #include <fmt/core.h>
 
@@ -135,9 +135,9 @@ inline auto getStdPath() noexcept -> std::optional<std::filesystem::path>
 #define POISE_ASSERT(condition, message)                                                            \
     do {                                                                                            \
         if (!(condition)) {                                                                         \
-            /*const auto stacktrace = boost::stacktrace::stacktrace{};*/                                \
+            const auto stacktrace = boost::stacktrace::stacktrace{};                                \
             fmt::print(stderr, "Assertion failed with expression '{}': {}\n", #condition, message); \
-            /*fmt::print(stderr, "Stacktrace:\n{}\n", boost::stacktrace::to_string(stacktrace));*/      \
+            fmt::print(stderr, "Stacktrace:\n{}\n", boost::stacktrace::to_string(stacktrace));      \
             std::exit(-1);                                                                          \
         }                                                                                           \
     } while (false)
@@ -149,9 +149,9 @@ inline auto getStdPath() noexcept -> std::optional<std::filesystem::path>
 #ifndef POISE_UNREACHABLE
 #define POISE_UNREACHABLE()                                                                 \
     do {                                                                                    \
-        /*const auto stacktrace = boost::stacktrace::stacktrace{};*/                            \
+        const auto stacktrace = boost::stacktrace::stacktrace{};                            \
         fmt::print(stderr, "Unreachable code\n");                                           \
-        /*fmt::print(stderr, "Stacktrace:\n{}\n", boost::stacktrace::to_string(stacktrace));*/  \
+        fmt::print(stderr, "Stacktrace:\n{}\n", boost::stacktrace::to_string(stacktrace));  \
         std::unreachable();                                                                 \
     } while (false)
 #endif
