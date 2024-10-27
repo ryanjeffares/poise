@@ -17,7 +17,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * Package manager type thingy
     * Type checker for those optional type hints
     * Project manager/runner
-    * Dependency stuff (not that we have the budget for that)
+    * Dependency stuff (cloning a Git repo, structure convention, precompiled bytecode)
 * Compiler warnings
 * Optimisation
 * ~~`getCodeAtLine()` for imported files~~
@@ -27,9 +27,9 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * Currently, each type has a list of its extension functions. Keeping this system, an extension function on `Any` would have to be added to all current and future types when compiled
     * We'd have to reverse this association, so each function knows which types it extends, but this is tedious to look up at runtime
     * So maybe the current system is ok? A `PoiseFunction` instance in a `Value` is basically a shared pointer, so it's not too crazy
-* Simplify data structures in `NamespaceManager`
-    * Reuse the string/ID map from the string interning, have a single data structure with all the info
 * Namespace qualified calls are a little messy
+* `DualIndexSet` is great but let's optimise it a bit
+* Use of more efficient sets/maps, and use these instead of vectors for things that are often looked up with `find_if`
 
 ## Feature Roadmap
 * ~~Pop unused expression/return results~~
@@ -58,16 +58,17 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * ~~Imports + Namespaces~~
     * ~~Wildcards~~
     * ~~Multiple imports in `{}`~~
-    * Back a folder
+    * ~~Back a folder~~
 * ~~Namespace aliases~~
 * ~~Export functions~~
-* ~~Dot functions - UFCS!~~
+* Dot functions
     * ~~For imported functions...~~
         * ~~Put the namespace stuff into its own class~~
         * ~~Functions need to know what namespace they're in~~
         * ~~Types know what extension functions they have~~
         * ~~Check if that function's namespace has been imported to the namespace of the current function in the Vm~~
     * ~~Two functions with the same name in a different namespace will override each-other~~
+    * Add an ability for "static" extension methods - this is how we will do struct constructors (`Foo.new()`)
 * Builtin objects
     * ~~Use types::Type instead of Value::TypeInternal for type()~~ 
     * ~~Iterable collections~~
@@ -95,12 +96,12 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * Multiple assignments on one line (`a, b = b, a`) or assigning an unpack (`a, b = ...collection`)
         * Partial unpacking - `var (a, b, ...rest) = ...collection` unpacks the first two items into `a` and `b` and the remaining into `rest`.
         * ~~How to parse `var a, b, c = try ...expr`?~~
-            * Doesn't really work, because exceptions get a bit strange. This implementation is sorted now.
+            * ~~Doesn't really work, because exceptions get a bit strange. This implementation is sorted now.~~
         * How badly do we want multiple assignments? Right now it works for variable declarations, but not for...
             * Reassigning variables
             * Assigning indexing etc
             * It would also imply the ability to return multiple values from a function
-        * I'm just hesitant because of how annoying it is to compile LOL but maybe there's a better way to handle assignments in general in the compiler
+            * I'm just hesitant because of how annoying it is to compile LOL but maybe there's a better way to handle assignments in general in the compiler
     * ~~Friendship ended with `PoisePack`, `PoiseList` is my best friend now~~
     * ~~A "pack" will not be a unique type, and you will simply be able to unpack any collection~~
 * Construct `Type` instance, `Type` ident
@@ -112,10 +113,11 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * Structs
     * Member variable access as well as extension function access
     * Need to generate `PoiseType` instances for these, and hook them into everything else - we may need to do some type of verification step on extension methods when the vm starts running
-    * Need a class for instances
-    * What does `typeof` return for the name of a struct? `Type` surely? And then for instances...
-    * Need a class for the struct and a class for an instance. Say we have `struct Foo {}`, `typeof(Foo) == Type` and `typeof(Foo{}) == Foo`
-    * So make of that what you will
+    * ~~Need a class for instances~~
+    * `typeof` for structs and struct instances such that for `struct Foo {}`, `typeof(Foo) == Type` and `typeof(Foo{}) == Foo`
+* Objects in constant expressions to allow for object default struct values
+    * This shouldn't be complicated, there's really no reason not to allow it, we just can't call functions
+    * Need a deep clone mechanism for objects so that structs instantiated with default values get deep copies of objects
 * ~~GC for cycles~~
     * ~~Investigate horrible performance with Clang with cycles.poise (n=10000)~~
     * Ah, so using `unordered_set` instead of `vector` solved this
