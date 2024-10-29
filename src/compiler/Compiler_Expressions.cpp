@@ -266,16 +266,6 @@ auto Compiler::call(bool canAssign) -> void
                 emitConstant(false);
                 emitOp(runtime::Op::Call, m_previous->line());
             }
-        } else if (match(scanner::TokenType::OpenBrace)) {
-            // instantiating a struct
-            if (auto members = parseStructInstantiationMembers()) {
-                auto& [numArgs, memberNames] = *members;
-                emitConstant(numArgs);
-                for (auto& memberName : memberNames) {
-                    emitConstant(runtime::memory::internString(std::move(memberName)));
-                }
-                emitOp(runtime::Op::InstantiateStruct, m_previous->line());
-            }
         } else if (match(scanner::TokenType::Dot)) {
             // accessing member
             RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected identifier");
@@ -423,6 +413,18 @@ auto Compiler::identifier(bool canAssign) -> void
         emitConstant(m_filePathHash);
         emitConstant(runtime::memory::internString(std::move(identifier)));
         emitOp(runtime::Op::LoadFunctionOrStruct, m_previous->line());
+
+        if (match(scanner::TokenType::OpenBrace)) {
+            // instantiating a struct
+            if (auto members = parseStructInstantiationMembers()) {
+                auto& [numArgs, memberNames] = *members;
+                emitConstant(numArgs);
+                for (auto& memberName : memberNames) {
+                    emitConstant(runtime::memory::internString(std::move(memberName)));
+                }
+                emitOp(runtime::Op::InstantiateStruct, m_previous->line());
+            }
+        }
     }
 }
 
