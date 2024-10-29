@@ -7,8 +7,6 @@
 #include "../runtime/Value.hpp"
 #include "../utils/DualIndexSet.hpp"
 
-#include <optional>
-
 namespace poise::objects {
 class StructInstance : public Object
 {

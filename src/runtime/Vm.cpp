@@ -602,34 +602,47 @@ auto Vm::run() const noexcept -> RunResult
                     break;
                 }
                 case Op::LoadMember: {
-                    // TODO: class member variables
                     auto value = pop();
 
                     const auto memberNameHash = constantList[constantIndex++].value<usize>();
                     const auto& memberName = memory::findInternedString(memberNameHash);
                     const auto pushParentBack = constantList[constantIndex++].toBool();
 
-                    const auto type = typeValue(value.type()).object()->asType();
+                    if (value.type() == types::Type::StructInstance) {
+                        // member access
+                        const auto structInstance = value.object()->asStructInstance();
+                        stack.push_back(structInstance->findMember(memberNameHash));
+                    } else  {
+                        // extension function on builtin type
+                        const auto type = typeValue(value.type()).object()->asType();
 
-                    if (auto function = type->findExtensionFunction(memberNameHash)) {
-                        if (const auto p = function->object()->asFunction(); currentFunction->namespaceHash() != p->namespaceHash()) {
-                            if (!m_namespaceManager.namespaceHasImportedNamespace(currentFunction->namespaceHash(), p->namespaceHash())) {
-                                throw Exception{
-                                    Exception::ExceptionType::TypeNotFound,
-                                    fmt::format("Extension function '{}' not found for type '{}' - are you missing an import?", p->name(), type->typeName())
-                                };
+                        if (auto function = type->findExtensionFunction(memberNameHash)) {
+                            if (const auto p = function->object()->asFunction(); currentFunction->namespaceHash() != p->namespaceHash()) {
+                                if (!m_namespaceManager.namespaceHasImportedNamespace(currentFunction->namespaceHash(), p->namespaceHash())) {
+                                    throw Exception{
+                                        Exception::ExceptionType::TypeNotFound,
+                                        fmt::format(
+                                            "Extension function '{}' not found for type '{}' - are you missing an import?",
+                                            p->name(),
+                                            type->typeName()
+                                        )
+                                    };
+                                }
                             }
+
+                            stack.push_back(std::move(*function));
+                        } else {
+                            throw Exception{
+                                Exception::ExceptionType::TypeNotFound,
+                                fmt::format("Function '{}' not defined for type '{}'", memberName, type->typeName())
+                            };
                         }
-                        stack.push_back(std::move(*function));
-                        if (pushParentBack) {
-                            stack.push_back(std::move(value));
-                        }
-                    } else {
-                        throw Exception{
-                            Exception::ExceptionType::TypeNotFound,
-                            fmt::format("Function '{}' not defined for type '{}'", memberName, type->typeName())
-                        };
                     }
+
+                    if (pushParentBack) {
+                        stack.push_back(std::move(value));
+                    }
+
                     break;
                 }
                 case Op::LoadType: {
@@ -842,6 +855,20 @@ auto Vm::run() const noexcept -> RunResult
                             );
                         }
                     }
+                    break;
+                }
+                case Op::AssignMember: {
+                    auto [instance, value] = popTwo();
+                    if (instance.type() != types::Type::StructInstance) {
+                        throw Exception{
+                            Exception::ExceptionType::InvalidType,
+                            fmt::format("{} has no members", instance.type()),
+                        };
+                    }
+
+                    const auto structInstance = instance.object()->asStructInstance();
+                    const auto memberNameHash = constantList[constantIndex++].value<usize>();
+                    structInstance->assignMember(memberNameHash, std::move(value));
                     break;
                 }
                 case Op::LoadIndex: {

@@ -61,6 +61,7 @@ enum class Op : u8
     Plus,
     MakeLambda,
     AssignIndex,
+    AssignMember,
     LoadIndex,
 
     // jumping/control flow

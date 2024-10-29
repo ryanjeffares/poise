@@ -111,7 +111,8 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * Maybe leave this until we do user defined classes, and we can come up with a nice generic way to handle it, since we'll have to work off of identifiers rather than builtin type keywords.
 * ~~Break/continue statements~~
 * Structs
-    * Member variable access as well as extension function access
+    * Member variable access
+    * Extension function access
     * Need to generate `PoiseType` instances for these, and hook them into everything else - we may need to do some type of verification step on extension methods when the vm starts running
     * ~~Need a class for instances~~
     * `typeof` for structs and struct instances such that for `struct Foo {}`, `typeof(Foo) == Type` and `typeof(Foo{}) == Foo`

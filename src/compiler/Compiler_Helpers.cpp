@@ -127,8 +127,7 @@ auto Compiler::checkLastOp(runtime::Op op) const noexcept -> bool
 
 auto Compiler::lastOpWasAssignment() const noexcept -> bool
 {
-    // TODO: add member assignmen
-    return checkLastOp(runtime::Op::AssignLocal) || checkLastOp(runtime::Op::AssignIndex);
+    return checkLastOp(runtime::Op::AssignLocal) || checkLastOp(runtime::Op::AssignIndex) || checkLastOp(runtime::Op::AssignMember);
 }
 
 auto Compiler::checkNameCollisions(std::string_view structConstFuncName) -> bool

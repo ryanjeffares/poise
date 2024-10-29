@@ -97,6 +97,8 @@ auto fmt::formatter<Op>::format(Op op, format_context& context) const -> decltyp
             return formatter<string_view>::format("MakeLambda", context);
         case Op::AssignIndex:
             return formatter<string_view>::format("AssignIndex", context);
+        case Op::AssignMember:
+            return formatter<string_view>::format("AssignMember", context);
         case Op::LoadIndex:
             return formatter<string_view>::format("LoadIndex", context);
         case Op::Call:

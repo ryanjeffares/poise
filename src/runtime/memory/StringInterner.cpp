@@ -13,7 +13,9 @@ auto intialiseStringInterning() noexcept -> void
 
 auto internString(std::string string) noexcept -> usize
 {
+#ifdef POISE_DEBUG
     fmt::print("Interning {}\n", string);
+#endif
     return s_stringPool.insert(std::move(string)).hash;
 }
 

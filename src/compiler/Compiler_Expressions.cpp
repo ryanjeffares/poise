@@ -279,20 +279,34 @@ auto Compiler::call(bool canAssign) -> void
         } else if (match(scanner::TokenType::Dot)) {
             // accessing member
             RETURN_IF_NO_MATCH(scanner::TokenType::Identifier, "Expected identifier");
-            emitConstant(runtime::memory::internString(m_previous->string()));
-            emitOp(runtime::Op::LoadMember, m_previous->line());
+            auto identifier = m_previous->string();
 
-            if (match(scanner::TokenType::OpenParen)) {
-                emitConstant(true); // flag to dictate whether to push the parent back on the stack since this is a dot call
-                if (const auto args = parseCallArgs(scanner::TokenType::CloseParen)) {
-                    const auto [numArgs, hasUnpack] = *args;
-                    emitConstant(numArgs);
-                    emitConstant(hasUnpack);
-                    emitConstant(true);
-                    emitOp(runtime::Op::Call, m_previous->line());
+            if (match(scanner::TokenType::Equal)) {
+                if (!canAssign) {
+                    errorAtPrevious("Assignment is not allowed here");
+                    return;
                 }
+
+                expression(false, false);
+                emitConstant(runtime::memory::internString(std::move(identifier)));
+                emitOp(runtime::Op::AssignMember, m_previous->line());
             } else {
-                emitConstant(false); // don't push parent back on to the stack
+                emitConstant(runtime::memory::internString(std::move(identifier)));
+                emitOp(runtime::Op::LoadMember, m_previous->line());
+
+                if (match(scanner::TokenType::OpenParen)) {
+                    emitConstant(true); // flag to dictate whether to push the parent back on the stack since this is a dot call
+
+                    if (const auto args = parseCallArgs(scanner::TokenType::CloseParen)) {
+                        const auto [numArgs, hasUnpack] = *args;
+                        emitConstant(numArgs);
+                        emitConstant(hasUnpack);
+                        emitConstant(true);
+                        emitOp(runtime::Op::Call, m_previous->line());
+                    }
+                } else {
+                    emitConstant(false); // don't push parent back on to the stack
+                }
             }
         } else if (match(scanner::TokenType::OpenSquareBracket)) {
             // indexing
