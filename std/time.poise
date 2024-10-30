@@ -1,0 +1,4 @@
+export func time(): Float {
+    return __NATIVE_TIME_TIME();
+}
+

@@ -8,6 +8,7 @@
 
 #include <fmt/ranges.h>
 
+#include <chrono>
 #include <cmath>
 #include <ranges>
 
@@ -46,6 +47,7 @@ auto Vm::registerNatives() noexcept -> void
     registerSetNatives();
     registerRangeNatives();
     registerStringNatives();
+    registerTimeNatives();
 }   // Vm::registerNatives()
 
 auto Vm::registerDictNatives() noexcept -> void
@@ -311,6 +313,17 @@ auto Vm::registerStringNatives() noexcept -> void
         1_u8, [](std::span<Value> args) -> Value {
             throwIfWrongType(0_uz, args[0_uz], types::Type::String);
             return args[0_uz].string().size();
+        }});
+}
+
+auto Vm::registerTimeNatives() noexcept -> void
+{
+    m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_TIME_TIME"), NativeFunction{
+        0_uz, [](std::span<Value>) -> Value {
+            const auto now = std::chrono::steady_clock::now();
+            const auto epoch = now.time_since_epoch();
+            const auto milliseconds = static_cast<f64>(std::chrono::duration_cast<std::chrono::milliseconds>(epoch).count());
+            return milliseconds / 1000.0;
         }});
 }
 }   // namespace poise::runtime

@@ -96,21 +96,23 @@ auto Range::incrementIterator(IteratorType& iterator) noexcept -> void
 
     if (isAtEnd(iterator)) {
         // exhausted the current data, check if we need to refill
-        if (!(m_inclusive && m_data.back() == m_end) && !(!m_inclusive && m_data.back() == m_end - m_increment)) {
-            std::vector<DifferenceType> iteratorIndexes;
-            iteratorIndexes.reserve(m_activeIterators.size());
-            for (auto i = 0_uz; i < m_activeIterators.size(); i++) {
-                iteratorIndexes.push_back(std::distance(m_data.begin(), m_activeIterators[i]->iterator()));
-            }
-
-            const auto value = m_data.back().toInt() + m_increment;
-            fillData(value, m_increment);
-
-            for (auto i = 0_uz; i < m_activeIterators.size(); i++) {
-                m_activeIterators[i]->iterator() = m_data.begin() + iteratorIndexes[i];
-            }
+        if (m_inclusive ? m_data.back() > m_end : m_data.back() >= m_end) {
+            return;
         }
-    } else if ((m_inclusive && *iterator > m_end) || (!m_inclusive && *iterator >= m_end)) {
+
+        std::vector<DifferenceType> iteratorIndexes;
+        iteratorIndexes.reserve(m_activeIterators.size());
+        for (const auto it : m_activeIterators) {
+            iteratorIndexes.push_back(std::distance(m_data.begin(), it->iterator()));
+        }
+
+        const auto value = m_data.back().toInt() + m_increment;
+        fillData(value, m_increment);
+
+        for (auto i = 0_uz; i < m_activeIterators.size(); i++) {
+            m_activeIterators[i]->iterator() = m_data.begin() + iteratorIndexes[i];
+        }
+    } else if (m_inclusive ? *iterator > m_end : *iterator >= m_end) {
         // the actual value has gone past the end of the range, so make it as if we're at the end
         iterator = end();
     }

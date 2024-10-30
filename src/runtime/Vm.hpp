@@ -55,6 +55,7 @@ private:
     auto registerRangeNatives() noexcept -> void;
     auto registerSetNatives() noexcept -> void;
     auto registerStringNatives() noexcept -> void;
+    auto registerTimeNatives() noexcept -> void;
 
     std::hash<std::string_view> m_nativeNameHasher;
     NativeFunctionMap m_nativeFunctionLookup;
