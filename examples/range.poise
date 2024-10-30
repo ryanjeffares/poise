@@ -9,15 +9,15 @@ func main() {
         println("====");
     };
 
-    // var range = 0..=10;
-    // test_range(range);
-    // println(range.to_list());
-//
-    // range = -10..20 by 2;
-    // test_range(range);
-    // println(range.to_list());
+    var range = 0..=10;
+    test_range(range);
+    println(range.to_list());
 
-    var range = 0..200;
+    range = -10..20 by 2;
+    test_range(range);
+    println(range.to_list());
+
+    range = 0..200;
     test_range(range);
 
     range = Range("Hello", false, none);

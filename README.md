@@ -21,6 +21,8 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * Compiler warnings
 * Optimisation
 * ~~`getCodeAtLine()` for imported files~~
+* Store number of lines in a file when it's loaded so `getNumLines` isn't so expensive
+* Try and remove static data structures
 * Full UFCS + `Any` type annotation?
     * In general, I think I prefer the idea of having an `Any` type annotation as opposed to full UFCS.
     * However, adding an extension function to `Any` gets complicated.
@@ -111,7 +113,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * Maybe leave this until we do user defined classes, and we can come up with a nice generic way to handle it, since we'll have to work off of identifiers rather than builtin type keywords.
 * ~~Break/continue statements~~
 * Structs
-    * Member variable access
+    * ~~Member variable access~~
     * Extension function access
     * Need to generate `PoiseType` instances for these, and hook them into everything else - we may need to do some type of verification step on extension methods when the vm starts running
     * ~~Need a class for instances~~

@@ -4,58 +4,39 @@ import std::list;
 import std::time;
 
 const SIEVE_SIZE = 1000000;
-const BIT_COUNT = (SIEVE_SIZE + 1) / 2;
 const CORRECT_COUNT = 78498;
 
-func reset(bits: List[Bool]) {
+func reset(final bits: List[Bool]) {
     for i in 0..bits.size() {
-        println(i);
-        bits[i] = false;
+        bits[i] = true;
     }
 }
 
-func get_bit(bits: List[Bool], index: Int) {
-    return index % 2 and bits[index / 2];
-}
+func run_sieve(final bits: List[Bool]) {
+    bits[0] = false;
+    bits[1] = false;
 
-func clear_bit(bits: List[Bool], index: Int) {
-    assert(index % 2 > 0, "Shouldn't be clearing bit at an even index");
-    bits[index / 2] = false;
-}
-
-func run_sieve(bits: List[Bool]) {
-    var factor = 3;
     final max = SIEVE_SIZE.sqrt();
 
-    while factor < max {
-        for i in factor..SIEVE_SIZE {
-            if get_bit(bits, i) {
-                factor = i;
-                break;
+    for i in 0..max {
+        if bits[i] {
+            for j in (i * i)..SIEVE_SIZE by i {
+                bits[j] = false;
             }
         }
-
-        for i in (factor * 3)..SIEVE_SIZE by (factor * 2) {
-            println(i);
-            clear_bit(bits, i);
-        }
-
-        factor = factor + 2;
     }
 }
 
 func main() {
-    final bits = [true].repeat(BIT_COUNT);
+    final bits = [true].repeat(SIEVE_SIZE);
     final start = std::time::time();
     var passes = 0;
 
-    // while std::time::time() - start < 5.0 {
-        println("Resetting");
+    while std::time::time() - start < 5.0 {
         reset(bits);
-        println("Running");
         run_sieve(bits);
-       //  passes = passes + 1;
-    // }
+        passes = passes + 1;
+    }
 
     final count = bits.filter(|| (final b) => b).size();
     if count == CORRECT_COUNT {

@@ -17,7 +17,7 @@ Range::Range(const runtime::Value& start, const runtime::Value& end, const runti
         fillData(m_start, m_increment);
     } else {
         // otherwise no iteration is possible
-        // either the increment is 0, or going in the other direction of start -> end
+        // either the increment is 0, start and end are equal, or going in the other direction of start -> end
         // so just don't fill the vector at all, begin == end, no iteration will happen if you try
         m_isInfiniteLoop = true;
     }
@@ -96,25 +96,35 @@ auto Range::incrementIterator(IteratorType& iterator) noexcept -> void
 
     if (isAtEnd(iterator)) {
         // exhausted the current data, check if we need to refill
-        if (m_inclusive ? m_data.back() > m_end : m_data.back() >= m_end) {
-            return;
-        }
+        const auto upwards = m_end > m_start;
+        const auto lastValue = m_data.back();
 
-        std::vector<DifferenceType> iteratorIndexes;
-        iteratorIndexes.reserve(m_activeIterators.size());
-        for (const auto it : m_activeIterators) {
-            iteratorIndexes.push_back(std::distance(m_data.begin(), it->iterator()));
-        }
+        if (upwards
+            ? (m_inclusive ? lastValue < m_end : lastValue < m_end - m_increment)
+            : (m_inclusive ? lastValue > m_end : lastValue > m_end + m_increment)) {
+            std::vector<DifferenceType> iteratorIndexes;
+            iteratorIndexes.reserve(m_activeIterators.size());
+            for (const auto it : m_activeIterators) {
+                iteratorIndexes.push_back(std::distance(m_data.begin(), it->iterator()));
+            }
 
-        const auto value = m_data.back().toInt() + m_increment;
-        fillData(value, m_increment);
+            const auto value = m_data.back().toInt() + m_increment;
+            fillData(value, m_increment);
 
-        for (auto i = 0_uz; i < m_activeIterators.size(); i++) {
-            m_activeIterators[i]->iterator() = m_data.begin() + iteratorIndexes[i];
+            for (auto i = 0_uz; i < m_activeIterators.size(); i++) {
+                m_activeIterators[i]->iterator() = m_data.begin() + iteratorIndexes[i];
+            }
         }
-    } else if (m_inclusive ? *iterator > m_end : *iterator >= m_end) {
-        // the actual value has gone past the end of the range, so make it as if we're at the end
-        iterator = end();
+    } else {
+        const auto upwards = m_end > m_start;
+        const auto iteratorValue = *iterator;
+
+        if (upwards
+            ? (m_inclusive ? iteratorValue > m_end : iteratorValue >= m_end)
+            : (m_inclusive ? iteratorValue < m_end : iteratorValue <= m_end)) {
+            // the actual value has gone past the end of the range, so make it as if we're at the end
+            iterator = end();
+        }
     }
 }
 
