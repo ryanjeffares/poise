@@ -166,10 +166,8 @@ auto Compiler::funcDeclaration(bool isExported) -> void
     functionPtr->printOps();
 #endif
 
-    if (!extensionFunctionTypes.empty()) {
-        for (const auto type : extensionFunctionTypes) {
-            m_vm->typeValue(type).object()->asType()->addExtensionFunction(function);
-        }
+    for (const auto type : extensionFunctionTypes) {
+        m_vm->typeValue(type).object()->asType()->addExtensionFunction(function);
     }
 
     m_vm->namespaceManager()->addFunctionToNamespace(m_filePathHash, std::move(function));

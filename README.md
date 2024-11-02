@@ -28,7 +28,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * However, adding an extension function to `Any` gets complicated.
     * Currently, each type has a list of its extension functions. Keeping this system, an extension function on `Any` would have to be added to all current and future types when compiled
     * We'd have to reverse this association, so each function knows which types it extends, but this is tedious to look up at runtime
-    * So maybe the current system is ok? A `PoiseFunction` instance in a `Value` is basically a shared pointer, so it's not too crazy
+    * So maybe the current system is ok? A `Function` instance in a `Value` is basically a shared pointer, so it's not too crazy
 * Namespace qualified calls are a little messy
 * ~~`DualIndexSet` is great but let's optimise it a bit~~
     * ~~Done, just make a wrapper around a boost set!~~
@@ -105,7 +105,7 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
             * Assigning indexing etc
             * It would also imply the ability to return multiple values from a function
             * I'm just hesitant because of how annoying it is to compile LOL but maybe there's a better way to handle assignments in general in the compiler
-    * ~~Friendship ended with `PoisePack`, `PoiseList` is my best friend now~~
+    * ~~Friendship ended with `Pack`, `List` is my best friend now~~
     * ~~A "pack" will not be a unique type, and you will simply be able to unpack any collection~~
 * Construct `Type` instance, `Type` ident
 * ~~Union type annotation so that we can implement functions on multiple collections~~
@@ -116,9 +116,11 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
 * Structs
     * ~~Member variable access~~
     * Extension function access
-    * Need to generate `PoiseType` instances for these, and hook them into everything else - we may need to do some type of verification step on extension methods when the vm starts running
+        * To do this, the compiler parsing needs to allow for extension functions on structs that haven't been declared yet
+        * So we parse the types, and if one isn't found, store the type's name, the namespace it's in, and the namespace the function is in
+        * At the end of compilation, go through these and verify them, report a compiler error if the type isn't found/not imported
     * ~~Need a class for instances~~
-    * `typeof` for structs and struct instances such that for `struct Foo {}`, `typeof(Foo) == Type` and `typeof(Foo{}) == Foo`
+    * ~~`typeof` for structs and struct instances such that for `struct Foo {}`, `typeof(Foo) == Type` and `typeof(Foo{}) == Foo`~~
 * Objects in constant expressions to allow for object default struct values
     * This shouldn't be complicated, there's really no reason not to allow it, we just can't call functions
     * Need a deep clone mechanism for objects so that structs instantiated with default values get deep copies of objects
