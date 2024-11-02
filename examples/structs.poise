@@ -23,5 +23,9 @@ func main() {
 
     println("v1: " + v1);
     println("v2: " + v2);
+
+    println(typeof(Vector3));
+    println(typeof(Vector3{}));
+    assert(typeof(v1) == Vector3);
 }
 

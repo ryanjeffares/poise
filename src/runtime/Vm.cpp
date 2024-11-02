@@ -229,6 +229,10 @@ Vm::Vm(std::string mainFilePath)
                 []([[maybe_unused]] std::span<Value> args) -> Value {
                     throw Exception(Exception::ExceptionType::InvalidType, "Cannot construct Type");
                 })},
+        {types::Type::Struct, Value::createObjectUntracked<Type>(types::Type::Type, "Type",
+                [](std::span<Value>) -> Value {
+                    throw Exception(Exception::ExceptionType::InvalidType, "Cannot construct Type");
+                })},
     }
 
 {
@@ -692,7 +696,12 @@ auto Vm::run() const noexcept -> RunResult
                     break;
                 }
                 case Op::TypeOf: {
-                    stack.emplace_back(typeValue(pop().type()));
+                    const auto value = pop();
+                    if (value.type() == types::Type::StructInstance) {
+                        stack.emplace_back(value.object()->asStructInstance()->structType());
+                    } else {
+                        stack.emplace_back(typeValue(value.type()));
+                    }
                     break;
                 }
                 case Op::Print: {

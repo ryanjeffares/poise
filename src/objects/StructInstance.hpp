@@ -13,6 +13,7 @@ class StructInstance : public Object
 public:
     explicit StructInstance(runtime::Value structType);
 
+    [[nodiscard]] auto structType() const noexcept -> const runtime::Value&;
     [[nodiscard]] auto findMember(usize memberNameHash) const -> const runtime::Value&;
     auto assignMember(usize memberNameHash, runtime::Value value) -> void;
     auto assignMissingMembers() noexcept -> void;

@@ -12,6 +12,11 @@ StructInstance::StructInstance(runtime::Value structType) : m_structType{std::mo
 
 }
 
+auto StructInstance::structType() const noexcept -> const runtime::Value&
+{
+    return m_structType;
+}
+
 auto StructInstance::findMember(usize memberNameHash) const -> const runtime::Value&
 {
     const auto it = m_memberVariables.find(memberNameHash);
