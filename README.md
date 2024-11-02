@@ -30,7 +30,8 @@ This is a rewrite of [grace](https://github.com/ryanjeffares/grace) because grac
     * We'd have to reverse this association, so each function knows which types it extends, but this is tedious to look up at runtime
     * So maybe the current system is ok? A `PoiseFunction` instance in a `Value` is basically a shared pointer, so it's not too crazy
 * Namespace qualified calls are a little messy
-* `DualIndexSet` is great but let's optimise it a bit
+* ~~`DualIndexSet` is great but let's optimise it a bit~~
+    * ~~Done, just make a wrapper around a boost set!~~
 * Use of more efficient sets/maps, and use these instead of vectors for things that are often looked up with `find_if`
 
 ## Feature Roadmap
