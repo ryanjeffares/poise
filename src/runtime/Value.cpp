@@ -2,6 +2,8 @@
 #include "../objects/Exception.hpp"
 #include "../objects/iterables/hashables/Set.hpp"
 
+#include <boost/functional.hpp>
+
 #include <charconv>
 #include <functional>
 #include <version>
@@ -151,17 +153,17 @@ auto Value::hash() const noexcept -> usize
 {
     switch (typeInternal()) {
         case TypeInternal::Bool:
-            return std::hash<bool>{}(value<bool>());
+            return boost::hash<bool>{}(value<bool>());
         case TypeInternal::Float:
-            return std::hash<f64>{}(value<f64>());
+            return boost::hash<f64>{}(value<f64>());
         case TypeInternal::Int:
-            return std::hash<i64>{}(value<i64>());
+            return boost::hash<i64>{}(value<i64>());
         case TypeInternal::None:
-            return std::hash<std::nullptr_t>{}(value<std::nullptr_t>());
+            return boost::hash<std::nullptr_t>{}(value<std::nullptr_t>());
         case TypeInternal::String:
-            return std::hash<std::string>{}(string());
+            return boost::hash<std::string>{}(string());
         case TypeInternal::Object:
-            return std::hash<objects::Object*>{}(object());
+            return boost::hash<objects::Object*>{}(object());
         default:
             POISE_UNREACHABLE();
     }

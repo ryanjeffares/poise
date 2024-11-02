@@ -5,6 +5,8 @@
 
 #include "Token.hpp"
 
+#include <boost/unordered/unordered_flat_map.hpp>
+
 #include <filesystem>
 #include <initializer_list>
 #include <optional>
@@ -50,8 +52,8 @@ private:
     usize m_start{}, m_current{};
     usize m_line{1_uz}, m_column{0_uz};
 
-    std::unordered_map<char, TokenType> m_symbolLookup;
-    std::unordered_map<std::string_view, TokenType> m_keywordLookup;
+    boost::unordered_flat_map<char, TokenType> m_symbolLookup;
+    boost::unordered_flat_map<std::string_view, TokenType> m_keywordLookup;
 };  // class Scanner
 }   // namespace poise::scanner
 

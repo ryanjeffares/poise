@@ -12,7 +12,7 @@ namespace poise::runtime {
 auto NamespaceManager::addNamespace(const std::filesystem::path& namespacePath, std::string namespaceName, std::optional<usize> parent) noexcept -> bool
 {
     // may or may not have already compiled this file, either way we need to look it up
-    const auto [hash, inserted] = m_namespaceInfoLookup.insert(NamespaceInfo{
+    const auto [hash, it, inserted] = m_namespaceInfoLookup.insert(NamespaceInfo{
         .path = namespacePath,
         .displayName = std::move(namespaceName),
     });
@@ -20,7 +20,7 @@ auto NamespaceManager::addNamespace(const std::filesystem::path& namespacePath, 
     if (parent) {
         // parent is only a nullopt if this was called from the constructor of the main file's compiler
         // so the parent file needs to have this import, but nothing imports the main file
-        m_namespaceInfoLookup.find(*parent).importedNamespaces.push_back(hash);
+        m_namespaceInfoLookup.find(*parent)->second.importedNamespaces.push_back(hash);
     }
 
     return inserted;
@@ -28,23 +28,27 @@ auto NamespaceManager::addNamespace(const std::filesystem::path& namespacePath, 
 
 auto NamespaceManager::namespaceDisplayName(usize namespaceHash) const noexcept -> std::string_view
 {
-    return m_namespaceInfoLookup.find(namespaceHash).displayName;
+    POISE_ASSERT(m_namespaceInfoLookup.contains(namespaceHash), "Namespace not found");
+    return m_namespaceInfoLookup.find(namespaceHash)->second.displayName;
 }
 
 auto NamespaceManager::namespaceHasImportedNamespace(usize parent, usize imported) const noexcept -> bool
 {
-    const auto& namespaceVec = m_namespaceInfoLookup.find(parent).importedNamespaces;
-    return std::ranges::find(namespaceVec, imported) != namespaceVec.end();
+    POISE_ASSERT(m_namespaceInfoLookup.contains(parent), "Namespace not found");
+    const auto& namespaceVec = m_namespaceInfoLookup.find(parent)->second.importedNamespaces;
+    return std::ranges::contains(namespaceVec, imported);
 }
 
 auto NamespaceManager::addFunctionToNamespace(usize namespaceHash, Value function) noexcept -> void
 {
-    m_namespaceInfoLookup.find(namespaceHash).functions.emplace_back(std::move(function));
+    POISE_ASSERT(m_namespaceInfoLookup.contains(namespaceHash), "Namespace not found");
+    m_namespaceInfoLookup.find(namespaceHash)->second.functions.emplace_back(std::move(function));
 }
 
 auto NamespaceManager::namespaceFunction(usize namespaceHash, usize functionNameHash) const noexcept -> std::optional<Value>
 {
-    const auto& functions = m_namespaceInfoLookup.find(namespaceHash).functions;
+    POISE_ASSERT(m_namespaceInfoLookup.contains(namespaceHash), "Namespace not found");
+    const auto& functions = m_namespaceInfoLookup.find(namespaceHash)->second.functions;
 
     if (const auto it = std::ranges::find_if(functions, [functionNameHash] (const Value& value) -> bool {
         return value.object()->asFunction()->nameHash() == functionNameHash;
@@ -57,12 +61,14 @@ auto NamespaceManager::namespaceFunction(usize namespaceHash, usize functionName
 
 auto NamespaceManager::addStructToNamespace(usize namespaceHash, Value structure) noexcept -> void
 {
-    m_namespaceInfoLookup.find(namespaceHash).structs.emplace_back(std::move(structure));
+    POISE_ASSERT(m_namespaceInfoLookup.contains(namespaceHash), "Namespace not found");
+    m_namespaceInfoLookup.find(namespaceHash)->second.structs.emplace_back(std::move(structure));
 }
 
 auto NamespaceManager::namespaceStruct(usize namespaceHash, usize structNameHash) const noexcept -> std::optional<Value>
 {
-    const auto& structs = m_namespaceInfoLookup.find(namespaceHash).structs;
+    POISE_ASSERT(m_namespaceInfoLookup.contains(namespaceHash), "Namespace not found");
+    const auto& structs = m_namespaceInfoLookup.find(namespaceHash)->second.structs;
 
     if (const auto it = std::ranges::find_if(structs, [structNameHash] (const Value& value) -> bool {
         return value.object()->asStruct()->nameHash() == structNameHash;
@@ -74,7 +80,8 @@ auto NamespaceManager::namespaceStruct(usize namespaceHash, usize structNameHash
 }
 auto NamespaceManager::addConstant(usize namespaceHash, Value value, std::string name, bool isExported) noexcept -> void
 {
-    m_namespaceInfoLookup.find(namespaceHash).constants.emplace_back(NamespaceConstant{
+    POISE_ASSERT(m_namespaceInfoLookup.contains(namespaceHash), "Namespace not found");
+    m_namespaceInfoLookup.find(namespaceHash)->second.constants.emplace_back(NamespaceConstant{
         std::move(value),
         std::move(name),
         isExported
@@ -83,7 +90,8 @@ auto NamespaceManager::addConstant(usize namespaceHash, Value value, std::string
 
 auto NamespaceManager::hasConstant(usize namespaceHash, std::string_view constantName) const noexcept -> bool
 {
-    const auto& constantList = m_namespaceInfoLookup.find(namespaceHash).constants;
+    POISE_ASSERT(m_namespaceInfoLookup.contains(namespaceHash), "Namespace not found");
+    const auto& constantList = m_namespaceInfoLookup.find(namespaceHash)->second.constants;
     return std::ranges::any_of(constantList, [&constantName] (const NamespaceConstant& constant) -> bool {
         return constant.name == constantName;
     });
@@ -91,7 +99,8 @@ auto NamespaceManager::hasConstant(usize namespaceHash, std::string_view constan
 
 auto NamespaceManager::getConstant(usize namespaceHash, std::string_view constantName) const noexcept -> std::optional<NamespaceConstant>
 {
-    const auto& constantList = m_namespaceInfoLookup.find(namespaceHash).constants;
+    POISE_ASSERT(m_namespaceInfoLookup.contains(namespaceHash), "Namespace not found");
+    const auto& constantList = m_namespaceInfoLookup.find(namespaceHash)->second.constants;
     const auto it = std::ranges::find_if(constantList, [constantName] (const NamespaceConstant& constant) -> bool {
         return constant.name == constantName;
     });

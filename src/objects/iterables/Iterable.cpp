@@ -29,7 +29,7 @@ auto Iterable::asIterable() noexcept -> Iterable*
     return this;
 }
 
-auto Iterable::findObjectMembers(std::unordered_set<Object*>& objects) const noexcept -> void
+auto Iterable::findObjectMembers(boost::unordered_flat_set<Object*>& objects) const noexcept -> void
 {
     if (type() == runtime::types::Type::Range) {
         return;

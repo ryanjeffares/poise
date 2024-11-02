@@ -32,6 +32,14 @@ private:
         std::vector<usize> importedNamespaces{};
     };
 
+    struct NamespaceInfoHash
+    {
+        [[nodiscard]] auto operator()(const NamespaceInfo& namespaceInfo) const -> usize
+        {
+            return boost::hash<std::filesystem::path>{}(namespaceInfo.path);
+        }
+    };
+
 public:
     // returns wether this is a newly added namespace, or one that's already been compiled.
     // in either case, it will add `namespacePath` to `parent`'s imported namespaces
@@ -50,15 +58,8 @@ public:
     [[nodiscard]] auto getConstant(usize namespaceHash, std::string_view constantName) const noexcept -> std::optional<NamespaceConstant>;
 
 private:
-    struct usizeer
-    {
-        [[nodiscard]] auto operator()(const NamespaceInfo& namespaceInfo) const -> usize
-        {
-            return std::hash<std::filesystem::path>{}(namespaceInfo.path);
-        }
-    };
 
-    utils::DualIndexSet<NamespaceInfo, usizeer> m_namespaceInfoLookup;
+    utils::DualIndexSet<NamespaceInfo, NamespaceInfoHash> m_namespaceInfoLookup;
 };
 }   // namespace poise::runtime
 

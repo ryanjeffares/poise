@@ -10,16 +10,17 @@ namespace fs = std::filesystem;
 
 struct CustomType
 {
+    poise::usize pathHash{};
     fs::path path{};
     std::string data{};
 };
 
 template<>
-struct std::hash<CustomType>
+struct boost::hash<CustomType>
 {
     [[nodiscard]] auto operator()(const CustomType& value) const -> std::size_t 
     {
-        return std::hash<fs::path>{}(value.path);
+        return value.pathHash;
     }
 };
 
@@ -29,6 +30,8 @@ TEST_CASE("DualIndexSet<int>", "[utils]")
     using namespace poise::utils;
 
     DualIndexSet<int> set;
+    using Hasher = decltype(set)::Hasher;
+    Hasher hasher;
 
     for (auto i = 0; i < 50; i++) {
         set.insert(i);
@@ -37,7 +40,9 @@ TEST_CASE("DualIndexSet<int>", "[utils]")
     REQUIRE(set.size() == 50_uz);
 
     for (auto i = 15; i < 25; i++) {
-        REQUIRE(set.find(std::hash<int>{}(i)) == i);
+        const auto it = set.find(hasher(i));
+        REQUIRE(it != set.end());
+        REQUIRE(it->second == i);
     }
 
     REQUIRE(set.remove(10));
@@ -52,30 +57,31 @@ TEST_CASE("DualIndexSet<std::string>", "[utils]")
     using namespace poise::utils;
 
     DualIndexSet<std::string> set;
+    using Hasher = decltype(set)::Hasher;
+    Hasher hasher;
 
     set.insert("Hello");
     set.insert("World");
     set.insert("Ryan");
 
     REQUIRE(set.size() == 3_uz);
-    REQUIRE(set.remove("Hello"));
-    REQUIRE(!set.remove("Foo"));
+    REQUIRE(set.remove(hasher("Hello")));
+    REQUIRE(!set.remove(hasher("Foo")));
     REQUIRE(set.size() == 2_uz);
 
-    REQUIRE(set.insert("Foo").hash == std::hash<std::string>{}("Foo"));
-    REQUIRE(set.insert("Bar").hash == std::hash<std::string>{}("Bar"));
-    REQUIRE(set.insert("Baz").hash == std::hash<std::string>{}("Baz"));
-    REQUIRE(set.insert("Fizz").hash == std::hash<std::string>{}("Fizz"));
-    REQUIRE(set.insert("Buzz").hash == std::hash<std::string>{}("Buzz"));
+    REQUIRE(std::get<0>(set.insert("Foo")) == hasher("Foo"));
+    REQUIRE(std::get<0>(set.insert("Bar")) == hasher("Bar"));
+    REQUIRE(std::get<0>(set.insert("Baz")) == hasher("Baz"));
+    REQUIRE(std::get<0>(set.insert("Fizz")) == hasher("Fizz"));
+    REQUIRE(std::get<0>(set.insert("Buzz")) == hasher("Buzz"));
+    REQUIRE(!std::get<2>(set.insert("Buzz")));
+    REQUIRE(std::get<0>(set.insert("Buzz")) == hasher("Buzz"));
+    REQUIRE(std::get<0>(set.insert("Buzz")) == hasher("Buzz"));
+    REQUIRE(std::get<0>(set.insert("Buzz")) == hasher("Buzz"));
+    REQUIRE(std::get<0>(set.insert("Buzz")) == hasher("Buzz"));
 
-    REQUIRE(set.insert("Buzz").hash == std::hash<std::string>{}("Buzz"));
-    REQUIRE(set.insert("Buzz").hash == std::hash<std::string>{}("Buzz"));
-    REQUIRE(set.insert("Buzz").hash == std::hash<std::string>{}("Buzz"));
-    REQUIRE(set.insert("Buzz").hash == std::hash<std::string>{}("Buzz"));
-
-    REQUIRE(set.capacity() == 16_uz);
-    REQUIRE(set.contains("Buzz"));
-    REQUIRE(!set.contains("Bazz"));
+    REQUIRE(set.contains(hasher("Buzz")));
+    REQUIRE(!set.contains(hasher("Bazz")));
 }
 
 TEST_CASE("DualIndexSet<CustomType>", "[utils]")
@@ -83,30 +89,35 @@ TEST_CASE("DualIndexSet<CustomType>", "[utils]")
     using namespace poise::utils;
 
     DualIndexSet<CustomType> set;
+    using Hasher = decltype(set)::Hasher;
+    Hasher hasher;
 
     auto data1 = CustomType{
+        .pathHash = boost::hash<fs::path>{}(fs::current_path()),
         .path = fs::current_path(),
         .data = "Hello world!",
     };
 
     auto data2 = CustomType{
+        .pathHash = boost::hash<fs::path>{}(fs::current_path().parent_path()),
         .path = fs::current_path().parent_path(),
         .data = "Goodbye world :(",
     };
 
-    REQUIRE(set.insert(data1).hash == std::hash<fs::path>{}(fs::current_path()));
-    REQUIRE(set.insert(data2).hash == std::hash<CustomType>{}(data2));
+    REQUIRE(std::get<0>(set.insert(data1)) == boost::hash<fs::path>{}(fs::current_path()));
+    REQUIRE(std::get<0>(set.insert(data2)) == hasher(data2));
 
     set.insert(CustomType{
+        .pathHash = boost::hash<fs::path>{}(fs::current_path()),
         .path = fs::current_path(),
         .data = "Could this be a dog?",
     });
 
     REQUIRE(set.size() == 2_uz);
-    REQUIRE(set.contains(data1));
-    REQUIRE(set.remove(data2));
-    REQUIRE(!set.contains(data2));
-    REQUIRE(set.remove(std::hash<fs::path>{}(fs::current_path())));
+    REQUIRE(set.contains(hasher(data1)));
+    REQUIRE(set.remove(hasher(data2)));
+    REQUIRE(!set.contains(hasher(data2)));
+    REQUIRE(set.remove(boost::hash<fs::path>{}(fs::current_path())));
     REQUIRE(set.empty());
 }
 } // namespace poise::tests

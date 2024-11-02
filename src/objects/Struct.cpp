@@ -2,13 +2,14 @@
 
 #include <algorithm>
 
+#include <boost/functional.hpp>
 #include <fmt/format.h>
 
 namespace poise::objects {
 Struct::Struct(std::string name, bool exported, std::vector<MemberVariable> memberVariables)
     : m_exported{exported}
     , m_name{std::move(name)}
-    , m_nameHash{std::hash<std::string>{}(m_name)}
+    , m_nameHash{boost::hash<std::string>{}(m_name)}
     , m_memberVariables{std::move(memberVariables)}
 {
 
@@ -29,7 +30,7 @@ auto Struct::type() const noexcept -> runtime::types::Type
     return runtime::types::Type::Struct;
 }
 
-auto Struct::findObjectMembers(std::unordered_set<Object*>& objects) const noexcept -> void
+auto Struct::findObjectMembers(boost::unordered_flat_set<Object*>& objects) const noexcept -> void
 {
     for (const auto& member : m_memberVariables) {
         if (auto object = member.defaultValue.object()) {

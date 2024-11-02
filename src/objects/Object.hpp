@@ -4,6 +4,8 @@
 #include "../Poise.hpp"
 #include "../runtime/Types.hpp"
 
+#include <boost/unordered/unordered_flat_set.hpp>
+
 #include <string>
 #include <unordered_set>
 
@@ -65,7 +67,7 @@ public:
 
     [[nodiscard]] virtual auto toString() const noexcept -> std::string = 0;
     [[nodiscard]] virtual auto type() const noexcept -> runtime::types::Type = 0;
-    virtual auto findObjectMembers(std::unordered_set<Object*>& objects) const noexcept -> void = 0;
+    virtual auto findObjectMembers(boost::unordered_flat_set<Object*>& objects) const noexcept -> void = 0;
     virtual auto removeObjectMembers() noexcept -> void = 0;
     [[nodiscard]] virtual auto anyMemberMatchesRecursive(const Object* object) const noexcept -> bool = 0;
 

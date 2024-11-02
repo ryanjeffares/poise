@@ -7,6 +7,8 @@
 #include "../runtime/Vm.hpp"
 #include "../scanner/Scanner.hpp"
 
+#include <boost/unordered/unordered_flat_map.hpp>
+
 #include <filesystem>
 #include <optional>
 #include <stack>
@@ -180,15 +182,16 @@ private:
     auto error(const scanner::Token& token, std::string_view message) -> void;
 
 private:
-    std::hash<std::string> m_stringHasher{};
-    std::hash<std::filesystem::path> m_pathHasher{};
+    boost::hash<std::string> m_stringHasher{};
+    boost::hash<std::string_view> m_stringViewHasher{};
+    boost::hash<std::filesystem::path> m_pathHasher{};
 
     bool m_mainFile{};
     bool m_stdFile{};
     bool m_hadError{};
     bool m_passedImports{};
 
-    std::unordered_map<std::string, std::filesystem::path> m_importAliasLookup;
+    boost::unordered_flat_map<std::string, std::filesystem::path> m_importAliasLookup;
 
     scanner::Scanner m_scanner;
     runtime::Vm* m_vm;

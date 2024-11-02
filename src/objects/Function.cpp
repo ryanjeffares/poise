@@ -1,12 +1,13 @@
 #include "Function.hpp"
 
+#include <boost/functional.hpp>
 #include <fmt/core.h>
 #include <fmt/format.h>
 
 #include <algorithm>
 
 namespace poise::objects {
-static std::hash<std::string> s_hasher;
+static boost::hash<std::string> s_hasher;
 
 Function::Function(std::string name, std::filesystem::path filePath, usize namespaceHash, u8 arity, bool isExported, bool hasPack)
     : m_name{std::move(name)}
@@ -50,7 +51,7 @@ auto Function::type() const noexcept -> runtime::types::Type
     return runtime::types::Type::Function;
 }
 
-auto Function::findObjectMembers(std::unordered_set<Object*>& objects) const noexcept -> void
+auto Function::findObjectMembers(boost::unordered_flat_set<Object*>& objects) const noexcept -> void
 {
     for (const auto& capture : m_captures) {
         if (const auto object = capture.object()) {

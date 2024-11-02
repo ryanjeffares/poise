@@ -319,7 +319,7 @@ auto Vm::registerStringNatives() noexcept -> void
 auto Vm::registerTimeNatives() noexcept -> void
 {
     m_nativeFunctionLookup.emplace(m_nativeNameHasher("__NATIVE_TIME_TIME"), NativeFunction{
-        0_uz, [](std::span<Value>) -> Value {
+        0_u8, [](std::span<Value>) -> Value {
             const auto now = std::chrono::steady_clock::now();
             const auto epoch = now.time_since_epoch();
             const auto milliseconds = static_cast<f64>(std::chrono::duration_cast<std::chrono::milliseconds>(epoch).count());

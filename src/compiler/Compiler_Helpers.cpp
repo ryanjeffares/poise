@@ -133,7 +133,7 @@ auto Compiler::lastOpWasAssignment() const noexcept -> bool
 auto Compiler::checkNameCollisions(std::string_view structConstFuncName) -> bool
 {
     const auto namespaceManager = m_vm->namespaceManager();
-    const auto nameHash = std::hash<std::string_view>{}(structConstFuncName);
+    const auto nameHash = m_stringViewHasher(structConstFuncName);
 
     if (namespaceManager->namespaceStruct(m_filePathHash, nameHash)) {
         errorAtPrevious("Struct with the same name already declared in this namespace");

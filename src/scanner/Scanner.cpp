@@ -5,7 +5,7 @@
 #include <sstream>
 
 namespace poise::scanner {
-static std::unordered_map<std::filesystem::path, std::string> s_fileContentLookup;
+static boost::unordered_flat_map<std::filesystem::path, std::string> s_fileContentLookup;
 
 Scanner::Scanner(const std::filesystem::path& inFilePath)
     : m_symbolLookup{

@@ -88,7 +88,7 @@ auto Gc::cleanCycles() noexcept -> void
 
     // roots have been marked (the stack, iterators, and local variables)
     // so find every object reachable from these roots
-    std::unordered_set<Object*> reachableObjects;
+    boost::unordered_flat_set<Object*> reachableObjects;
     for (const auto object : m_roots) {
         if (const auto [it, inserted] = reachableObjects.insert(object); inserted) {
             object->findObjectMembers(reachableObjects);
@@ -96,7 +96,7 @@ auto Gc::cleanCycles() noexcept -> void
     }
 
     // anything that's not reachable needs to be deleted
-    std::unordered_set<Object*> unreachableObjects;
+    boost::unordered_flat_set<Object*> unreachableObjects;
     for (const auto object : m_trackedObjects) {
         if (!reachableObjects.contains(object)) {
             // give them an extra reference to make sure they don't get deleted indirectly

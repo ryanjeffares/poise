@@ -10,6 +10,8 @@
 #include "Types.hpp"
 #include "Value.hpp"
 
+#include <boost/unordered/unordered_flat_map.hpp>
+
 #include <unordered_map>
 #include <vector>
 
@@ -25,7 +27,7 @@ public:
     };
 
     using NativeNameHash = usize;
-    using NativeFunctionMap = std::unordered_map<NativeNameHash, NativeFunction>;
+    using NativeFunctionMap = boost::unordered_flat_map<NativeNameHash, NativeFunction>;
 
     explicit Vm(std::string mainFilePath);
 
@@ -57,7 +59,7 @@ private:
     auto registerStringNatives() noexcept -> void;
     auto registerTimeNatives() noexcept -> void;
 
-    std::hash<std::string_view> m_nativeNameHasher;
+    boost::hash<std::string_view> m_nativeNameHasher;
     NativeFunctionMap m_nativeFunctionLookup;
 
     std::string m_mainFilePath;
@@ -69,7 +71,7 @@ private:
 
     NamespaceManager m_namespaceManager;
     
-    std::unordered_map<types::Type, runtime::Value> m_typeLookup;
+    boost::unordered_flat_map<types::Type, runtime::Value> m_typeLookup;
 };  // class Vm
 }   // namespace poise::runtime
 

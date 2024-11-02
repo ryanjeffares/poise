@@ -66,6 +66,7 @@ TEST_CASE("String Interning", "[memory]")
  
     REINITIALISE();
 
+    const auto hasher = boost::hash<std::string>{};
     const auto helloWorld = internString("Hello world");
     const auto helloWorld2 = internString("Hello world");
 
@@ -87,8 +88,8 @@ TEST_CASE("String Interning", "[memory]")
 
     REQUIRE(internedStringCount() == 7_uz);
 
-    REQUIRE(removeInternedString("Foo"));
-    REQUIRE(!removeInternedString("FooBar"));
+    REQUIRE(removeInternedString(hasher("Foo")));
+    REQUIRE(!removeInternedString(hasher("FooBar")));
 
     REQUIRE(internedStringCount() == 6_uz);
 }

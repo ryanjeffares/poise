@@ -50,7 +50,7 @@ auto Iterator::type() const noexcept -> runtime::types::Type
     return runtime::types::Type::Iterator;
 }
 
-auto Iterator::findObjectMembers(std::unordered_set<Object*>& objects) const noexcept -> void
+auto Iterator::findObjectMembers(boost::unordered_flat_set<Object*>& objects) const noexcept -> void
 {
     if (const auto [it, inserted] = objects.insert(m_iterablePtr); inserted) {
         m_iterablePtr->findObjectMembers(objects);
